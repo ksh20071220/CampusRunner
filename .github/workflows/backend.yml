@@ -1,0 +1,19 @@
+name: C backend
+on:
+  push:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+permissions:
+  contents: read
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S backend -B backend/build-cmake -DCMAKE_BUILD_TYPE=Debug
+      - name: Build
+        run: cmake --build backend/build-cmake
+      - name: Test
+        run: ctest --test-dir backend/build-cmake --output-on-failure

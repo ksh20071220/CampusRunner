@@ -1,0 +1,10 @@
+# Generated C backend files and local running data
+backend/build/
+backend/build-cmake/
+*.obj
+*.exe
+*.pdb
+*.ilk
+backend/*.tsv
+backend/*.tsv.tmp
+__pycache__/
