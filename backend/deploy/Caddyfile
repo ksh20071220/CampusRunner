@@ -2,7 +2,8 @@
 # the compose service bound to 127.0.0.1:8080. Caddy terminates HTTPS.
 api.example.com {
     request_body {
-        max_size 2MB
+        # 5 MiB proof upload; the API separately limits JSON to 2 MiB.
+        max_size 5242880
     }
     reverse_proxy 127.0.0.1:8080
 }

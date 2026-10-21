@@ -1,5 +1,7 @@
 #include "database.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 int cr_db_exec(sqlite3 *db, const char *sql) { return sqlite3_exec(db, sql, NULL, NULL, NULL) == SQLITE_OK; }
 sqlite3_stmt *cr_db_prepare(sqlite3 *db, const char *sql) {
     sqlite3_stmt *stmt = NULL;
@@ -13,7 +15,7 @@ int cr_db_open(const char *path, sqlite3 **db) {
     }
     sqlite3_extended_result_codes(*db, 1);
     sqlite3_busy_timeout(*db, 5000);
-    if (!cr_db_exec(*db, "PRAGMA foreign_keys=ON; PRAGMA synchronous=FULL;")) {
+    if (!cr_db_exec(*db, "PRAGMA foreign_keys=ON; PRAGMA synchronous=FULL; PRAGMA secure_delete=ON;")) {
         sqlite3_close(*db); *db = NULL; return 0;
     }
     return 1;
@@ -27,7 +29,7 @@ int cr_db_init(const char *path) {
     if (!stmt) goto done;
     version = sqlite3_step(stmt) == SQLITE_ROW ? sqlite3_column_int(stmt, 0) : -1;
     sqlite3_finalize(stmt);
-    if (version < 0 || version > 1 || !cr_db_exec(db, "PRAGMA journal_mode=WAL; BEGIN IMMEDIATE;")) goto done;
+    if (version < 0 || version > 2 || !cr_db_exec(db, "PRAGMA journal_mode=WAL; BEGIN IMMEDIATE;")) goto done;
     ok = cr_db_exec(db,
         "CREATE TABLE IF NOT EXISTS universities(id INTEGER PRIMARY KEY CHECK(id>0),name TEXT NOT NULL UNIQUE);"
         "CREATE TABLE IF NOT EXISTS members(id INTEGER PRIMARY KEY AUTOINCREMENT, nickname TEXT NOT NULL UNIQUE,"
@@ -46,8 +48,36 @@ int cr_db_init(const char *path) {
         "CREATE INDEX IF NOT EXISTS runs_period ON runs(started_at,university_id) WHERE flags=0 AND distance_mm>0;"
         "CREATE INDEX IF NOT EXISTS runs_member_time ON runs(member_id,started_at,ended_at);"
         "CREATE TABLE IF NOT EXISTS auth_limits(ip TEXT PRIMARY KEY,window_at INTEGER NOT NULL,attempts INTEGER NOT NULL);"
-        "PRAGMA user_version=1; COMMIT;");
+        "COMMIT;");
     if (!ok) cr_db_exec(db, "ROLLBACK");
+    if (ok && version < 2) {
+        ok = cr_db_exec(db,
+            "BEGIN IMMEDIATE;"
+            "ALTER TABLE universities ADD COLUMN kind TEXT NOT NULL DEFAULT '';"
+            "ALTER TABLE universities ADD COLUMN regions_json TEXT NOT NULL DEFAULT '[]';"
+            "ALTER TABLE universities ADD COLUMN aliases_json TEXT NOT NULL DEFAULT '[]';"
+            "ALTER TABLE universities ADD COLUMN campuses_json TEXT NOT NULL DEFAULT '[]';"
+            "ALTER TABLE universities ADD COLUMN source_date TEXT NOT NULL DEFAULT '';"
+            "ALTER TABLE members ADD COLUMN university_verified_at INTEGER;"
+            "CREATE TABLE university_verifications(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "member_id INTEGER NOT NULL REFERENCES members(id),university_id INTEGER NOT NULL REFERENCES universities(id),"
+            "document_type TEXT NOT NULL CHECK(document_type IN ('student_card','admission_letter','enrollment_certificate','other')),"
+            "status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected','cancelled','expired','revoked')),"
+            "image BLOB,mime TEXT NOT NULL,image_hash BLOB NOT NULL CHECK(length(image_hash)=32),"
+            "submitted_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,reviewed_at INTEGER,reviewer TEXT,reason TEXT,"
+            "consent_version INTEGER NOT NULL CHECK(consent_version=1));"
+            "CREATE UNIQUE INDEX verification_one_pending ON university_verifications(member_id) WHERE status='pending';"
+            "CREATE INDEX verification_queue ON university_verifications(status,submitted_at);"
+            "CREATE TABLE verification_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,request_id INTEGER REFERENCES university_verifications(id),"
+            "member_id INTEGER NOT NULL REFERENCES members(id),action TEXT NOT NULL,reviewer TEXT NOT NULL,reason TEXT NOT NULL,created_at INTEGER NOT NULL);"
+            "PRAGMA user_version=2; COMMIT;");
+        if (!ok) cr_db_exec(db, "ROLLBACK");
+    }
+    if (ok) {
+        const char *seed = getenv("CR_SEED_UNIVERSITIES");
+        if (!seed || strcmp(seed, "0")) ok = cr_seed_catalog(db);
+    }
+    if (ok) ok = cr_db_exec(db,"UPDATE university_verifications SET status='expired',image=NULL,reason='review_window_expired' WHERE status='pending' AND expires_at<=unixepoch()");
 done:
     if (!ok) fprintf(stderr, "Database initialization failed: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db); return ok;

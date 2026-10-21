@@ -16,12 +16,13 @@ static int serve(int argc, char **argv) {
     const char *db = argc > 1 ? argv[1] : "campus.sqlite3";
     const char *listen = argc > 2 ? argv[2] : "127.0.0.1:8080";
     const char *admin = getenv("CR_ADMIN_TOKEN"), *origin = getenv("CR_ALLOWED_ORIGIN");
-    const char *options[] = {"listening_ports", listen, "num_threads", "4", "request_timeout_ms", "5000",
+    const char *options[] = {"listening_ports", listen, "num_threads", "4", "request_timeout_ms", "15000",
         "enable_keep_alive", "no", "max_request_size", "16384", NULL};
     CrServer server;
     struct mg_context *ctx;
     struct mg_callbacks callbacks;
     size_t i;
+    unsigned maintenance_ticks=0;
     if (argc > 3 || !*db || !*listen) { fprintf(stderr, "Usage: campus_server [database.sqlite3] [IPv4:port]\n"); return 2; }
     for (i = 0; listen[i]; ++i) if (!((listen[i] >= '0' && listen[i] <= '9') || listen[i] == '.' || listen[i] == ':')) {
         fprintf(stderr, "Listen address must be an IPv4 address and port.\n"); return 2;
@@ -50,6 +51,14 @@ static int serve(int argc, char **argv) {
         struct timespec pause_time = {0, 100000000};
         nanosleep(&pause_time, NULL);
 #endif
+        if (++maintenance_ticks>=600) {
+            sqlite3 *maintenance_db=NULL;
+            if (cr_db_open(db,&maintenance_db)) {
+                cr_verification_expire(maintenance_db);
+                sqlite3_close(maintenance_db);
+            }
+            maintenance_ticks=0;
+        }
     }
     mg_stop(ctx); mg_exit_library(); return 0;
 }

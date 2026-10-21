@@ -38,7 +38,7 @@ int cr_reply(CrRequest *r, int status, cJSON *body) {
     const char *reason = status == 200 ? "OK" : status == 201 ? "Created" : status == 204 ? "No Content" :
         status == 400 ? "Bad Request" : status == 401 ? "Unauthorized" : status == 403 ? "Forbidden" :
         status == 404 ? "Not Found" : status == 405 ? "Method Not Allowed" : status == 409 ? "Conflict" :
-        status == 411 ? "Length Required" : status == 413 ? "Content Too Large" : status == 415 ? "Unsupported Media Type" :
+        status == 410 ? "Gone" : status == 411 ? "Length Required" : status == 413 ? "Content Too Large" : status == 415 ? "Unsupported Media Type" :
         status == 429 ? "Too Many Requests" : status == 503 ? "Service Unavailable" : "Internal Server Error";
     char *json = body ? cJSON_PrintUnformatted(body) : NULL;
     const char *text = status == 204 ? "" : json ? json : "{\"error\":\"internal_error\"}";
@@ -50,7 +50,7 @@ int cr_reply(CrRequest *r, int status, cJSON *body) {
     if (origin && r->server->allowed_origin && !strcmp(origin, r->server->allowed_origin))
         mg_printf(r->conn, "Access-Control-Allow-Origin: %s\r\n"
             "Access-Control-Allow-Methods: GET, POST, PATCH, OPTIONS\r\n"
-            "Access-Control-Allow-Headers: Authorization, Content-Type\r\n", origin);
+            "Access-Control-Allow-Headers: Authorization, Content-Type, X-Document-Type, X-Verification-Consent\r\n", origin);
     if (status == 401) mg_printf(r->conn, "WWW-Authenticate: Bearer\r\n");
     if (status == 429) mg_printf(r->conn, "Retry-After: 60\r\n");
     mg_printf(r->conn, "\r\n");
@@ -61,6 +61,11 @@ int cr_error(CrRequest *r, int status, const char *code) {
     cJSON *body = cJSON_CreateObject();
     cJSON_AddStringToObject(body, "error", code);
     return cr_reply(r, status, body);
+}
+int cr_is_admin(CrRequest *r) {
+    const char *auth = mg_get_header(r->conn, "Authorization");
+    return r->server->admin_token && auth && !strncmp(auth, "Bearer ", 7) &&
+        strlen(auth+7) == strlen(r->server->admin_token) && cr_equal(auth+7, r->server->admin_token, strlen(auth+7));
 }
 static cJSON *read_body(CrRequest *r, int *error) {
     const char *type = mg_get_header(r->conn, "Content-Type"), *end;
@@ -107,7 +112,9 @@ static int valid_query(const char *query) {
         if (!equal || equal >= end || equal+1 == end) return 0;
         n = (size_t)(equal-p);
         bit = n == 4 && !memcmp(p, "from", 4) ? 1u : n == 2 && !memcmp(p, "to", 2) ? 2u :
-              n == 5 && !memcmp(p, "limit", 5) ? 4u : n == 6 && !memcmp(p, "offset", 6) ? 8u : 0u;
+              n == 5 && !memcmp(p, "limit", 5) ? 4u : n == 6 && !memcmp(p, "offset", 6) ? 8u :
+              n == 1 && !memcmp(p, "q", 1) ? 16u : n == 6 && !memcmp(p, "region", 6) ? 32u :
+              n == 4 && !memcmp(p, "kind", 4) ? 64u : n == 6 && !memcmp(p, "status", 6) ? 128u : 0u;
         if (!bit || (seen & bit)) return 0;
         seen |= bit;
         if (!*end) break;
@@ -133,13 +140,32 @@ static int universities(CrRequest *r, const char *method) {
     sqlite3_stmt *stmt;
     int step, response;
     if (!strcmp(method, "GET")) {
+        char query[128] = "", region[128] = "", kind[128] = "";
+        const char *qs = r->info->query_string ? r->info->query_string : "";
         cJSON *array = cJSON_CreateArray();
-        stmt = cr_db_prepare(r->db, "SELECT id,name FROM universities ORDER BY id");
+        if (mg_get_var(qs, strlen(qs), "q", query, sizeof(query)) < -1 ||
+            mg_get_var(qs, strlen(qs), "region", region, sizeof(region)) < -1 ||
+            mg_get_var(qs, strlen(qs), "kind", kind, sizeof(kind)) < -1) {
+            cJSON_Delete(array); return cr_error(r, 400, "invalid_search");
+        }
+        stmt = cr_db_prepare(r->db, "SELECT id,name,kind,regions_json,aliases_json,campuses_json,source_date FROM universities "
+            "WHERE (?='' OR instr(name,?)>0 OR instr(aliases_json,?)>0) "
+            "AND (?='' OR EXISTS(SELECT 1 FROM json_each(regions_json) WHERE value=?)) "
+            "AND (?='' OR kind=?) ORDER BY name,id");
         if (!stmt) { cJSON_Delete(array); return cr_error(r, 500, "database_error"); }
+        sqlite3_bind_text(stmt, 1, query, -1, SQLITE_TRANSIENT); sqlite3_bind_text(stmt, 2, query, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 3, query, -1, SQLITE_TRANSIENT); sqlite3_bind_text(stmt, 4, region, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 5, region, -1, SQLITE_TRANSIENT); sqlite3_bind_text(stmt, 6, kind, -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(stmt, 7, kind, -1, SQLITE_TRANSIENT);
         while ((step = sqlite3_step(stmt)) == SQLITE_ROW) {
             cJSON *item = cJSON_CreateObject();
             cJSON_AddNumberToObject(item, "id", (double)sqlite3_column_int64(stmt, 0));
             cJSON_AddStringToObject(item, "name", (const char *)sqlite3_column_text(stmt, 1));
+            cJSON_AddStringToObject(item, "kind", (const char *)sqlite3_column_text(stmt, 2));
+            cJSON_AddItemToObject(item, "regions", cJSON_Parse((const char *)sqlite3_column_text(stmt, 3)));
+            cJSON_AddItemToObject(item, "aliases", cJSON_Parse((const char *)sqlite3_column_text(stmt, 4)));
+            cJSON_AddItemToObject(item, "campuses", cJSON_Parse((const char *)sqlite3_column_text(stmt, 5)));
+            cJSON_AddStringToObject(item, "source_date", (const char *)sqlite3_column_text(stmt, 6));
             cJSON_AddItemToArray(array, item);
         }
         sqlite3_finalize(stmt);
@@ -147,12 +173,9 @@ static int universities(CrRequest *r, const char *method) {
         return cr_reply(r, 200, array);
     }
     if (!strcmp(method, "POST")) {
-        const char *auth = mg_get_header(r->conn, "Authorization");
         const char *name;
         int64_t id;
-        if (!r->server->admin_token || !auth || strncmp(auth, "Bearer ", 7) ||
-            strlen(auth+7) != strlen(r->server->admin_token) ||
-            !cr_equal(auth+7, r->server->admin_token, strlen(auth+7))) return cr_error(r, 403, "admin_required");
+        if (!cr_is_admin(r)) return cr_error(r, 403, "admin_required");
         name = cr_json_text(r->body, "name", CR_NAME_SIZE);
         if (!name || cJSON_GetArraySize(r->body) != 2 || !cr_json_integer(cJSON_GetObjectItemCaseSensitive(r->body, "id"), 1, 2147483647, &id))
             return cr_error(r, 400, "invalid_university");
@@ -177,12 +200,13 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
     if (origin && (!r.server->allowed_origin || strcmp(origin, r.server->allowed_origin))) return cr_error(&r, 403, "origin_not_allowed");
     if (!strcmp(method, "OPTIONS")) return cr_reply(&r, 204, NULL);
     if (!valid_query(r.info->query_string)) return cr_error(&r, 400, "invalid_query");
-    if (!strcmp(method, "POST") || !strcmp(method, "PATCH")) {
+    if ((!strcmp(method, "POST") || !strcmp(method, "PATCH")) && !cr_verification_upload_path(path)) {
         int error;
         r.body = read_body(&r, &error);
         if (!r.body) return cr_error(&r, error, error == 413 ? "body_too_large" : error == 415 ? "json_required" : "invalid_json");
     }
     if (!cr_db_open(r.server->db_path, &r.db)) { status = cr_error(&r, 503, "database_unavailable"); goto done; }
+    if (!cr_verification_expire(r.db)) { status=cr_error(&r,503,"database_unavailable"); goto done; }
     if (!strcmp(path, "/health") && !strcmp(method, "GET")) {
         sqlite3_stmt *probe = cr_db_prepare(r.db, "SELECT id FROM universities LIMIT 1");
         int step = probe ? sqlite3_step(probe) : SQLITE_ERROR;
@@ -193,6 +217,7 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
             status = cr_reply(&r, 200, body);
         }
     } else if (!strcmp(path, "/api/universities")) status = universities(&r, method);
+    else if (!strncmp(path, "/api/admin/", 11) || !strncmp(path, "/api/me/university-verifications", 32)) status = cr_verification_route(&r, path, method);
     else if (!strncmp(path, "/api/auth/", 10) || !strcmp(path, "/api/me")) status = cr_auth_route(&r, path, method);
     else status = cr_run_route(&r, path, method);
 done:

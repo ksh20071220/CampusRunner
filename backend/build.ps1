@@ -17,7 +17,7 @@ try {
         'cl /nologo /std:c11 /O2 /w /D_CRT_SECURE_NO_WARNINGS /DSQLITE_THREADSAFE=1 /DSQLITE_DQS=0 /DSQLITE_OMIT_LOAD_EXTENSION /c vendor\sqlite3.c /Fobuild\sqlite3.obj',
         'cl /nologo /std:c11 /O2 /w /D_CRT_SECURE_NO_WARNINGS /DCJSON_NESTING_LIMIT=32 /c vendor\cJSON.c /Fobuild\cJSON.obj',
         'cl /nologo /std:c11 /O2 /w /D_CRT_SECURE_NO_WARNINGS /DNO_SSL /DNO_CGI /DNO_FILES /DNO_CACHING /Ivendor\civetweb\include /c vendor\civetweb\src\civetweb.c /Fobuild\civetweb.obj',
-        'cl /nologo /std:c11 /W4 /WX /utf-8 /D_CRT_SECURE_NO_WARNINGS /Iinclude /Ivendor /Ivendor\civetweb\include src\server_main.c src\api.c src\auth.c src\auth_api.c src\database.c src\runs_api.c src\campus_runner.c build\sqlite3.obj build\cJSON.obj build\civetweb.obj bcrypt.lib ws2_32.lib /Febuild\campus_server.exe /Fobuild\'
+        'cl /nologo /std:c11 /W4 /WX /utf-8 /D_CRT_SECURE_NO_WARNINGS /Iinclude /Ivendor /Ivendor\civetweb\include src\server_main.c src\api.c src\auth.c src\auth_api.c src\database.c src\runs_api.c src\catalog.c src\verification.c src\campus_runner.c build\sqlite3.obj build\cJSON.obj build\civetweb.obj bcrypt.lib ws2_32.lib /Febuild\campus_server.exe /Fobuild\'
     )
     $commands = @("@call `"$vcvars`" >nul", '@if errorlevel 1 exit /b 1')
     foreach ($command in $serverCommands) { $commands += "@$command"; $commands += '@if errorlevel 1 exit /b 1' }

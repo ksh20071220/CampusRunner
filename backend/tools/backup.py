@@ -20,6 +20,17 @@ def backup(source, target):
     with contextlib.closing(sqlite3.connect(source.as_uri() + '?mode=ro', uri=True)) as src:
         with contextlib.closing(sqlite3.connect(target)) as dst:
             src.backup(dst)
+            # Identity documents have short retention. Do not copy them into
+            # long-lived operational backups. Restored pending cases re-submit.
+            has_verification = dst.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='university_verifications'").fetchone()
+            if has_verification:
+                dst.execute('PRAGMA journal_mode=DELETE')
+                dst.execute('PRAGMA secure_delete=ON')
+                dst.execute("UPDATE university_verifications SET image=NULL,"
+                            "status=CASE WHEN status='pending' THEN 'cancelled' ELSE status END,"
+                            "reason=CASE WHEN status='pending' THEN 'backup_restore_resubmission_required' ELSE reason END")
+                dst.commit()
+                dst.execute('VACUUM')
             if dst.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
                 raise RuntimeError('Backup integrity check failed')
     print('Backup created:', target)

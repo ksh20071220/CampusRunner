@@ -1,13 +1,13 @@
 # HTTP API v1
 
-기본 URL: `http://127.0.0.1:8080`. 모든 본문은 `application/json` UTF-8 객체입니다. 성공·실패 모두 JSON이며 HTTP 204만 본문이 없습니다. 개인 API는 `Authorization: Bearer <token>`이 필요합니다. 쿠키 인증은 사용하지 않습니다.
+기본 URL: `http://127.0.0.1:8080`. 일반 본문은 `application/json` UTF-8 객체이며, 사진 업로드·조회는 이미지 바이너리입니다. 개인 API는 `Authorization: Bearer <token>`이 필요합니다. 쿠키 인증은 사용하지 않습니다. 사진 인증 API·상태·오류는 [소속 인증 안내](UNIVERSITY_VERIFICATION.md)를 참고하세요.
 
 ## 엔드포인트
 
 | Method | URL | 권한 | 결과 |
 | --- | --- | --- | --- |
 | GET | /health | 공개 | 200 상태 |
-| GET | /api/universities | 공개 | 200 대학 배열 |
+| GET | /api/universities?q=서울&region=서울특별시&kind=대학교 | 공개 | 200 대학 배열, 검색 조건 선택 |
 | POST | /api/universities | 관리자 토큰 | 201 대학 등록 |
 | POST | /api/auth/register | 공개 | 201 회원·토큰 |
 | POST | /api/auth/login | 공개 | 200 회원·토큰 |
@@ -24,7 +24,9 @@
 
 ## 입력
 
-대학 등록(관리자): `{ "id": 1, "name": "서울대학교" }`.
+대학 목록은 내장된 한국 대학 385개가 자동 등록됩니다. 기본 출처·기준연도와 최신 변경 반영 범위는 [대학 목록](catalog/README.md)을 참고하세요. 목록 외 대학을 추가할 때 관리자 등록 API를 사용합니다: `{ "id": 99, "name": "추가 학교명" }`. 이미 등록된 이름이나 ID는 409입니다.
+
+대학 조회는 id·name 외 kind, regions 배열, aliases 배열, campuses 배열, source_date를 반환합니다. q는 현재 학교명 또는 통합 전 이름 부분 검색, region은 캠퍼스 지역 이름, kind는 학교 종류 정확 일치입니다. 한글 검색 값은 URL 인코딩하세요. 전체 목록을 받아 프런트엔드에서 필터링해도 됩니다.
 
 회원 가입:
 
@@ -37,10 +39,10 @@
 가입·로그인 응답:
 
 ```json
-{"id":1,"nickname":"달리는학생","university_id":1,"university_name":"서울대학교","token":"64자리16진수토큰","expires_at":1793228400}
+{"id":1,"nickname":"달리는학생","university_id":1,"university_name":"서울대학교","verification_status":"not_submitted","university_verified":false,"token":"64자리16진수토큰","expires_at":1793228400}
 ```
 
-`GET /api/me`는 위 응답에서 token·expires_at이 없는 프로필입니다. PATCH는 nickname·university_id 중 변경할 항목만 전송합니다. 기록이 하나라도 있으면 대학 변경을 409로 거부합니다. 닉네임은 이후에도 변경할 수 있습니다. 대학 선택은 자기 신고 방식입니다.
+`GET /api/me`는 위 응답에서 token·expires_at이 없는 프로필입니다. PATCH는 nickname·university_id 중 변경할 항목만 전송합니다. 기록이 하나라도 있으면 대학 변경을 409로 거부합니다. 닉네임은 이후에도 변경할 수 있습니다. 대학을 변경하면 이전 사진 신청·승인이 취소되며 새 대학에 대해 다시 사진 인증해야 합니다.
 
 닉네임·대학명: 비어 있지 않은 UTF-8 최대 95바이트, 제어 문자·앞뒤 ASCII 공백 불가. 닉네임과 대학명은 각각 대소문자를 구분해 유일합니다. Unicode 정규화는 하지 않습니다. 비밀번호: 8~128 UTF-8 바이트, 제어 문자·앞뒤 공백 불가. 대학 ID: 1~2147483647 정수. 회원 ID는 서버가 발급합니다.
 
@@ -68,12 +70,12 @@ points: 최소 2개, 최대 20,000개. timestamp는 UTC Unix **초**, 0~41024448
   "started_at":1792623600,"ended_at":1792623660,"duration_seconds":60,
   "distance_m":111.195,"average_mps":1.853248777,
   "max_segment_mps":1.853248777,"max_window_mps":1.853248777,
-  "pace_seconds_per_km":539.593,"flags":0,"accepted":true,
+  "pace_seconds_per_km":539.593,"flags":0,"accepted":true,"counts_for_university":false,
   "policy_version":1,"reasons":[]
 }
 ```
 
-제자리 기록의 pace_seconds_per_km은 null입니다. `GET /api/me/runs/{id}`는 여기에 points 배열을 추가합니다. 의심 기록도 저장 성공이므로 HTTP 201이며 accepted:false, flags·reasons로 사유를 전달합니다. 잘못된 GPS 입력은 저장하지 않고 HTTP 400입니다.
+제자리 기록의 pace_seconds_per_km은 null입니다. `GET /api/me/runs/{id}`는 여기에 points 배열을 추가합니다. accepted는 GPS 판정, counts_for_university는 소속 승인까지 충족해 대학 점수에 반영되는지 나타냅니다. 정상 기록도 소속 승인 전에는 후자가 false입니다. 의심 기록은 HTTP 201·accepted:false로 보관하며 잘못된 입력은 저장하지 않고 HTTP 400입니다.
 
 ## 순위·기간·페이지
 
@@ -86,7 +88,7 @@ from·to는 UTC Unix 초 정수이며 `0 <= from < to <= 4102444800`입니다. �
 ]
 ```
 
-활동 없는 대학도 0m·0명으로 포함합니다. 같은 회원의 여러 정상 러닝은 인원 한 명으로 셉니다. 평균 거리 기준 공동 순위 1·1·3이며 대학 ID로 동점 표시 순서를 정합니다. 순위는 전체 대학에 대해 계산한 뒤 페이지를 잘라 반환합니다.
+활동 없는 대학도 0m·0명으로 포함합니다. 소속 사진 승인을 받은 회원의 정상·양수 거리만 합산하고 같은 회원의 여러 러닝은 인원 한 명으로 셉니다. 미인증 회원은 분모에서도 제외합니다. 평균 거리 기준 공동 순위 1·1·3이며 대학 ID로 동점 표시 순서를 정합니다. 순위는 전체 대학에 대해 계산한 뒤 페이지를 잘라 반환합니다.
 
 rankings: 기본 limit 100, 최대 500. me/runs: 기본 limit 50, 최대 200. 공통 offset 기본 0, 최대 1000000. 배열 길이가 limit보다 작으면 마지막 페이지입니다. 개인 기록은 started_at 내림차순, 같은 시간이면 id 내림차순입니다. 조회 사이 새 기록이 추가되면 offset 페이지가 이동할 수 있으므로 새로고침 시 첫 페이지부터 조회하세요.
 

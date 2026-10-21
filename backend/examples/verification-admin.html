@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CampusRunner 소속 대학 인증 검토</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:1100px;margin:32px auto;padding:0 20px;color:#152b24;background:#f6f8f7}
+h1{font-size:26px}label{display:block;margin:12px 0}input,select,textarea,button{font:inherit;padding:9px;border:1px solid #b9c9c1;border-radius:5px}input{width:min(96%,600px)}button{cursor:pointer;background:#fff}button:disabled{cursor:default;opacity:.45}textarea{width:95%;min-height:60px}main{display:grid;grid-template-columns:300px 1fr;gap:24px;margin-top:24px}section{background:#fff;padding:18px;border:1px solid #dbe3de}ul{list-style:none;padding:0}li{margin:8px 0}li button{width:100%;text-align:left}img{max-width:100%;max-height:65vh;object-fit:contain;background:#edf1ef}#approve{background:#176244;color:white}#message{white-space:pre-wrap}small{color:#566b61}@media(max-width:720px){main{grid-template-columns:1fr}}
+</style>
+<h1>소속 대학 인증 검토</h1>
+<p>사진을 직접 확인한 뒤 승인·반려하세요. 처리하면 원본 사진은 삭제됩니다.</p>
+<label>API 주소 <input id="base" value="http://127.0.0.1:8080" autocomplete="off"></label>
+<label>관리자 토큰 <input id="token" type="password" autocomplete="off" placeholder="서버의 관리자 토큰"></label>
+<label>검토 담당자 이름 <input id="reviewer" autocomplete="off" placeholder="검토 기록에 남길 이름"></label>
+<small>토큰과 사진을 브라우저 저장소에 보관하지 않습니다. 공동 관리자 토큰을 쓰므로 담당자 이름은 직접 정확히 입력하세요.</small>
+<label>상태 <select id="status"><option value="pending">검토 대기</option><option value="approved">승인</option><option value="rejected">반려</option><option value="cancelled">제출 취소</option><option value="expired">기한 만료</option><option value="revoked">승인 철회</option></select></label>
+<button id="refresh">목록 불러오기</button>
+<p id="message" role="status"></p>
+<main><section><h2>신청 목록</h2><small>오래된 신청부터 최대 100건. 처리 후 새로고침하면 다음 대기 신청을 확인할 수 있습니다.</small><ul id="queue"></ul></section>
+<section><h2 id="heading">신청을 선택하세요</h2><p id="details"></p><img id="photo" hidden alt="신청자가 제출한 대학 인증 사진">
+<label>검토 사유 <textarea id="reason" maxlength="160" placeholder="학교명·서류 확인 결과 또는 구체적인 반려 사유"></textarea></label>
+<button id="approve" disabled>승인</button> <button id="reject" disabled>반려</button> <button id="revoke" disabled>승인 철회</button></section></main>
+<script type="module">
+const $ = id => document.getElementById(id);
+let current = null, objectUrl = null;
+function clearPhoto() { $('photo').hidden = true; $('photo').removeAttribute('src'); if (objectUrl) URL.revokeObjectURL(objectUrl); objectUrl = null; }
+async function call(path, body) {
+  if (!$('token').value.trim()) throw new Error('관리자 토큰을 입력하세요.');
+  const base = $('base').value.trim().replace(/\/$/,'');
+  const headers = {Authorization: 'Bearer ' + $('token').value.trim()};
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const r = await fetch(base + path, {method: body === undefined ? 'GET' : 'POST', headers, credentials: 'omit', body: body === undefined ? undefined : JSON.stringify(body)});
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(`${r.status}: ${e.error || '요청 실패'}`); }
+  return r;
+}
+function message(text) { $('message').textContent = text; }
+async function select(item) {
+  current = item; clearPhoto();
+  $('heading').textContent = `${item.nickname} · ${item.university_name}`;
+  $('details').textContent = `신청 #${item.id} / ${item.document_type} / ${item.status} / ${new Date(item.submitted_at*1000).toLocaleString()} / ${item.reason || ''}`;
+  $('reason').value = '';
+  $('approve').disabled = true;
+  $('reject').disabled = item.status !== 'pending';
+  $('revoke').disabled = item.status !== 'approved';
+  if (item.image_available) {
+    const selected = current;
+    const r = await call(`/api/admin/university-verifications/${item.id}/image`);
+    const blob = await r.blob();
+    if (current !== selected) return;
+    $('photo').onload = () => { if (current === selected) $('approve').disabled = item.status !== 'pending'; };
+    $('photo').onerror = () => { if (current === selected) message('사진을 표시할 수 없습니다. 원본을 확인할 수 없으면 반려 후 재제출을 요청하세요.'); };
+    objectUrl = URL.createObjectURL(blob); $('photo').src = objectUrl; $('photo').hidden = false;
+  }
+}
+async function refresh() {
+  current = null; clearPhoto(); $('heading').textContent = '신청을 선택하세요'; $('details').textContent = '';
+  $('approve').disabled = $('reject').disabled = $('revoke').disabled = true;
+  const r = await call(`/api/admin/university-verifications?status=${encodeURIComponent($('status').value)}`);
+  const rows = await r.json(); $('queue').replaceChildren();
+  for (const item of rows) { const li = document.createElement('li'), b = document.createElement('button'); b.textContent = `${item.nickname} · ${item.university_name} (#${item.id})`; b.onclick = () => select(item).catch(e => message(e.message)); li.append(b); $('queue').append(li); }
+  message(rows.length ? `${rows.length}건을 불러왔습니다.` : '해당 상태의 신청이 없습니다.');
+}
+async function decide(decision) {
+  if (!current) return;
+  const reviewer = $('reviewer').value.trim(), reason = $('reason').value.trim();
+  if (!reviewer || !reason) throw new Error('검토 담당자와 사유를 입력하세요.');
+  const id = current.id;
+  $('approve').disabled = $('reject').disabled = $('revoke').disabled = true;
+  try { await call(`/api/admin/university-verifications/${id}/${decision === 'revoked' ? 'revoke' : 'decision'}`, decision === 'revoked' ? {reviewer,reason} : {decision,reviewer,reason}); await refresh(); message(`신청 #${id} 처리 완료`); }
+  catch (e) { await refresh().catch(() => {}); throw e; }
+}
+$('refresh').onclick = () => refresh().catch(e => message(e.message));
+$('approve').onclick = () => decide('approved').catch(e => message(e.message));
+$('reject').onclick = () => decide('rejected').catch(e => message(e.message));
+$('revoke').onclick = () => decide('revoked').catch(e => message(e.message));
+$('token').oninput = () => { current = null; clearPhoto(); $('queue').replaceChildren(); $('approve').disabled = $('reject').disabled = $('revoke').disabled = true; };
+window.addEventListener('pagehide',clearPhoto);
+</script>
+</html>

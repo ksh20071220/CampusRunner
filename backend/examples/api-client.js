@@ -20,7 +20,10 @@ export class CampusRunnerApi {
     }
     return data;
   }
-  universities() { return this.request("/api/universities", { token: null }); }
+  universities(filters = {}) {
+    const query = new URLSearchParams(filters).toString();
+    return this.request(`/api/universities${query ? '?' + query : ''}`, { token: null });
+  }
   async register(nickname, password, universityId) {
     const user = await this.request("/api/auth/register", {
       method: "POST", body: { nickname, password, university_id: universityId }, token: null,
@@ -51,4 +54,21 @@ export class CampusRunnerApi {
   }
   myRun(id) { return this.request(`/api/me/runs/${encodeURIComponent(id)}`); }
   myStats(from, to) { return this.request(`/api/me/stats?${new URLSearchParams({ from, to })}`); }
+  universityVerifications() { return this.request('/api/me/university-verifications'); }
+  cancelUniversityVerification(id) {
+    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: {} });
+  }
+  /** Show the consent/masking notice to the user before passing consent:true. */
+  async submitUniversityProof(file, documentType, { consent = false } = {}) {
+    if (!consent) throw new Error('verification_consent_required');
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) throw new Error('jpeg_or_png_up_to_5mb_required');
+    const response = await fetch(this.baseUrl + '/api/me/university-verifications', {
+      method: 'POST', credentials: 'omit', body: file,
+      headers: { Authorization: `Bearer ${this.token}`, 'Content-Type': file.type,
+        'X-Document-Type': documentType, 'X-Verification-Consent': '1' },
+    });
+    const data = await response.json();
+    if (!response.ok) { const error = new Error(data.error || 'upload_failed'); error.status = response.status; throw error; }
+    return data;
+  }
 }

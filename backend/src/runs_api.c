@@ -8,7 +8,8 @@
 #include <string.h>
 #include <time.h>
 
-#define RUN_COLUMNS "id,client_key,university_id,started_at,ended_at,distance_mm,flags,max_segment_mps,max_window_mps,average_mps,policy_version,gps_json"
+#define RUN_COLUMNS "id,client_key,university_id,started_at,ended_at,distance_mm,flags,max_segment_mps,max_window_mps,average_mps,policy_version,gps_json," \
+    "EXISTS(SELECT 1 FROM members WHERE members.id=runs.member_id AND members.university_id=runs.university_id AND members.university_verified_at IS NOT NULL)"
 static cJSON *run_json(sqlite3_stmt *stmt, int points) {
     cJSON *obj = cJSON_CreateObject(), *reasons = cJSON_CreateArray();
     int flags = sqlite3_column_int(stmt, 6);
@@ -27,6 +28,7 @@ static cJSON *run_json(sqlite3_stmt *stmt, int points) {
     if (meters > 0) cJSON_AddNumberToObject(obj, "pace_seconds_per_km", duration*1000/meters);
     else cJSON_AddNullToObject(obj, "pace_seconds_per_km");
     cJSON_AddNumberToObject(obj, "flags", flags); cJSON_AddBoolToObject(obj, "accepted", flags == 0);
+    cJSON_AddBoolToObject(obj, "counts_for_university", flags == 0 && meters > 0 && sqlite3_column_int(stmt, 12));
     cJSON_AddNumberToObject(obj, "policy_version", sqlite3_column_int(stmt, 10));
     if (flags & CR_FAST_SEGMENT) cJSON_AddItemToArray(reasons, cJSON_CreateString("fast_segment"));
     if (flags & CR_FAST_WINDOW) cJSON_AddItemToArray(reasons, cJSON_CreateString("fast_window"));
@@ -56,7 +58,8 @@ static int rankings(CrRequest *r) {
     stmt = cr_db_prepare(r->db,
         "WITH totals AS (SELECT u.id,u.name,coalesce(sum(r.distance_mm),0) AS distance_mm,"
         "count(DISTINCT r.member_id) AS participants,count(r.id) AS runs FROM universities u LEFT JOIN runs r "
-        "ON r.university_id=u.id AND r.flags=0 AND r.distance_mm>0 AND r.started_at>=? AND r.started_at<? GROUP BY u.id),"
+        "ON r.university_id=u.id AND r.flags=0 AND r.distance_mm>0 AND r.started_at>=? AND r.started_at<? "
+        "AND EXISTS(SELECT 1 FROM members m WHERE m.id=r.member_id AND m.university_id=r.university_id AND m.university_verified_at IS NOT NULL) GROUP BY u.id),"
         "scored AS (SELECT *,CASE WHEN participants>0 THEN 1.0*distance_mm/participants ELSE 0 END AS average_mm FROM totals),"
         "ranked AS (SELECT *,rank() OVER(ORDER BY average_mm DESC) AS rank FROM scored) "
         "SELECT id,name,distance_mm,participants,runs,average_mm,rank FROM ranked ORDER BY average_mm DESC,id LIMIT ? OFFSET ?");

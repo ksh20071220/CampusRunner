@@ -24,11 +24,15 @@ cJSON *cr_member_json(sqlite3_stmt *stmt) {
     cJSON_AddStringToObject(obj, "nickname", (const char *)sqlite3_column_text(stmt, 1));
     cJSON_AddNumberToObject(obj, "university_id", (double)sqlite3_column_int64(stmt, 2));
     cJSON_AddStringToObject(obj, "university_name", (const char *)sqlite3_column_text(stmt, 3));
+    cJSON_AddStringToObject(obj, "verification_status", (const char *)sqlite3_column_text(stmt, 4));
+    cJSON_AddBoolToObject(obj, "university_verified", sqlite3_column_int(stmt, 5) != 0);
     return obj;
 }
 static cJSON *profile(CrRequest *r) {
     sqlite3_stmt *stmt = cr_db_prepare(r->db,
-        "SELECT m.id,m.nickname,m.university_id,u.name FROM members m JOIN universities u ON u.id=m.university_id WHERE m.id=?");
+        "SELECT m.id,m.nickname,m.university_id,u.name,CASE WHEN m.university_verified_at IS NOT NULL THEN 'approved' "
+        "ELSE coalesce((SELECT status FROM university_verifications v WHERE v.member_id=m.id ORDER BY v.id DESC LIMIT 1),'not_submitted') END,"
+        "m.university_verified_at IS NOT NULL FROM members m JOIN universities u ON u.id=m.university_id WHERE m.id=?");
     cJSON *obj = NULL;
     if (!stmt) return NULL;
     sqlite3_bind_int64(stmt, 1, r->member_id);
@@ -157,6 +161,20 @@ static int update_profile(CrRequest *r) {
     if (uni) sqlite3_bind_int64(stmt, 2, id); else sqlite3_bind_null(stmt, 2);
     sqlite3_bind_int64(stmt, 3, r->member_id); step = sqlite3_step(stmt); sqlite3_finalize(stmt); stmt = NULL;
     if (step != SQLITE_DONE) { response = step == SQLITE_CONSTRAINT_FOREIGNKEY ? 400 : (step & 255) == SQLITE_CONSTRAINT ? 409 : 500; goto fail; }
+    if (uni) {
+        stmt = cr_db_prepare(r->db, "UPDATE university_verifications SET status='cancelled',image=NULL,reason='university_changed' "
+            "WHERE member_id=? AND university_id<>? AND status IN ('pending','approved')");
+        if (!stmt) goto fail;
+        sqlite3_bind_int64(stmt, 1, r->member_id); sqlite3_bind_int64(stmt, 2, id);
+        step = sqlite3_step(stmt); sqlite3_finalize(stmt); stmt = NULL;
+        if (step != SQLITE_DONE) goto fail;
+        stmt = cr_db_prepare(r->db, "UPDATE members SET university_verified_at=NULL WHERE id=? AND NOT EXISTS "
+            "(SELECT 1 FROM university_verifications WHERE member_id=? AND university_id=? AND status='approved')");
+        if (!stmt) goto fail;
+        sqlite3_bind_int64(stmt, 1, r->member_id); sqlite3_bind_int64(stmt, 2, r->member_id); sqlite3_bind_int64(stmt, 3, id);
+        step = sqlite3_step(stmt); sqlite3_finalize(stmt); stmt = NULL;
+        if (step != SQLITE_DONE) goto fail;
+    }
     if (!cr_db_exec(r->db, "COMMIT")) goto fail;
     return cr_reply(r, 200, profile(r));
 fail:

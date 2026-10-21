@@ -1,5 +1,6 @@
 """Real HTTP requests against the C server; no Python server or third-party packages."""
 import concurrent.futures
+import base64
 import contextlib
 import http.client
 import hashlib
@@ -13,10 +14,13 @@ import sys
 import tempfile
 import time
 import unittest
+import urllib.parse
 
 EXE = pathlib.Path(sys.argv[1]).resolve()
 sys.argv = sys.argv[:1]
 ADMIN = 'test-only-admin-token-' + 'a' * 32
+PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lJ8AAAAASUVORK5CYII=')
+PROOF_HEADERS = {'Content-Type': 'image/png', 'X-Document-Type': 'student_card', 'X-Verification-Consent': '1'}
 
 
 class ServerTests(unittest.TestCase):
@@ -35,7 +39,8 @@ class ServerTests(unittest.TestCase):
         self.call('POST', '/api/universities', {'id': 2, 'name': '연세대학교'}, token=ADMIN, expected=201)
 
     def start(self):
-        env = dict(os.environ, CR_ADMIN_TOKEN=ADMIN, CR_ALLOWED_ORIGIN='http://localhost:5173')
+        env = dict(os.environ, CR_ADMIN_TOKEN=ADMIN, CR_ALLOWED_ORIGIN='http://localhost:5173',
+                   CR_SEED_UNIVERSITIES=getattr(self, 'seed_catalog', '0'))
         self.log = open(self.cwd / 'server.log', 'ab')
         self.process = subprocess.Popen([str(EXE), str(self.db), f'127.0.0.1:{self.port}'],
                                         cwd=self.cwd, env=env, stdout=self.log, stderr=self.log)
@@ -80,9 +85,35 @@ class ServerTests(unittest.TestCase):
         finally:
             connection.close()
 
-    def register(self, name='runner', university=1):
-        return self.call('POST', '/api/auth/register',
+    def register(self, name='runner', university=1, verified=True):
+        account = self.call('POST', '/api/auth/register',
                          {'nickname': name, 'password': 'Strong-pass-123!', 'university_id': university}, expected=201)
+        if verified:
+            proof = self.upload(account['token'])
+            self.review(proof['id'])
+            account.update(self.call('GET', '/api/me', token=account['token']))
+        return account
+
+    def upload(self, token, expected=201):
+        return self.call('POST', '/api/me/university-verifications', raw=PNG, headers=PROOF_HEADERS, token=token, expected=expected)
+
+    def review(self, request_id, decision='approved', expected=200):
+        return self.call('POST', f'/api/admin/university-verifications/{request_id}/decision',
+                         {'decision': decision, 'reviewer': '담당자', 'reason': '학교와 제출 서류 확인' if decision == 'approved' else '학교명이 다릅니다'},
+                         token=ADMIN, expected=expected)
+
+    def proof_image(self, request_id, token, admin=False, expected=200):
+        root = '/api/admin/university-verifications' if admin else '/api/me/university-verifications'
+        connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=15)
+        try:
+            connection.request('GET', f'{root}/{request_id}/image', headers={'Authorization': 'Bearer '+token})
+            response = connection.getresponse()
+            payload = response.read()
+            self.assertEqual(response.status, expected, payload)
+            self.assertEqual(response.getheader('Cache-Control'), 'no-store')
+            return payload
+        finally:
+            connection.close()
 
     def run_body(self, key='run-1', start=1000, degrees=.001, seconds=60):
         return {'key': key, 'points': [{'timestamp': start, 'latitude': 0, 'longitude': 0},
@@ -252,6 +283,148 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(db.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
         p = subprocess.run([sys.executable, str(tool), str(self.db), str(backup)], capture_output=True)
         self.assertNotEqual(p.returncode, 0)
+
+    def test_unverified_run_then_manual_approval_and_revocation(self):
+        account = self.register(verified=False)
+        token = account['token']
+        self.assertEqual(account['verification_status'], 'not_submitted')
+        run = self.call('POST', '/api/runs', self.run_body(), token=token, expected=201)
+        self.assertTrue(run['accepted'])
+        self.assertFalse(run['counts_for_university'])
+        self.assertEqual(self.call('GET', '/api/rankings?from=0&to=2000')[0]['runs'], 0)
+        proof = self.upload(token)
+        self.assertEqual(proof['status'], 'pending')
+        self.assertEqual(self.call('GET', '/api/me', token=token)['verification_status'], 'pending')
+        self.review(proof['id'])
+        self.assertTrue(self.call('GET', '/api/me', token=token)['university_verified'])
+        self.assertEqual(self.call('GET', '/api/rankings?from=0&to=2000')[0]['runs'], 1)
+        self.assertTrue(self.call('GET', '/api/me/runs', token=token)[0]['counts_for_university'])
+        self.proof_image(proof['id'], ADMIN, admin=True, expected=410)
+        self.upload(token, expected=409)
+        self.call('POST', f"/api/admin/university-verifications/{proof['id']}/revoke",
+                  {'reviewer': '다른담당자', 'reason': '오승인 정정'}, token=ADMIN)
+        self.assertFalse(self.call('GET', '/api/me', token=token)['university_verified'])
+        self.assertEqual(self.call('GET', '/api/rankings?from=0&to=2000')[0]['runs'], 0)
+        self.assertEqual(len(self.call('GET', '/api/me/runs', token=token)), 1)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('select count(*) from verification_audit').fetchone()[0], 2)
+            self.assertIsNone(db.execute('select image from university_verifications').fetchone()[0])
+
+    def test_proof_access_rejection_and_resubmission(self):
+        a, b = self.register('a', verified=False), self.register('b', verified=False)
+        proof = self.upload(a['token'])
+        self.assertEqual(self.proof_image(proof['id'], a['token']), PNG)
+        self.assertEqual(self.proof_image(proof['id'], ADMIN, admin=True), PNG)
+        self.proof_image(proof['id'], b['token'], expected=404)
+        self.proof_image(proof['id'], b['token'], admin=True, expected=403)
+        self.call('GET', '/api/admin/university-verifications', token=a['token'], expected=403)
+        self.call('POST', f"/api/admin/university-verifications/{proof['id']}/decision",
+                  {'decision': 'approved', 'reviewer': 'fake', 'reason': 'fake'}, token=a['token'], expected=403)
+        self.upload(a['token'], expected=409)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE university_verifications SET submitted_at=? WHERE id=?', (int(time.time())-2*86400, proof['id']))
+            db.commit()
+        self.upload(a['token'], expected=409)  # still pending after 24h, before 7-day expiry
+        self.review(proof['id'], 'rejected')
+        self.assertEqual(self.call('GET', '/api/me', token=a['token'])['verification_status'], 'rejected')
+        self.proof_image(proof['id'], a['token'], expected=410)
+        second = self.upload(a['token'])
+        self.assertNotEqual(second['id'], proof['id'])
+        self.review(second['id'])
+
+    def test_expiry_cancel_and_university_change_invalidate_proof(self):
+        token = self.register(verified=False)['token']
+        proof = self.upload(token)
+        self.call('PATCH', '/api/me', {'university_id': 2}, token=token)
+        self.review(proof['id'], expected=409)
+        self.proof_image(proof['id'], token, expected=410)
+        proof = self.upload(token)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE university_verifications SET expires_at=0 WHERE id=?', (proof['id'],))
+            db.commit()
+        self.assertEqual(self.call('GET', '/api/me', token=token)['verification_status'], 'expired')
+        self.proof_image(proof['id'], token, expected=410)
+        proof = self.upload(token)
+        self.call('POST', f"/api/me/university-verifications/{proof['id']}/cancel", {}, token=token)
+        self.assertEqual(self.call('GET', '/api/me', token=token)['verification_status'], 'cancelled')
+        self.proof_image(proof['id'], token, expected=410)
+
+    def test_proof_input_validation(self):
+        token = self.register(verified=False)['token']
+        root = '/api/me/university-verifications'
+        self.call('POST', root, raw=PNG, headers=PROOF_HEADERS, expected=401)
+        self.call('POST', root, raw=b'<svg>bad</svg>', headers=PROOF_HEADERS, token=token, expected=400)
+        self.call('POST', root, raw=PNG, headers={'Content-Type': 'image/png', 'X-Document-Type': 'student_card'}, token=token, expected=400)
+        self.call('POST', root, raw=PNG, headers=dict(PROOF_HEADERS, **{'Content-Type': 'image/jpeg'}), token=token, expected=400)
+        self.call('POST', root, raw=b'bad', headers=dict(PROOF_HEADERS, **{'Content-Length': '5242881'}), token=token, expected=413)
+        self.call('PATCH', '/api/me', {'university_verified': True}, token=token, expected=400)
+        self.assertEqual(self.call('GET', root, token=token), [])
+
+    def test_two_reviewers_cannot_overwrite_decision(self):
+        token = self.register(verified=False)['token']
+        proof = self.upload(token)
+        def approve(_):
+            connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=15)
+            connection.request('POST', f"/api/admin/university-verifications/{proof['id']}/decision",
+                               json.dumps({'decision': 'approved', 'reviewer': 'operator', 'reason': 'checked'}),
+                               {'Content-Type': 'application/json', 'Authorization': 'Bearer '+ADMIN})
+            response = connection.getresponse()
+            status = response.status
+            response.read()
+            connection.close()
+            return status
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertEqual(sorted(pool.map(approve, range(2))), [200, 409])
+
+    def test_official_catalog_seed_search_and_stable_existing_ids(self):
+        self.stop()
+        self.seed_catalog = '1'
+        self.start()
+        rows = self.call('GET', '/api/universities')
+        self.assertEqual(len(rows), 385)
+        query = urllib.parse.urlencode({'q': '서울대학교', 'region': '서울특별시'})
+        row = self.call('GET', '/api/universities?'+query)[0]
+        self.assertEqual(row['id'], 1)  # existing member FK IDs must never be renumbered
+        self.assertEqual(row['kind'], '대학교')
+        alias = urllib.parse.urlencode({'q': '국립강릉원주대학교'})
+        self.assertEqual(self.call('GET', '/api/universities?'+alias)[0]['name'], '강원대학교')
+        closed = urllib.parse.urlencode({'q': '서남대학교'})
+        self.assertEqual(self.call('GET', '/api/universities?'+closed), [])
+        self.stop()
+        self.start()
+        self.assertEqual(len(self.call('GET', '/api/universities')), 385)
+
+    def test_v1_database_upgrade_preserves_users_tokens_runs(self):
+        account = self.register()
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        self.stop()
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('DROP TABLE verification_audit')
+            db.execute('DROP TABLE university_verifications')
+            db.execute('ALTER TABLE members DROP COLUMN university_verified_at')
+            for column in ('kind', 'regions_json', 'aliases_json', 'campuses_json', 'source_date'):
+                db.execute('ALTER TABLE universities DROP COLUMN '+column)
+            db.execute('PRAGMA user_version=1')
+            db.commit()
+        self.start()
+        self.assertEqual(self.call('GET', '/api/me', token=account['token'])['id'], account['id'])
+        self.assertEqual(self.call('GET', '/api/me', token=account['token'])['verification_status'], 'not_submitted')
+        self.assertEqual(len(self.call('GET', '/api/me/runs', token=account['token'])), 1)
+        self.assertEqual(self.call('GET', '/api/rankings?from=0&to=2000')[0]['runs'], 0)
+        proof = self.upload(account['token'])
+        self.review(proof['id'])
+        self.assertEqual(self.call('GET', '/api/rankings?from=0&to=2000')[0]['runs'], 1)
+
+    def test_backups_exclude_identity_photos_without_changing_live_data(self):
+        token = self.register(verified=False)['token']
+        proof = self.upload(token)
+        backup = self.cwd / 'private-backup.sqlite3'
+        tool = pathlib.Path(__file__).resolve().parent.parent / 'tools' / 'backup.py'
+        p = subprocess.run([sys.executable, str(tool), str(self.db), str(backup)], capture_output=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        with contextlib.closing(sqlite3.connect(backup)) as db:
+            self.assertEqual(db.execute('SELECT status,image FROM university_verifications').fetchone(), ('cancelled', None))
+        self.assertEqual(self.proof_image(proof['id'], token), PNG)
 
 
 if __name__ == '__main__':
