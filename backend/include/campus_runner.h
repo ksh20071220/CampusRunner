@@ -11,7 +11,8 @@
 #define CR_MAX_POINTS 100000
 
 typedef enum { CR_OK, CR_INVALID, CR_NOT_FOUND, CR_DUPLICATE, CR_FULL, CR_IO } CrStatus;
-enum { CR_FAST_SEGMENT = 1, CR_FAST_WINDOW = 2, CR_FAST_AVERAGE = 4 };
+enum { CR_FAST_SEGMENT = 1, CR_FAST_WINDOW = 2, CR_FAST_AVERAGE = 4,
+       CR_GPS_GAP = 8, CR_LONG_DURATION = 16 };
 typedef struct { int id; char name[CR_NAME_SIZE]; } CrUniversity;
 typedef struct { int id, university_id; char nickname[CR_NAME_SIZE]; } CrMember;
 /* Unix seconds (UTC), metres, metres/second. */
@@ -19,6 +20,7 @@ typedef struct { double latitude, longitude; int64_t timestamp; } CrPoint;
 typedef struct {
     double max_segment_mps, max_window_mps, max_average_mps;
     int64_t window_seconds;
+    int64_t max_gap_seconds, max_duration_seconds;
 } CrPolicy;
 typedef struct {
     char key[CR_KEY_SIZE];
@@ -40,6 +42,9 @@ typedef struct {
 } CrStore;
 
 CrPolicy cr_default_policy(void);
+int cr_valid_text(const char *text, size_t capacity);
+CrStatus cr_analyze_run(const CrPoint *points, size_t count,
+                        const CrPolicy *policy, CrRun *result);
 const char *cr_status_string(CrStatus status);
 CrStatus cr_add_university(CrStore *store, int id, const char *name);
 CrStatus cr_add_member(CrStore *store, int id, const char *nickname, int university_id);

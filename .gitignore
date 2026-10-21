@@ -1,10 +1,18 @@
-# Generated C backend files and local running data
-backend/build/
-backend/build-cmake/
+# Generated binaries, local DBs, GPS files and secrets
+backend/build*/
+backend/data/
+backend/backups/
+backend/*.tsv
+backend/*.tsv.tmp
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
 *.obj
 *.exe
 *.pdb
 *.ilk
-backend/*.tsv
-backend/*.tsv.tmp
+*.lib
+*.exp
+.env
 __pycache__/

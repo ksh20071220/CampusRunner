@@ -42,7 +42,7 @@ class CliTests(unittest.TestCase):
         self.gps("timestamp,latitude,longitude\n100,0,0\n250,0,0.01\n")
         run = self.call("run-import", "vehicle", "1", "gps.csv")
         self.assertFalse(run["accepted"])
-        self.assertEqual(run["flags"], 6)
+        self.assertEqual(run["flags"] & 6, 6)
         self.assertEqual(self.call("rankings", "0", "1000")[0]["distance_m"], 0)
 
     def test_bad_inputs_do_not_modify_snapshot(self):

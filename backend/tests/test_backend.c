@@ -40,6 +40,9 @@ static void registrations(void) {
     assert(cr_add_member(s, 11, "New", 2) == CR_DUPLICATE);
     assert(cr_add_member(s, 31, "New", 99) == CR_NOT_FOUND);
     assert(cr_add_member(s, 0, "New", 1) == CR_INVALID);
+    assert(cr_add_member(s, 31, "   ", 1) == CR_INVALID);
+    assert(cr_add_member(s, 31, "trailing ", 1) == CR_INVALID);
+    assert(cr_add_member(s, 31, "\xc0\xaf", 1) == CR_INVALID);
     free(s);
 }
 static void validation(void) {
@@ -72,6 +75,10 @@ static void validation(void) {
     assert((r.flags & (CR_FAST_AVERAGE | CR_FAST_WINDOW)) == (CR_FAST_AVERAGE | CR_FAST_WINDOW));
     r = submit(s, "stationary", 11, 500, 0, 60);
     assert(r.flags == 0 && r.distance_m == 0);
+    r = submit(s, "gps-gap", 11, 5000, .001, 121);
+    assert(r.flags & CR_GPS_GAP);
+    r = submit(s, "long-duration", 11, 10000, .001, 21601);
+    assert(r.flags & CR_LONG_DURATION);
     /* Dateline crossing must use the short great-circle distance. */
     points[0] = (CrPoint){0, 179.999, 1000}; points[1] = (CrPoint){0, -179.999, 1100};
     OK(cr_submit_run(s, "dateline", 11, points, 2, NULL, &r));

@@ -4,12 +4,32 @@
 #include <string.h>
 #include <limits.h>
 
-static int valid_text(const char *s, size_t cap) {
-    size_t i;
+int cr_valid_text(const char *s, size_t cap) {
+    size_t i = 0;
     if (!s || !s[0]) return 0;
-    for (i = 0; i < cap && s[i]; ++i)
-        if ((unsigned char)s[i] < 32 || (unsigned char)s[i] == 127) return 0;
-    return i < cap;
+    if (s[0] == ' ') return 0;
+    while (i < cap && s[i]) {
+        unsigned char c = (unsigned char)s[i++];
+        unsigned code;
+        size_t extra, j;
+        if (c < 32 || c == 127) return 0;
+        if (c < 128) continue;
+        if (c >= 0xc2 && c <= 0xdf) { extra = 1; code = c & 31u; }
+        else if (c >= 0xe0 && c <= 0xef) { extra = 2; code = c & 15u; }
+        else if (c >= 0xf0 && c <= 0xf4) { extra = 3; code = c & 7u; }
+        else return 0;
+        for (j = 0; j < extra; ++j) {
+            unsigned char next;
+            if (i >= cap) return 0;
+            next = (unsigned char)s[i++];
+            if (next < 0x80 || next > 0xbf) return 0;
+            code = (code << 6) | (next & 63u);
+        }
+        if ((extra == 1 && code < 0x80) || (extra == 2 && code < 0x800) ||
+            (extra == 3 && code < 0x10000) || code > 0x10ffff ||
+            (code >= 0xd800 && code <= 0xdfff)) return 0;
+    }
+    return i < cap && i > 0 && s[i-1] != ' ';
 }
 static const CrUniversity *university(const CrStore *s, int id) {
     size_t i;
@@ -24,7 +44,7 @@ static const CrMember *member(const CrStore *s, int id) {
     return NULL;
 }
 CrPolicy cr_default_policy(void) {
-    CrPolicy p = {10.0, 6.0, 6.0, 30};
+    CrPolicy p = {10.0, 6.0, 6.0, 30, 120, 21600};
     return p;
 }
 const char *cr_status_string(CrStatus status) {
@@ -34,7 +54,7 @@ const char *cr_status_string(CrStatus status) {
 CrStatus cr_add_university(CrStore *s, int id, const char *name) {
     size_t i;
     CrUniversity *u;
-    if (!s || id <= 0 || !valid_text(name, CR_NAME_SIZE)) return CR_INVALID;
+    if (!s || id <= 0 || !cr_valid_text(name, CR_NAME_SIZE)) return CR_INVALID;
     for (i = 0; i < s->university_count; ++i)
         if (s->universities[i].id == id || !strcmp(s->universities[i].name, name)) return CR_DUPLICATE;
     if (s->university_count >= CR_MAX_UNIVERSITIES) return CR_FULL;
@@ -46,7 +66,7 @@ CrStatus cr_add_university(CrStore *s, int id, const char *name) {
 CrStatus cr_add_member(CrStore *s, int id, const char *nickname, int university_id) {
     size_t i;
     CrMember *m;
-    if (!s || id <= 0 || !valid_text(nickname, CR_NAME_SIZE)) return CR_INVALID;
+    if (!s || id <= 0 || !cr_valid_text(nickname, CR_NAME_SIZE)) return CR_INVALID;
     if (!university(s, university_id)) return CR_NOT_FOUND;
     for (i = 0; i < s->member_count; ++i)
         if (s->members[i].id == id || !strcmp(s->members[i].nickname, nickname)) return CR_DUPLICATE;
@@ -64,23 +84,17 @@ static double distance(const CrPoint *a, const CrPoint *b) {
     h = fmax(0.0, fmin(1.0, h));
     return 6371000.0 * 2 * atan2(sqrt(h), sqrt(1-h));
 }
-CrStatus cr_submit_run(CrStore *s, const char *key, int member_id,
-                       const CrPoint *points, size_t count,
-                       const CrPolicy *policy, CrRun *result) {
+CrStatus cr_analyze_run(const CrPoint *points, size_t count,
+                        const CrPolicy *policy, CrRun *result) {
     CrRun run = {0};
-    const CrMember *m;
     CrPolicy p = policy ? *policy : cr_default_policy();
     double *cumulative;
     size_t i, left = 0;
-    if (!s || !valid_text(key, CR_KEY_SIZE) || !points || count < 2 || count > CR_MAX_POINTS ||
+    if (!result || !points || count < 2 || count > CR_MAX_POINTS ||
         !isfinite(p.max_segment_mps) || p.max_segment_mps <= 0 ||
         !isfinite(p.max_window_mps) || p.max_window_mps <= 0 ||
-        !isfinite(p.max_average_mps) || p.max_average_mps <= 0 || p.window_seconds <= 0) return CR_INVALID;
-    m = member(s, member_id);
-    if (!m) return CR_NOT_FOUND;
-    for (i = 0; i < s->run_count; ++i)
-        if (!strcmp(s->runs[i].key, key)) return CR_DUPLICATE;
-    if (s->run_count >= CR_MAX_RUNS) return CR_FULL;
+        !isfinite(p.max_average_mps) || p.max_average_mps <= 0 || p.window_seconds <= 0 ||
+        p.max_gap_seconds <= 0 || p.max_duration_seconds <= 0) return CR_INVALID;
     for (i = 0; i < count; ++i) {
         if (!isfinite(points[i].latitude) || !isfinite(points[i].longitude) ||
             fabs(points[i].latitude) > 90 || fabs(points[i].longitude) > 180 ||
@@ -91,6 +105,7 @@ CrStatus cr_submit_run(CrStore *s, const char *key, int member_id,
     for (i = 1; i < count; ++i) {
         double d = distance(&points[i-1], &points[i]);
         double speed = d / (double)(points[i].timestamp - points[i-1].timestamp);
+        if (points[i].timestamp - points[i-1].timestamp > p.max_gap_seconds) run.flags |= CR_GPS_GAP;
         cumulative[i] = cumulative[i-1] + d;
         run.max_segment_mps = fmax(run.max_segment_mps, speed);
         /* Latest sample at or before t-window; interpolate the boundary
@@ -106,8 +121,6 @@ CrStatus cr_submit_run(CrStore *s, const char *key, int member_id,
             run.max_window_mps = fmax(run.max_window_mps, window_speed);
         }
     }
-    strcpy(run.key, key);
-    run.member_id = member_id; run.university_id = m->university_id;
     run.started_at = points[0].timestamp; run.ended_at = points[count-1].timestamp;
     run.distance_m = cumulative[count-1];
     free(cumulative);
@@ -115,6 +128,27 @@ CrStatus cr_submit_run(CrStore *s, const char *key, int member_id,
     if (run.max_segment_mps > p.max_segment_mps) run.flags |= CR_FAST_SEGMENT;
     if (run.max_window_mps > p.max_window_mps) run.flags |= CR_FAST_WINDOW;
     if (run.average_mps > p.max_average_mps) run.flags |= CR_FAST_AVERAGE;
+    if (run.ended_at - run.started_at > p.max_duration_seconds) run.flags |= CR_LONG_DURATION;
+    *result = run;
+    return CR_OK;
+}
+CrStatus cr_submit_run(CrStore *s, const char *key, int member_id,
+                       const CrPoint *points, size_t count,
+                       const CrPolicy *policy, CrRun *result) {
+    CrRun run;
+    const CrMember *m;
+    CrStatus status;
+    size_t i;
+    if (!s || !cr_valid_text(key, CR_KEY_SIZE)) return CR_INVALID;
+    m = member(s, member_id);
+    if (!m) return CR_NOT_FOUND;
+    /* Validate first to retain the public API's invalid-input precedence. */
+    status = cr_analyze_run(points, count, policy, &run);
+    if (status != CR_OK) return status;
+    for (i = 0; i < s->run_count; ++i)
+        if (!strcmp(s->runs[i].key, key)) return CR_DUPLICATE;
+    if (s->run_count >= CR_MAX_RUNS) return CR_FULL;
+    strcpy(run.key, key); run.member_id = member_id; run.university_id = m->university_id;
     s->runs[s->run_count++] = run;
     if (result) *result = run;
     return CR_OK;

@@ -1,0 +1,6 @@
+build*
+data
+backups
+*.sqlite3*
+*.tsv*
+__pycache__

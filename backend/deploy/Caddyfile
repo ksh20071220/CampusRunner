@@ -1,0 +1,8 @@
+# Replace api.example.com with your DNS name. Run Caddy on the host with
+# the compose service bound to 127.0.0.1:8080. Caddy terminates HTTPS.
+api.example.com {
+    request_body {
+        max_size 2MB
+    }
+    reverse_proxy 127.0.0.1:8080
+}

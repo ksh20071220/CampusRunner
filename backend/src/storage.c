@@ -48,7 +48,7 @@ static CrStatus load_run(CrStore *s, char **p) {
         r.started_at < 0 || r.ended_at <= r.started_at ||
         !number(p[6], &r.distance_m) || !number(p[7], &r.max_segment_mps) ||
         !number(p[8], &r.max_window_mps) || !number(p[9], &r.average_mps) ||
-        !integer(p[10], &flags) || flags < 0 || flags > 7) return CR_INVALID;
+        !integer(p[10], &flags) || flags < 0 || flags > 31) return CR_INVALID;
     for (i = 0; i < length; ++i)
         if ((unsigned char)p[1][i] < 32 || (unsigned char)p[1][i] == 127) return CR_INVALID;
     for (i = 0; i < s->member_count; ++i)
