@@ -1,0 +1,28 @@
+name: C backend
+on:
+  push:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+permissions:
+  contents: read
+jobs:
+  build-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libssl-dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Configure
+        run: cmake -S backend -B backend/build-cmake -DCMAKE_BUILD_TYPE=Debug
+      - name: Build
+        run: cmake --build backend/build-cmake --config Debug
+      - name: Test
+        run: ctest --test-dir backend/build-cmake -C Debug --output-on-failure
