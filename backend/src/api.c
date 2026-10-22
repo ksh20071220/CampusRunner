@@ -216,7 +216,7 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
         if (!r.body) return cr_error(&r, error, error == 413 ? "body_too_large" : error == 415 ? "json_required" : "invalid_json");
     }
     if (!cr_db_open(r.server->db_path, &r.db)) { status = cr_error(&r, 503, "database_unavailable"); goto done; }
-    if (!cr_verification_expire(r.db)) { status=cr_error(&r,503,"database_unavailable"); goto done; }
+    if (!cr_db_expire_verifications(r.db)) { status=cr_error(&r,503,"database_unavailable"); goto done; }
     if (!strcmp(path, "/health") && !strcmp(method, "GET")) {
         sqlite3_stmt *probe = cr_db_prepare(r.db, "SELECT id FROM universities LIMIT 1");
         int step = probe ? sqlite3_step(probe) : SQLITE_ERROR;

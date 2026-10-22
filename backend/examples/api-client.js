@@ -49,6 +49,10 @@ export class CampusRunnerApi {
     const query = new URLSearchParams({ from, to, limit, offset });
     return this.request(`/api/rankings?${query}`, { token: null });
   }
+  universityStats(universityId, from, to) {
+    const query = new URLSearchParams({ from, to });
+    return this.request(`/api/universities/${encodeURIComponent(universityId)}/stats?${query}`, { token: null });
+  }
   myRuns(limit = 50, offset = 0) {
     return this.request(`/api/me/runs?${new URLSearchParams({ limit, offset })}`);
   }
@@ -56,6 +60,9 @@ export class CampusRunnerApi {
   myStats(from, to) { return this.request(`/api/me/stats?${new URLSearchParams({ from, to })}`); }
   universityVerifications(limit = 20, offset = 0) {
     return this.request(`/api/me/university-verifications?${new URLSearchParams({ limit, offset })}`);
+  }
+  universityVerification(id) {
+    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}`);
   }
   cancelUniversityVerification(id) {
     return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: {} });

@@ -10,10 +10,6 @@
 #define ADMIN_ROOT "/api/admin/university-verifications"
 #define MAX_IMAGE 5242880
 int cr_verification_upload_path(const char *path) { return !strcmp(path, VERIFY_ROOT); }
-int cr_verification_expire(sqlite3 *db) {
-    return cr_db_exec(db, "UPDATE university_verifications SET status='expired',image=NULL,reason='review_window_expired' "
-        "WHERE status='pending' AND expires_at<=unixepoch()");
-}
 static unsigned read32(const unsigned char *p) {
     return ((unsigned)p[0]<<24)|((unsigned)p[1]<<16)|((unsigned)p[2]<<8)|p[3];
 }
@@ -229,6 +225,55 @@ static int list(CrRequest *r,int admin) {
     if (step!=SQLITE_DONE) { cJSON_Delete(a); return cr_error(r,500,"database_error"); }
     return cr_reply(r,200,a);
 }
+static int detail(CrRequest *request, int64_t request_id, int admin) {
+    sqlite3_stmt *statement = cr_db_prepare(request->db, REQUEST_SELECT "WHERE v.id=? AND (? OR v.member_id=?)");
+    cJSON *body = NULL;
+    int result;
+    if (!statement) return cr_error(request, 500, "database_error");
+    sqlite3_bind_int64(statement, 1, request_id); sqlite3_bind_int(statement, 2, admin);
+    sqlite3_bind_int64(statement, 3, request->member_id);
+    result = sqlite3_step(statement);
+    if (result == SQLITE_ROW) body = request_json(statement);
+    sqlite3_finalize(statement);
+    if (result == SQLITE_DONE) return cr_error(request, 404, "not_found");
+    if (result != SQLITE_ROW) return cr_error(request, 500, "database_error");
+    return cr_reply(request, 200, body);
+}
+static int audit_history(CrRequest *request, int64_t request_id) {
+    const int limit = cr_query_number(request, "limit", 50, 100);
+    const int offset = cr_query_number(request, "offset", 0, 1000000);
+    sqlite3_stmt *statement;
+    cJSON *rows;
+    int result;
+    if (limit < 1 || offset < 0) return cr_error(request, 400, "invalid_pagination");
+    statement = cr_db_prepare(request->db, "SELECT 1 FROM university_verifications WHERE id=?");
+    if (!statement) return cr_error(request, 500, "database_error");
+    sqlite3_bind_int64(statement, 1, request_id);
+    result = sqlite3_step(statement); sqlite3_finalize(statement);
+    if (result == SQLITE_DONE) return cr_error(request, 404, "not_found");
+    if (result != SQLITE_ROW) return cr_error(request, 500, "database_error");
+    statement = cr_db_prepare(request->db,
+        "SELECT id,request_id,member_id,action,reviewer,reason,created_at FROM verification_audit "
+        "WHERE request_id=? ORDER BY id LIMIT ? OFFSET ?");
+    if (!statement) return cr_error(request, 500, "database_error");
+    sqlite3_bind_int64(statement, 1, request_id);
+    sqlite3_bind_int(statement, 2, limit); sqlite3_bind_int(statement, 3, offset);
+    rows = cJSON_CreateArray();
+    while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+        cJSON *event = cJSON_CreateObject();
+        cJSON_AddNumberToObject(event, "id", (double)sqlite3_column_int64(statement, 0));
+        cJSON_AddNumberToObject(event, "request_id", (double)sqlite3_column_int64(statement, 1));
+        cJSON_AddNumberToObject(event, "member_id", (double)sqlite3_column_int64(statement, 2));
+        cJSON_AddStringToObject(event, "action", (const char *)sqlite3_column_text(statement, 3));
+        cJSON_AddStringToObject(event, "reviewer", (const char *)sqlite3_column_text(statement, 4));
+        cJSON_AddStringToObject(event, "reason", (const char *)sqlite3_column_text(statement, 5));
+        cJSON_AddNumberToObject(event, "created_at", (double)sqlite3_column_int64(statement, 6));
+        cJSON_AddItemToArray(rows, event);
+    }
+    sqlite3_finalize(statement);
+    if (result != SQLITE_DONE) { cJSON_Delete(rows); return cr_error(request, 500, "database_error"); }
+    return cr_reply(request, 200, rows);
+}
 int cr_verification_route(CrRequest *r,const char *path,const char *method) {
     int admin=!strncmp(path,ADMIN_ROOT,strlen(ADMIN_ROOT));
     const char *root=admin?ADMIN_ROOT:VERIFY_ROOT;
@@ -247,6 +292,8 @@ int cr_verification_route(CrRequest *r,const char *path,const char *method) {
         long long id;
         errno=0; id=strtoll(suffix+1,&end,10);
         if (!errno && id>0) {
+            if (!*end) return !strcmp(method,"GET") ? detail(r,(int64_t)id,admin) : cr_error(r,405,"method_not_allowed");
+            if (admin && !strcmp(end,"/audit")) return !strcmp(method,"GET") ? audit_history(r,(int64_t)id) : cr_error(r,405,"method_not_allowed");
             if (!strcmp(end,"/image") && !strcmp(method,"GET")) return image(r,(int64_t)id,admin);
             if (admin && !strcmp(end,"/decision") && !strcmp(method,"POST")) return decision(r,(int64_t)id,0);
             if (admin && !strcmp(end,"/revoke") && !strcmp(method,"POST")) return decision(r,(int64_t)id,2);

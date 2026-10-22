@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 int cr_db_exec(sqlite3 *db, const char *sql) { return sqlite3_exec(db, sql, NULL, NULL, NULL) == SQLITE_OK; }
 sqlite3_stmt *cr_db_prepare(sqlite3 *db, const char *sql) {
     sqlite3_stmt *stmt = NULL;
@@ -19,6 +20,36 @@ int cr_db_open(const char *path, sqlite3 **db) {
         sqlite3_close(*db); *db = NULL; return 0;
     }
     return 1;
+}
+int cr_db_expire_verifications(sqlite3 *db) {
+    const sqlite3_int64 cutoff = (sqlite3_int64)time(NULL);
+    sqlite3_stmt *statement = cr_db_prepare(db,
+        "SELECT 1 FROM university_verifications WHERE status='pending' AND expires_at<=? LIMIT 1");
+    int result;
+    if (!statement) return 0;
+    sqlite3_bind_int64(statement, 1, cutoff);
+    result = sqlite3_step(statement); sqlite3_finalize(statement); statement = NULL;
+    /* Ordinary reads should not acquire a write lock when nothing has expired. */
+    if (result == SQLITE_DONE) return 1;
+    if (result != SQLITE_ROW || !cr_db_exec(db, "BEGIN IMMEDIATE")) return 0;
+    statement = cr_db_prepare(db,
+        "INSERT INTO verification_audit(request_id,member_id,action,reviewer,reason,created_at) "
+        "SELECT id,member_id,'expired','system','review_window_expired',? "
+        "FROM university_verifications WHERE status='pending' AND expires_at<=?");
+    if (!statement) goto fail;
+    sqlite3_bind_int64(statement, 1, cutoff); sqlite3_bind_int64(statement, 2, cutoff);
+    result = sqlite3_step(statement); sqlite3_finalize(statement); statement = NULL;
+    if (result != SQLITE_DONE) goto fail;
+    statement = cr_db_prepare(db,
+        "UPDATE university_verifications SET status='expired',image=NULL,reason='review_window_expired' "
+        "WHERE status='pending' AND expires_at<=?");
+    if (!statement) goto fail;
+    sqlite3_bind_int64(statement, 1, cutoff);
+    result = sqlite3_step(statement); sqlite3_finalize(statement); statement = NULL;
+    if (result != SQLITE_DONE || !cr_db_exec(db, "COMMIT")) goto fail;
+    return 1;
+fail:
+    sqlite3_finalize(statement); cr_db_exec(db, "ROLLBACK"); return 0;
 }
 int cr_db_init(const char *path) {
     sqlite3 *db = NULL;
@@ -77,7 +108,10 @@ int cr_db_init(const char *path) {
         const char *seed = getenv("CR_SEED_UNIVERSITIES");
         if (!seed || strcmp(seed, "0")) ok = cr_seed_catalog(db);
     }
-    if (ok) ok = cr_db_exec(db,"UPDATE university_verifications SET status='expired',image=NULL,reason='review_window_expired' WHERE status='pending' AND expires_at<=unixepoch()");
+    if (ok) ok = cr_db_exec(db,
+        "CREATE INDEX IF NOT EXISTS verification_audit_request ON verification_audit(request_id,id);"
+        "CREATE INDEX IF NOT EXISTS verification_pending_expiry ON university_verifications(expires_at) WHERE status='pending'");
+    if (ok) ok = cr_db_expire_verifications(db);
 done:
     if (!ok) fprintf(stderr, "Database initialization failed: %s\n", sqlite3_errmsg(db));
     sqlite3_close(db); return ok;

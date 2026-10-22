@@ -39,9 +39,10 @@ static cJSON *run_json(sqlite3_stmt *stmt, int points) {
     if (points) cJSON_AddItemToObject(obj, "points", cJSON_Parse((const char *)sqlite3_column_text(stmt, 11)));
     return obj;
 }
-static int rankings(CrRequest *r) {
+static int rankings(CrRequest *r, int64_t university_id) {
     int64_t from, to;
-    int step, limit = cr_query_number(r, "limit", 100, 500), offset = cr_query_number(r, "offset", 0, 1000000);
+    int step, limit = university_id ? 1 : cr_query_number(r, "limit", 100, 500);
+    int offset = university_id ? 0 : cr_query_number(r, "offset", 0, 1000000);
     sqlite3_stmt *stmt;
     cJSON *array;
     if (!cr_query_range(r, &from, &to) || limit < 1 || offset < 0) return cr_error(r, 400, "invalid_period_or_pagination");
@@ -52,10 +53,11 @@ static int rankings(CrRequest *r) {
         "AND EXISTS(SELECT 1 FROM members m WHERE m.id=r.member_id AND m.university_id=r.university_id AND m.university_verified_at IS NOT NULL) GROUP BY u.id),"
         "scored AS (SELECT *,CASE WHEN participants>0 THEN 1.0*distance_mm/participants ELSE 0 END AS average_mm FROM totals),"
         "ranked AS (SELECT *,rank() OVER(ORDER BY average_mm DESC) AS rank FROM scored) "
-        "SELECT id,name,distance_mm,participants,runs,average_mm,rank FROM ranked ORDER BY average_mm DESC,id LIMIT ? OFFSET ?");
+        "SELECT id,name,distance_mm,participants,runs,average_mm,rank FROM ranked WHERE (?=0 OR id=?) ORDER BY average_mm DESC,id LIMIT ? OFFSET ?");
     if (!stmt) return cr_error(r, 500, "database_error");
     sqlite3_bind_int64(stmt, 1, from); sqlite3_bind_int64(stmt, 2, to);
-    sqlite3_bind_int(stmt, 3, limit); sqlite3_bind_int(stmt, 4, offset);
+    sqlite3_bind_int64(stmt, 3, university_id); sqlite3_bind_int64(stmt, 4, university_id);
+    sqlite3_bind_int(stmt, 5, limit); sqlite3_bind_int(stmt, 6, offset);
     array = cJSON_CreateArray();
     while ((step = sqlite3_step(stmt)) == SQLITE_ROW) {
         cJSON *obj = cJSON_CreateObject();
@@ -70,6 +72,11 @@ static int rankings(CrRequest *r) {
     }
     sqlite3_finalize(stmt);
     if (step != SQLITE_DONE) { cJSON_Delete(array); return cr_error(r, 500, "database_error"); }
+    if (university_id) {
+        cJSON *body = cJSON_DetachItemFromArray(array, 0);
+        cJSON_Delete(array);
+        return body ? cr_reply(r, 200, body) : cr_error(r, 404, "not_found");
+    }
     return cr_reply(r, 200, array);
 }
 static cJSON *fetch_run(CrRequest *r, int64_t id, int points) {
@@ -201,7 +208,16 @@ static int own_stats(CrRequest *r) {
 }
 int cr_run_route(CrRequest *r, const char *path, const char *method) {
     int auth;
-    if (!strcmp(path, "/api/rankings")) return !strcmp(method, "GET") ? rankings(r) : cr_error(r, 405, "method_not_allowed");
+    if (!strcmp(path, "/api/rankings")) return !strcmp(method, "GET") ? rankings(r, 0) : cr_error(r, 405, "method_not_allowed");
+    if (!strncmp(path, "/api/universities/", 18)) {
+        char *end;
+        long long university_id;
+        if (path[18] < '1' || path[18] > '9') return cr_error(r, 404, "not_found");
+        errno = 0; university_id = strtoll(path+18, &end, 10);
+        if (errno || university_id < 1 || university_id > 2147483647 || strcmp(end, "/stats"))
+            return cr_error(r, 404, "not_found");
+        return !strcmp(method, "GET") ? rankings(r, (int64_t)university_id) : cr_error(r, 405, "method_not_allowed");
+    }
     if (strcmp(path, "/api/runs") && strcmp(path, "/api/me/runs") && strcmp(path, "/api/me/stats") && strncmp(path, "/api/me/runs/", 13))
         return cr_error(r, 404, "not_found");
     auth = cr_authenticate(r);

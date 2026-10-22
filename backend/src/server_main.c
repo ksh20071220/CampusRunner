@@ -54,7 +54,7 @@ static int serve(int argc, char **argv) {
         if (++maintenance_ticks>=600) {
             sqlite3 *maintenance_db=NULL;
             if (cr_db_open(db,&maintenance_db)) {
-                cr_verification_expire(maintenance_db);
+                if (!cr_db_expire_verifications(maintenance_db)) fprintf(stderr, "Verification expiration failed.\n");
                 sqlite3_close(maintenance_db);
             }
             maintenance_ticks=0;

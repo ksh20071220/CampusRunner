@@ -19,6 +19,7 @@
 | GET | /api/me/runs/{id} | 본인 | 200 원본 좌표 포함 러닝 |
 | GET | /api/me/stats?from=0&to=2000000000 | 회원 | 200 정상 거리·정상/의심 기록 건수 |
 | GET | /api/rankings?from=0&to=2000000000&limit=100&offset=0 | 공개 | 200 대학 순위 배열 |
+| GET | /api/universities/{id}/stats?from=0&to=2000000000 | 공개 | 200 해당 대학의 기간 성적·전체 순위 객체 |
 
 알 수 없는 경로는 404, 허용하지 않는 HTTP 메서드는 405입니다. 알려진 개인 경로는 메서드 검사보다 인증을 먼저 수행하므로 미인증 요청은 401일 수 있습니다. Origin 헤더가 있으면 설정한 Origin과 일치해야 합니다. OPTIONS preflight를 지원합니다. GET 조회 응답도 `Cache-Control: no-store`입니다.
 
@@ -91,6 +92,8 @@ from·to는 UTC Unix 초 정수이며 `0 <= from < to <= 4102444800`입니다. �
 활동 없는 대학도 0m·0명으로 포함합니다. 소속 사진 승인을 받은 회원의 정상·양수 거리만 합산하고 같은 회원의 여러 러닝은 인원 한 명으로 셉니다. 미인증 회원은 분모에서도 제외합니다. 평균 거리 기준 공동 순위 1·1·3이며 대학 ID로 동점 표시 순서를 정합니다. 순위는 전체 대학에 대해 계산한 뒤 페이지를 잘라 반환합니다.
 
 rankings: 기본 limit 100, 최대 500. me/runs: 기본 limit 50, 최대 200. 공통 offset 기본 0, 최대 1000000. 배열 길이가 limit보다 작으면 마지막 페이지입니다. 개인 기록은 started_at 내림차순, 같은 시간이면 id 내림차순입니다. 조회 사이 새 기록이 추가되면 offset 페이지가 이동할 수 있으므로 새로고침 시 첫 페이지부터 조회하세요.
+
+`GET /api/universities/{id}/stats?from=...&to=...`는 위 순위 배열 중 해당 대학의 항목 하나를 **객체**로 반환합니다. 같은 기간의 전체 순위와 완전히 같은 집계·공동 순위를 사용합니다. 활동이 없으면 거리·참가자·러닝 수가 0인 항목을 반환하며, 없는 대학 ID는 404입니다. from·to는 필수이고 이 경로에는 페이지 인자를 적용하지 않습니다. 프런트엔드에서는 `api.universityStats(me.university_id, from, to)`로 소속 대학 성적을 조회할 수 있습니다.
 
 `GET /api/me/stats` 응답: `{ "distance_m": 3000, "accepted_runs": 3, "flagged_runs": 1 }`. accepted_runs에는 0m 정상 기록도 포함되지만 대학 참여자에는 포함되지 않습니다.
 

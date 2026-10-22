@@ -162,6 +162,17 @@ static int update_profile(CrRequest *r) {
     sqlite3_bind_int64(stmt, 3, r->member_id); step = sqlite3_step(stmt); sqlite3_finalize(stmt); stmt = NULL;
     if (step != SQLITE_DONE) { response = step == SQLITE_CONSTRAINT_FOREIGNKEY ? 400 : (step & 255) == SQLITE_CONSTRAINT ? 409 : 500; goto fail; }
     if (uni) {
+        /* Keep automatic cancellation in the same transaction as the profile
+         * update. An audit failure must not leave an unrecorded school change. */
+        stmt = cr_db_prepare(r->db,
+            "INSERT INTO verification_audit(request_id,member_id,action,reviewer,reason,created_at) "
+            "SELECT id,member_id,'cancelled','member','university_changed',? FROM university_verifications "
+            "WHERE member_id=? AND university_id<>? AND status IN ('pending','approved')");
+        if (!stmt) goto fail;
+        sqlite3_bind_int64(stmt, 1, (sqlite3_int64)time(NULL));
+        sqlite3_bind_int64(stmt, 2, r->member_id); sqlite3_bind_int64(stmt, 3, id);
+        step = sqlite3_step(stmt); sqlite3_finalize(stmt); stmt = NULL;
+        if (step != SQLITE_DONE) goto fail;
         stmt = cr_db_prepare(r->db, "UPDATE university_verifications SET status='cancelled',image=NULL,reason='university_changed' "
             "WHERE member_id=? AND university_id<>? AND status IN ('pending','approved')");
         if (!stmt) goto fail;

@@ -165,6 +165,28 @@ class ServerTests(unittest.TestCase):
         stats = self.call('GET', '/api/me/stats?from=0&to=2000', token=a['token'])
         self.assertEqual(stats['accepted_runs'], 2)
 
+    def test_single_university_stats_keep_global_rank_and_verification_rules(self):
+        a, b = self.register('a'), self.register('b', 2)
+        unverified = self.register('unverified', verified=False)
+        self.call('POST', '/api/runs', self.run_body('a'), token=a['token'], expected=201)
+        self.call('POST', '/api/runs', self.run_body('b', degrees=.002, seconds=120), token=b['token'], expected=201)
+        self.call('POST', '/api/runs', self.run_body('not-counted', degrees=.003, seconds=120), token=unverified['token'], expected=201)
+        self.call('POST', '/api/universities', {'id': 3, 'name': '비활동대학교'}, token=ADMIN, expected=201)
+        rows = self.call('GET', '/api/rankings?from=0&to=2000')
+        for row in rows:
+            result = self.call('GET', f"/api/universities/{row['university_id']}/stats?from=0&to=2000")
+            self.assertEqual(result, row)
+        self.assertEqual(self.call('GET', '/api/universities/1/stats?from=0&to=2000')['rank'], 2)
+        empty = self.call('GET', '/api/universities/3/stats?from=0&to=2000')
+        self.assertEqual((empty['participants'], empty['distance_m'], empty['rank']), (0, 0, 3))
+        self.assertEqual(self.call('GET', '/api/universities/1/stats?from=0&to=1000')['runs'], 0)
+        for bad in ('0', '-1', '01', '2147483648', '9999999999999999999999999999', 'abc'):
+            self.call('GET', f'/api/universities/{bad}/stats?from=0&to=2000', expected=404)
+        self.call('GET', '/api/universities/999/stats?from=0&to=2000', expected=404)
+        self.call('GET', '/api/universities/1/stats', expected=400)
+        self.call('GET', '/api/universities/1/stats?from=2000&to=0', expected=400)
+        self.call('POST', '/api/universities/1/stats?from=0&to=2000', {}, expected=405)
+
     def test_idempotency_overlap_and_owner(self):
         token = self.register()['token']
         body = self.run_body()
@@ -409,6 +431,104 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(result['status'], 'revoked')
         with contextlib.closing(sqlite3.connect(self.db)) as db:
             self.assertIsNone(db.execute('SELECT university_verified_at FROM members WHERE id=?', (tail[0]['member_id'],)).fetchone()[0])
+
+    def test_verification_detail_owner_access_and_admin_audit_history(self):
+        account = self.register(verified=False)
+        other = self.register('other', verified=False)
+        proof = self.upload(account['token'])
+        own = f"/api/me/university-verifications/{proof['id']}"
+        admin = f"/api/admin/university-verifications/{proof['id']}"
+        self.assertEqual(self.call('GET', own, token=account['token']), proof)
+        self.assertEqual(self.call('GET', admin, token=ADMIN), proof)
+        self.call('GET', own, expected=401)
+        self.call('GET', own, token=other['token'], expected=404)
+        self.call('GET', admin, token=account['token'], expected=403)
+        self.call('GET', '/api/me/university-verifications/99999', token=account['token'], expected=404)
+        self.call('POST', own, {}, token=account['token'], expected=405)
+        self.assertEqual(self.call('GET', admin+'/audit', token=ADMIN), [])
+        self.review(proof['id'])
+        self.review(proof['id'], expected=409)
+        self.call('POST', admin+'/revoke', {'reviewer': '정정담당자', 'reason': '오승인 정정'}, token=ADMIN)
+        rows = self.call('GET', admin+'/audit', token=ADMIN)
+        self.assertEqual([row['action'] for row in rows], ['approved', 'revoked'])
+        self.assertEqual([row['reviewer'] for row in rows], ['담당자', '정정담당자'])
+        self.assertEqual(rows[1]['reason'], '오승인 정정')
+        self.assertTrue(all(row['request_id'] == proof['id'] and row['member_id'] == account['id'] for row in rows))
+        self.assertEqual(set(rows[0]), {'id', 'request_id', 'member_id', 'action', 'reviewer', 'reason', 'created_at'})
+        self.assertEqual(self.call('GET', admin+'/audit?limit=1&offset=1', token=ADMIN), rows[1:])
+        self.assertEqual(self.call('GET', admin+'/audit?offset=100', token=ADMIN), [])
+        for query in ('limit=0', 'limit=101', 'offset=-1', 'offset=1000001'):
+            self.call('GET', admin+'/audit?'+query, token=ADMIN, expected=400)
+        self.call('GET', admin+'/audit', token=account['token'], expected=403)
+        self.call('GET', own+'/audit', token=account['token'], expected=404)
+        self.call('GET', '/api/admin/university-verifications/99999/audit', token=ADMIN, expected=404)
+        self.call('POST', admin+'/audit', {}, token=ADMIN, expected=405)
+        self.assertEqual(self.call('GET', own, token=account['token'])['status'], 'revoked')
+        self.proof_image(proof['id'], account['token'], expected=410)
+
+    def test_automatic_expiration_audit_on_restart_and_concurrent_requests(self):
+        account = self.register(verified=False)
+        first = self.upload(account['token'])
+        self.stop()
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE university_verifications SET expires_at=0 WHERE id=?', (first['id'],))
+            db.commit()
+        self.start()  # startup maintenance must write the same audit as request maintenance
+        second = self.upload(account['token'])
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE university_verifications SET expires_at=0 WHERE id=?', (second['id'],))
+            db.commit()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+            self.assertTrue(all(r['status'] == 'ok' for r in pool.map(lambda _: self.call('GET', '/health'), range(8))))
+        for proof in (first, second):
+            path = f"/api/admin/university-verifications/{proof['id']}"
+            rows = self.call('GET', path+'/audit', token=ADMIN)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual((rows[0]['action'], rows[0]['reviewer'], rows[0]['reason']),
+                             ('expired', 'system', 'review_window_expired'))
+            self.assertEqual(self.call('GET', path, token=ADMIN)['status'], 'expired')
+            self.proof_image(proof['id'], account['token'], expected=410)
+
+    def test_university_changes_audit_pending_and_approved_cancellations(self):
+        account = self.register(verified=False)
+        first = self.upload(account['token'])
+        self.call('PATCH', '/api/me', {'university_id': 2}, token=account['token'])
+        second = self.upload(account['token'])
+        self.review(second['id'])
+        self.call('PATCH', '/api/me', {'university_id': 2}, token=account['token'])  # unchanged school
+        self.call('PATCH', '/api/me', {'university_id': 1}, token=account['token'])
+        for proof, expected in ((first, ['cancelled']), (second, ['approved', 'cancelled'])):
+            path = f"/api/admin/university-verifications/{proof['id']}/audit"
+            rows = self.call('GET', path, token=ADMIN)
+            self.assertEqual([row['action'] for row in rows], expected)
+            self.assertEqual((rows[-1]['reviewer'], rows[-1]['reason']), ('member', 'university_changed'))
+            self.proof_image(proof['id'], account['token'], expected=410)
+        self.assertFalse(self.call('GET', '/api/me', token=account['token'])['university_verified'])
+
+    def test_audit_failure_rolls_back_review_school_change_and_expiration(self):
+        account = self.register(verified=False)
+        proof = self.upload(account['token'])
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute("CREATE TRIGGER block_audit BEFORE INSERT ON verification_audit BEGIN SELECT RAISE(ABORT,'test audit failure'); END")
+            db.commit()
+        self.review(proof['id'], expected=500)
+        self.call('PATCH', '/api/me', {'university_id': 2}, token=account['token'], expected=500)
+        profile = self.call('GET', '/api/me', token=account['token'])
+        self.assertEqual(profile['university_id'], 1)
+        self.assertFalse(profile['university_verified'])
+        self.assertEqual(self.proof_image(proof['id'], account['token']), PNG)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE university_verifications SET expires_at=0 WHERE id=?', (proof['id'],))
+            db.commit()
+        self.call('GET', '/health', expected=503)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT status,image FROM university_verifications WHERE id=?', (proof['id'],)).fetchone(), ('pending', PNG))
+            self.assertEqual(db.execute('SELECT count(*) FROM verification_audit').fetchone()[0], 0)
+            db.execute('DROP TRIGGER block_audit')
+            db.commit()
+        self.call('GET', '/health')
+        rows = self.call('GET', f"/api/admin/university-verifications/{proof['id']}/audit", token=ADMIN)
+        self.assertEqual([row['action'] for row in rows], ['expired'])
 
     def test_two_reviewers_cannot_overwrite_decision(self):
         token = self.register(verified=False)['token']

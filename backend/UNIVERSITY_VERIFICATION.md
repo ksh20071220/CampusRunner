@@ -48,9 +48,12 @@ python -m http.server 5173 --bind 127.0.0.1 --directory examples
 | --- | --- | --- | --- |
 | POST | /api/me/university-verifications | 회원 | 바이너리 이미지 제출, 201 |
 | GET | /api/me/university-verifications?limit=20&offset=0 | 회원 | 본인 신청, 최신 순 페이지 조회 |
+| GET | /api/me/university-verifications/{id} | 본인 | 개별 신청 상태·사유 조회 |
 | GET | /api/me/university-verifications/{id}/image | 본인 | 대기 중 원본 열람 |
 | POST | /api/me/university-verifications/{id}/cancel | 본인 | 대기 중 신청 취소, 본문 {} |
 | GET | /api/admin/university-verifications?status=pending&limit=100&offset=0 | 관리자 | 상태별 오래된 순 페이지 조회 |
+| GET | /api/admin/university-verifications/{id} | 관리자 | 개별 신청 상태 조회 |
+| GET | /api/admin/university-verifications/{id}/audit?limit=50&offset=0 | 관리자 | 처리 이력, 이벤트 id 오름차순 |
 | GET | /api/admin/university-verifications/{id}/image | 관리자 | 사진 열람 |
 | POST | /api/admin/university-verifications/{id}/decision | 관리자 | 승인·반려 |
 | POST | /api/admin/university-verifications/{id}/revoke | 관리자 | 승인 철회 |
@@ -81,6 +84,18 @@ X-Verification-Consent: 1
 사진이 없는 과거 신청의 image 경로는 410 image_deleted입니다. 다른 회원은 404, 관리자 토큰이 없으면 관리자 경로는 403입니다. 신청 목록에는 이미지 bytes·개인 서류 내용·해시를 포함하지 않습니다. 사진 응답은 no-store·nosniff이며 공개 정적 경로를 만들지 않습니다.
 
 신청 목록의 limit은 본인 기본 20, 관리자 기본 100이며 둘 다 1~100입니다. offset은 기본 0, 최대 1000000입니다. 잘못된 값은 400 invalid_pagination입니다. 응답은 기존과 같은 배열이며 배열 길이가 limit보다 작으면 마지막 페이지입니다. 본인 목록은 신청 id 내림차순, 관리자 목록은 제출 시간·id 오름차순입니다. 관리자 화면은 다음 페이지 유무를 확인하기 위해 51건을 조회하고 50건을 표시합니다.
+
+개별 신청 GET은 위 신청 JSON과 동일하며 사진 bytes를 포함하지 않습니다. 본인 외 회원의 신청과 없는 ID는 404입니다. `api.universityVerification(id)`로 본인 신청의 현재 상태를 조회할 수 있습니다.
+
+관리자 처리 이력 GET은 배열을 반환합니다. 기본 limit 50, 최대 100, offset 기본 0·최대 1000000입니다. 존재하지만 아직 처리하지 않은 신청은 빈 배열, 없는 신청은 404입니다. 일반 회원 토큰으로 관리자 경로를 조회하면 403입니다. 예:
+
+```json
+[{"id":1,"request_id":7,"member_id":3,"action":"approved","reviewer":"검토 담당자","reason":"학교명 및 서류 확인","created_at":1792623600}]
+```
+
+승인 뒤 철회해도 기존 승인 이벤트는 남고 revoked 이벤트가 추가됩니다. 반려·회원 취소는 rejected·cancelled, 대학 변경은 cancelled/member/university_changed, 자동 만료는 expired/system/review_window_expired로 남습니다. 이력 저장이 실패하면 상태 변경·사진 삭제·회원 대학 변경을 함께 롤백합니다. 만료 정리 실패는 API에서 503이며 다음 접근·정기 정리 시 다시 시도합니다. reviewer의 담당자 이름은 공동 토큰 사용자가 입력한 표시이며 독립적으로 인증한 운영자 신원은 아닙니다.
+
+이력 조회 API는 기존 verification_audit 데이터도 읽지만, 이 보완 이전에 자동 만료·대학 변경으로 처리된 사건의 누락 이력을 추정해서 생성하지 않습니다. 제출 자체는 이력 이벤트가 아니며 신청의 submitted_at으로 확인합니다. 백업본의 사진 제거·재제출 상태 변경은 복원용 데이터 정리로, 운영 서버 검토 이벤트를 추가하지 않습니다.
 
 추가 오류: invalid_document_type, verification_consent_required, jpeg_or_png_required, image_too_large, invalid_image, incomplete_image, already_verified, verification_already_pending, verification_upload_limit, invalid_review, verification_not_pending, invalid_verification_status.
 

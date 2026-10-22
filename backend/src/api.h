@@ -30,5 +30,4 @@ int cr_query_number(CrRequest *r, const char *name, int default_value, int maxim
 int cr_is_admin(CrRequest *r);
 int cr_verification_route(CrRequest *r, const char *path, const char *method);
 int cr_verification_upload_path(const char *path);
-int cr_verification_expire(sqlite3 *db);
 #endif
