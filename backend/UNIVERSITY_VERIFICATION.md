@@ -34,6 +34,8 @@ python -m http.server 5173 --bind 127.0.0.1 --directory examples
 
 신청을 클릭하면 닉네임·선택 대학·서류 종류·사진을 확인할 수 있습니다. 사진이 실제 표시되기 전에는 승인 버튼이 활성화되지 않습니다. 학교명·소속 근거를 사람이 확인한 뒤 승인하거나 구체적 사유를 적어 반려합니다. 반려 사유는 이용자에게 공개됩니다. 승인된 항목을 잘못 처리했다면 상태를 승인으로 바꾸어 조회하고 승인 철회할 수 있습니다.
 
+목록은 50건씩 표시하며 이전·다음 버튼으로 과거 신청도 조회합니다. 상태·API 주소·토큰을 바꾸면 현재 선택과 목록을 지우고 이전 조회를 취소합니다. 승인·반려·철회 요청 중에는 선택·설정 변경과 중복 클릭을 차단합니다. 다른 담당자가 동시에 처리해 목록이 이동할 수 있으므로 최신 목록이 필요하면 목록 불러오기로 첫 페이지부터 다시 확인하세요.
+
 토큰은 서버 `data/admin-token.txt` 또는 배포 환경의 CR_ADMIN_TOKEN입니다. URL에 토큰을 넣지 않습니다. 검토 화면은 토큰·사진을 localStorage/sessionStorage에 보관하지 않으며 사진은 인증된 fetch로 받아 임시 blob URL로 표시합니다. 창을 닫거나 다른 사진을 선택하면 blob URL을 해제합니다. 열람한 사진을 개인 기기에 따로 저장하지 마세요.
 
 기본 CORS 허용 Origin은 http://localhost:5173입니다. 다른 호스트·포트에서 검토 화면을 제공하면 서버 CR_ALLOWED_ORIGIN을 맞추세요. 이 화면은 개발·팀 운영 예제이며 인터넷 공개에는 HTTPS·관리자 토큰 접근 통제를 구성해야 합니다.
@@ -43,10 +45,10 @@ python -m http.server 5173 --bind 127.0.0.1 --directory examples
 | 메서드 | 경로 | 권한 | 기능 |
 | --- | --- | --- | --- |
 | POST | /api/me/university-verifications | 회원 | 바이너리 이미지 제출, 201 |
-| GET | /api/me/university-verifications | 회원 | 본인 최근 신청 최대 20건 |
+| GET | /api/me/university-verifications?limit=20&offset=0 | 회원 | 본인 신청, 최신 순 페이지 조회 |
 | GET | /api/me/university-verifications/{id}/image | 본인 | 대기 중 원본 열람 |
 | POST | /api/me/university-verifications/{id}/cancel | 본인 | 대기 중 신청 취소, 본문 {} |
-| GET | /api/admin/university-verifications?status=pending | 관리자 | 오래된 순 최대 100건 |
+| GET | /api/admin/university-verifications?status=pending&limit=100&offset=0 | 관리자 | 상태별 오래된 순 페이지 조회 |
 | GET | /api/admin/university-verifications/{id}/image | 관리자 | 사진 열람 |
 | POST | /api/admin/university-verifications/{id}/decision | 관리자 | 승인·반려 |
 | POST | /api/admin/university-verifications/{id}/revoke | 관리자 | 승인 철회 |
@@ -75,6 +77,8 @@ X-Verification-Consent: 1
 ```
 
 사진이 없는 과거 신청의 image 경로는 410 image_deleted입니다. 다른 회원은 404, 관리자 토큰이 없으면 관리자 경로는 403입니다. 신청 목록에는 이미지 bytes·개인 서류 내용·해시를 포함하지 않습니다. 사진 응답은 no-store·nosniff이며 공개 정적 경로를 만들지 않습니다.
+
+신청 목록의 limit은 본인 기본 20, 관리자 기본 100이며 둘 다 1~100입니다. offset은 기본 0, 최대 1000000입니다. 잘못된 값은 400 invalid_pagination입니다. 응답은 기존과 같은 배열이며 배열 길이가 limit보다 작으면 마지막 페이지입니다. 본인 목록은 신청 id 내림차순, 관리자 목록은 제출 시간·id 오름차순입니다. 관리자 화면은 다음 페이지 유무를 확인하기 위해 51건을 조회하고 50건을 표시합니다.
 
 추가 오류: invalid_document_type, verification_consent_required, jpeg_or_png_required, image_too_large, invalid_image, incomplete_image, already_verified, verification_already_pending, verification_upload_limit, invalid_review, verification_not_pending, invalid_verification_status.
 

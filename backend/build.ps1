@@ -38,5 +38,11 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'CLI integration tests failed.' }
         & python tests\test_server.py (Join-Path $PSScriptRoot 'build\campus_server.exe')
         if ($LASTEXITCODE -ne 0) { throw 'HTTP server integration tests failed.' }
+        if (Get-Command node -ErrorAction SilentlyContinue) {
+            & node --test tests\test_verification_admin.cjs
+            if ($LASTEXITCODE -ne 0) { throw 'Verification admin UI tests failed.' }
+        } else {
+            Write-Warning 'Node.js 18+ is required for optional admin UI race tests; these tests were skipped.'
+        }
     }
 } finally { Pop-Location }

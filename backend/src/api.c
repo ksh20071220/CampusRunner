@@ -123,6 +123,16 @@ static int valid_query(const char *query) {
     }
     return 1;
 }
+int cr_query_number(CrRequest *r, const char *name, int default_value, int maximum) {
+    char text[32], *end;
+    long n;
+    const char *q = r->info->query_string ? r->info->query_string : "";
+    int length = mg_get_var(q, strlen(q), name, text, sizeof(text));
+    if (length == -1) return default_value;
+    if (length <= 0 || text[0] < '0' || text[0] > '9') return -1;
+    errno = 0; n = strtol(text, &end, 10);
+    return errno || *end || n < 0 || n > maximum ? -1 : (int)n;
+}
 int cr_query_range(CrRequest *r, int64_t *from, int64_t *to) {
     char a[32], b[32], *end;
     long long x, y;

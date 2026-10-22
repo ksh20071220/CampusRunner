@@ -205,7 +205,9 @@ fail:
 static int list(CrRequest *r,int admin) {
     sqlite3_stmt *s;
     cJSON *a=cJSON_CreateArray();
-    int step;
+    int step, limit=cr_query_number(r,"limit",admin?100:20,100);
+    int offset=cr_query_number(r,"offset",0,1000000);
+    if (limit<1 || offset<0) { cJSON_Delete(a); return cr_error(r,400,"invalid_pagination"); }
     if (admin) {
         char status[20]="pending";
         const char *q=r->info->query_string?r->info->query_string:"";
@@ -214,13 +216,14 @@ static int list(CrRequest *r,int admin) {
             cJSON_Delete(a); return cr_error(r,400,"invalid_verification_status");
         }
         if (n==-1) strcpy(status,"pending");
-        s=cr_db_prepare(r->db,REQUEST_SELECT "WHERE v.status=? ORDER BY v.submitted_at,v.id LIMIT 100");
+        s=cr_db_prepare(r->db,REQUEST_SELECT "WHERE v.status=? ORDER BY v.submitted_at,v.id LIMIT ? OFFSET ?");
         if (s) sqlite3_bind_text(s,1,status,-1,SQLITE_TRANSIENT);
     } else {
-        s=cr_db_prepare(r->db,REQUEST_SELECT "WHERE v.member_id=? ORDER BY v.id DESC LIMIT 20");
+        s=cr_db_prepare(r->db,REQUEST_SELECT "WHERE v.member_id=? ORDER BY v.id DESC LIMIT ? OFFSET ?");
         if (s) sqlite3_bind_int64(s,1,r->member_id);
     }
     if (!s) { cJSON_Delete(a); return cr_error(r,500,"database_error"); }
+    sqlite3_bind_int(s,2,limit); sqlite3_bind_int(s,3,offset);
     while ((step=sqlite3_step(s))==SQLITE_ROW) cJSON_AddItemToArray(a,request_json(s));
     sqlite3_finalize(s);
     if (step!=SQLITE_DONE) { cJSON_Delete(a); return cr_error(r,500,"database_error"); }

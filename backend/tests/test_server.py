@@ -360,6 +360,56 @@ class ServerTests(unittest.TestCase):
         self.call('PATCH', '/api/me', {'university_verified': True}, token=token, expected=400)
         self.assertEqual(self.call('GET', root, token=token), [])
 
+    def test_verification_history_pagination_and_validation(self):
+        a = self.register('a', verified=False)
+        b = self.register('b', verified=False)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            for account, count in ((a, 103), (b, 3)):
+                db.executemany('INSERT INTO university_verifications '
+                    '(member_id,university_id,document_type,status,mime,image_hash,submitted_at,expires_at,consent_version) '
+                    "VALUES(?,1,'student_card','rejected','image/png',?,1000,2000,1)",
+                    [(account['id'], bytes(32)) for _ in range(count)])
+            own_ids = [r[0] for r in db.execute('SELECT id FROM university_verifications WHERE member_id=? ORDER BY id DESC', (a['id'],))]
+            all_ids = [r[0] for r in db.execute('SELECT id FROM university_verifications ORDER BY submitted_at,id')]
+            db.commit()
+        root = '/api/me/university-verifications'
+        self.assertEqual([r['id'] for r in self.call('GET', root, token=a['token'])], own_ids[:20])
+        self.assertEqual([r['id'] for r in self.call('GET', root+'?limit=100&offset=20', token=a['token'])], own_ids[20:])
+        admin = '/api/admin/university-verifications?status=rejected'
+        self.assertEqual([r['id'] for r in self.call('GET', admin, token=ADMIN)], all_ids[:100])
+        tail = self.call('GET', admin+'&limit=100&offset=100', token=ADMIN)
+        self.assertEqual([r['id'] for r in tail], all_ids[100:])
+        self.assertEqual(self.call('GET', root+'?offset=1000000', token=a['token']), [])
+        for invalid in ('limit=0', 'limit=101', 'limit=-1', 'limit=1.5', 'offset=-1',
+                        'offset=1000001', 'offset=999999999999999999999999999999999', 'limit=%201', 'offset=%2B1'):
+            self.call('GET', root+'?'+invalid, token=a['token'], expected=400)
+            self.call('GET', admin+'&'+invalid, token=ADMIN, expected=400)
+        self.call('GET', admin+'&limit=1&limit=2', token=ADMIN, expected=400)
+        self.call('GET', admin+'&offset=100', token=a['token'], expected=403)
+
+    def test_admin_can_revoke_approval_after_first_hundred(self):
+        account = self.register(verified=False)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            # Generate independent approved members without spending 101 password KDFs.
+            for i in range(101):
+                member_id = db.execute('INSERT INTO members '
+                    '(nickname,university_id,salt,password_hash,iterations,created_at,university_verified_at) '
+                    'SELECT ?,university_id,salt,password_hash,iterations,created_at,1000 FROM members WHERE id=?',
+                    (f'approved-{i}', account['id'])).lastrowid
+                db.execute('INSERT INTO university_verifications '
+                    '(member_id,university_id,document_type,status,mime,image_hash,submitted_at,expires_at,consent_version) '
+                    "VALUES(?,1,'student_card','approved','image/png',?,1000,2000,1)", (member_id, bytes(32)))
+            db.commit()
+        root = '/api/admin/university-verifications'
+        self.assertEqual(len(self.call('GET', root+'?status=approved', token=ADMIN)), 100)
+        tail = self.call('GET', root+'?status=approved&offset=100', token=ADMIN)
+        self.assertEqual(len(tail), 1)
+        result = self.call('POST', f"{root}/{tail[0]['id']}/revoke",
+                          {'reviewer': '담당자', 'reason': '오승인 정정'}, token=ADMIN)
+        self.assertEqual(result['status'], 'revoked')
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertIsNone(db.execute('SELECT university_verified_at FROM members WHERE id=?', (tail[0]['member_id'],)).fetchone()[0])
+
     def test_two_reviewers_cannot_overwrite_decision(self):
         token = self.register(verified=False)['token']
         proof = self.upload(token)

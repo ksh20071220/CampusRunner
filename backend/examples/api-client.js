@@ -54,7 +54,9 @@ export class CampusRunnerApi {
   }
   myRun(id) { return this.request(`/api/me/runs/${encodeURIComponent(id)}`); }
   myStats(from, to) { return this.request(`/api/me/stats?${new URLSearchParams({ from, to })}`); }
-  universityVerifications() { return this.request('/api/me/university-verifications'); }
+  universityVerifications(limit = 20, offset = 0) {
+    return this.request(`/api/me/university-verifications?${new URLSearchParams({ limit, offset })}`);
+  }
   cancelUniversityVerification(id) {
     return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: {} });
   }

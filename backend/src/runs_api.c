@@ -39,19 +39,9 @@ static cJSON *run_json(sqlite3_stmt *stmt, int points) {
     if (points) cJSON_AddItemToObject(obj, "points", cJSON_Parse((const char *)sqlite3_column_text(stmt, 11)));
     return obj;
 }
-static int query_number(CrRequest *r, const char *name, int default_value, int maximum) {
-    char text[32], *end;
-    long n;
-    const char *q = r->info->query_string ? r->info->query_string : "";
-    int length = mg_get_var(q, strlen(q), name, text, sizeof(text));
-    if (length == -1) return default_value;
-    if (length <= 0 || text[0] < '0' || text[0] > '9') return -1;
-    errno = 0; n = strtol(text, &end, 10);
-    return errno || *end || n < 0 || n > maximum ? -1 : (int)n;
-}
 static int rankings(CrRequest *r) {
     int64_t from, to;
-    int step, limit = query_number(r, "limit", 100, 500), offset = query_number(r, "offset", 0, 1000000);
+    int step, limit = cr_query_number(r, "limit", 100, 500), offset = cr_query_number(r, "offset", 0, 1000000);
     sqlite3_stmt *stmt;
     cJSON *array;
     if (!cr_query_range(r, &from, &to) || limit < 1 || offset < 0) return cr_error(r, 400, "invalid_period_or_pagination");
@@ -178,7 +168,7 @@ fail:
     return cr_error(r, response, error);
 }
 static int own_runs(CrRequest *r) {
-    int step, limit = query_number(r, "limit", 50, 200), offset = query_number(r, "offset", 0, 1000000);
+    int step, limit = cr_query_number(r, "limit", 50, 200), offset = cr_query_number(r, "offset", 0, 1000000);
     cJSON *array = cJSON_CreateArray();
     sqlite3_stmt *stmt;
     if (limit < 1 || offset < 0) { cJSON_Delete(array); return cr_error(r, 400, "invalid_pagination"); }

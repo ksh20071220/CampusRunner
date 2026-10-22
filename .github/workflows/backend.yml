@@ -17,6 +17,9 @@ jobs:
       - name: Linux dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libssl-dev
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Configure
         run: cmake -S backend -B backend/build-cmake -DCMAKE_BUILD_TYPE=Debug
       - name: Build

@@ -26,6 +26,7 @@ int cr_auth_route(CrRequest *r, const char *path, const char *method);
 int cr_run_route(CrRequest *r, const char *path, const char *method);
 cJSON *cr_member_json(sqlite3_stmt *stmt);
 int cr_query_range(CrRequest *r, int64_t *from, int64_t *to);
+int cr_query_number(CrRequest *r, const char *name, int default_value, int maximum);
 int cr_is_admin(CrRequest *r);
 int cr_verification_route(CrRequest *r, const char *path, const char *method);
 int cr_verification_upload_path(const char *path);
