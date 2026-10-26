@@ -49,7 +49,7 @@ int cr_reply(CrRequest *r, int status, cJSON *body) {
         "X-Content-Type-Options: nosniff\r\nVary: Origin\r\n", status, reason, strlen(text));
     if (origin && r->server->allowed_origin && !strcmp(origin, r->server->allowed_origin))
         mg_printf(r->conn, "Access-Control-Allow-Origin: %s\r\n"
-            "Access-Control-Allow-Methods: GET, POST, PATCH, OPTIONS\r\n"
+            "Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Authorization, Content-Type, X-Document-Type, X-Verification-Consent\r\n", origin);
     if (status == 401) mg_printf(r->conn, "WWW-Authenticate: Bearer\r\n");
     if (status == 429) mg_printf(r->conn, "Retry-After: 60\r\n");
@@ -322,10 +322,10 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
     if (!valid_query(r.info->query_string)) return cr_error(&r, 400, "invalid_query");
     if (!cr_db_open(r.server->db_path, &r.db)) { status = cr_error(&r, 503, "database_unavailable"); goto done; }
     /* Reject protected mutations before reading or allocating a request body. */
-    if (!strcmp(method, "POST") || !strcmp(method, "PATCH")) {
+    if (!strcmp(method, "POST") || !strcmp(method, "PATCH") || !strcmp(method, "DELETE")) {
         if (!strncmp(path, "/api/admin/", 11) || !strcmp(path, "/api/universities")) {
             if (!cr_is_admin(&r)) { status = cr_error(&r, 403, "admin_required"); goto done; }
-        } else if (!strncmp(path, "/api/me", 7) || !strcmp(path, "/api/runs") || !strcmp(path, "/api/auth/logout")) {
+        } else if (!strncmp(path, "/api/me", 7) || !strcmp(path, "/api/runs") || !strcmp(path, "/api/auth/logout") || !strcmp(path, "/api/auth/logout-all")) {
             int authenticated = cr_authenticate(&r);
             if (authenticated != 1) {
                 status = cr_error(&r, authenticated < 0 ? 503 : 401, authenticated < 0 ? "database_unavailable" : "authentication_required");
@@ -333,7 +333,7 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
             }
         }
     }
-    if ((!strcmp(method, "POST") || !strcmp(method, "PATCH")) && !cr_verification_upload_path(path)) {
+    if ((!strcmp(method, "POST") || !strcmp(method, "PATCH") || !strcmp(method, "DELETE")) && !cr_verification_upload_path(path)) {
         int error;
         r.body = read_body(&r, &error);
         if (!r.body) {
@@ -353,7 +353,7 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
         }
     } else if (!strcmp(path, "/api/universities")) status = universities(&r, method);
     else if (!strncmp(path, "/api/admin/", 11) || !strncmp(path, "/api/me/university-verifications", 32)) status = cr_verification_route(&r, path, method);
-    else if (!strncmp(path, "/api/auth/", 10) || !strcmp(path, "/api/me")) status = cr_auth_route(&r, path, method);
+    else if (!strncmp(path, "/api/auth/", 10) || !strcmp(path, "/api/me") || !strcmp(path, "/api/me/password")) status = cr_auth_route(&r, path, method);
     else status = cr_run_route(&r, path, method);
 done:
     if (r.db) sqlite3_close(r.db);

@@ -12,6 +12,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 import urllib.parse
@@ -650,10 +651,11 @@ class ServerTests(unittest.TestCase):
 
     def test_protected_routes_authenticate_before_reading_body(self):
         # Do not send the advertised body: rejection must not wait for 15s timeout.
-        for path, expected in [('/api/universities', 403), ('/api/admin/university-verifications/1/decision', 403),
-                               ('/api/runs', 401), ('/api/me/university-verifications', 401), ('/api/auth/logout', 401)]:
-            with self.subTest(path=path), socket.create_connection(('127.0.0.1', self.port), timeout=3) as sock:
-                sock.sendall(f'POST {path} HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: 1000000\r\nConnection: close\r\n\r\n'.encode('ascii'))
+        for method, path, expected in [('POST', '/api/universities', 403), ('POST', '/api/admin/university-verifications/1/decision', 403),
+                               ('POST', '/api/runs', 401), ('POST', '/api/me/university-verifications', 401), ('POST', '/api/auth/logout', 401),
+                               ('POST', '/api/auth/logout-all', 401), ('PATCH', '/api/me/password', 401), ('DELETE', '/api/me', 401)]:
+            with self.subTest(method=method, path=path), socket.create_connection(('127.0.0.1', self.port), timeout=3) as sock:
+                sock.sendall(f'{method} {path} HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: 1000000\r\nConnection: close\r\n\r\n'.encode('ascii'))
                 response = http.client.HTTPResponse(sock)
                 response.begin()
                 self.assertEqual(response.status, expected)
@@ -726,6 +728,203 @@ class ServerTests(unittest.TestCase):
                     if process.poll() is None:
                         process.terminate()
                     process.wait(timeout=10)
+
+
+    def test_account_deletion_purges_personal_data_and_recalculates_scores(self):
+        owner, other = self.register('leaving'), self.register('staying')
+        second_token = self.call('POST', '/api/auth/login', {'nickname': 'leaving', 'password': 'Strong-pass-123!'})['token']
+        run = self.call('POST', '/api/runs', self.run_body('leave-1'), token=owner['token'], expected=201)
+        self.call('POST', '/api/runs', self.run_body('leave-2', start=1200), token=owner['token'], expected=201)
+        remaining = self.call('POST', '/api/runs', self.run_body('stay-1', degrees=.002, seconds=120), token=other['token'], expected=201)
+        self.assertEqual(self.call('GET', '/api/rankings?from=0&to=2000')[0]['participants'], 2)
+        self.call('DELETE', '/api/me', {'password': 'wrong-password', 'confirmation': 'DELETE'}, token=owner['token'], expected=401)
+        self.call('GET', '/api/me', token=owner['token'])
+        self.call('DELETE', '/api/me', {'password': 'Strong-pass-123!', 'confirmation': 'DELETE'}, token=owner['token'], expected=204)
+        for token in (owner['token'], second_token):
+            self.call('GET', '/api/me', token=token, expected=401)
+        self.call('POST', '/api/auth/login', {'nickname': 'leaving', 'password': 'Strong-pass-123!'}, expected=401)
+        self.call('GET', f"/api/me/runs/{run['id']}", token=other['token'], expected=404)
+        row = self.call('GET', '/api/universities/1/stats?from=0&to=2000')
+        self.assertEqual((row['participants'], row['runs']), (1, 1))
+        self.assertAlmostEqual(row['distance_m'], remaining['distance_m'])
+        self.assertAlmostEqual(row['average_distance_m'], remaining['distance_m'])
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertIsNone(db.execute('SELECT id FROM members WHERE id=?', (owner['id'],)).fetchone())
+            for table in ('sessions', 'runs', 'university_verifications', 'verification_audit'):
+                self.assertEqual(db.execute(f'SELECT count(*) FROM {table} WHERE member_id=?', (owner['id'],)).fetchone()[0], 0)
+            self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(), [])
+        self.assertEqual(self.call('GET', '/api/me', token=other['token'])['id'], other['id'])
+        fresh = self.register('leaving', verified=False)
+        self.assertGreater(fresh['id'], owner['id'])
+        self.assertFalse(fresh['university_verified'])
+        self.assertEqual(self.call('GET', '/api/me/runs', token=fresh['token']), [])
+
+    def test_deletion_removes_pending_photo_and_review_history(self):
+        account = self.register(verified=False)
+        first = self.upload(account['token'])
+        self.review(first['id'], 'rejected')
+        second = self.upload(account['token'])
+        self.assertEqual(self.proof_image(second['id'], account['token']), PNG)
+        self.call('DELETE', '/api/me', {'password': 'Strong-pass-123!', 'confirmation': 'DELETE'}, token=account['token'], expected=204)
+        self.call('GET', '/api/admin/university-verifications?status=pending', token=ADMIN)
+        for proof in (first, second):
+            self.call('GET', f"/api/admin/university-verifications/{proof['id']}", token=ADMIN, expected=404)
+            self.call('GET', f"/api/admin/university-verifications/{proof['id']}/audit", token=ADMIN, expected=404)
+            self.proof_image(proof['id'], ADMIN, admin=True, expected=404)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM verification_audit').fetchone()[0], 0)
+            self.assertEqual(db.execute('SELECT count(*) FROM university_verifications').fetchone()[0], 0)
+
+    def test_deletion_failure_rolls_back_every_table(self):
+        account = self.register(verified=False)
+        first = self.upload(account['token'])
+        self.review(first['id'], 'rejected')
+        pending = self.upload(account['token'])
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute("CREATE TRIGGER fail_delete BEFORE DELETE ON members BEGIN SELECT RAISE(ABORT,'injected'); END")
+            db.commit()
+        self.call('DELETE', '/api/me', {'password': 'Strong-pass-123!', 'confirmation': 'DELETE'}, token=account['token'], expected=500)
+        self.call('GET', '/api/me', token=account['token'])
+        self.assertEqual(self.proof_image(pending['id'], account['token']), PNG)
+        self.assertEqual(len(self.call('GET', f"/api/admin/university-verifications/{first['id']}/audit", token=ADMIN)), 1)
+        self.assertEqual(len(self.call('GET', '/api/me/runs', token=account['token'])), 1)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(), [])
+            db.execute('DROP TRIGGER fail_delete')
+            db.commit()
+        self.call('DELETE', '/api/me', {'password': 'Strong-pass-123!', 'confirmation': 'DELETE'}, token=account['token'], expected=204)
+
+    def test_account_change_validation_and_owner_scope(self):
+        account, other = self.register(verified=False), self.register('other', verified=False)
+        for body in [{}, {'password': 'Strong-pass-123!'}, {'password': 'Strong-pass-123!', 'confirmation': 'yes'},
+                     {'password': 'Strong-pass-123!', 'confirmation': 'DELETE', 'member_id': other['id']}]:
+            self.call('DELETE', '/api/me', body, token=account['token'], expected=400)
+        self.call('DELETE', '/api/me', {'password': 'Strong-pass-123!', 'confirmation': 'DELETE'}, token=ADMIN, expected=401)
+        for body in [{}, {'current_password': 'Strong-pass-123!', 'new_password': 'short'},
+                     {'current_password': 'Strong-pass-123!', 'new_password': 'Strong-pass-123!'},
+                     {'current_password': 'Strong-pass-123!', 'new_password': 'Different-pass-123!', 'member_id': other['id']}]:
+            self.call('PATCH', '/api/me/password', body, token=account['token'], expected=400)
+        self.call('PATCH', '/api/me/password', {'current_password': 'wrong-password', 'new_password': 'Different-pass-123!'}, token=account['token'], expected=401)
+        self.call('GET', '/api/me/password', token=account['token'], expected=405)
+        self.call('POST', '/api/auth/logout-all', {'extra': True}, token=account['token'], expected=400)
+        for token in (account['token'], other['token']):
+            self.call('GET', '/api/me', token=token)
+
+    def test_password_change_rotates_credentials_and_all_sessions(self):
+        account, other = self.register(), self.register('other')
+        login = self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': 'Strong-pass-123!'})
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            previous_salt = db.execute('SELECT salt FROM members WHERE id=?', (account['id'],)).fetchone()[0]
+        next_password = '새로운-비밀번호-123!'
+        changed = self.call('PATCH', '/api/me/password', {'current_password': 'Strong-pass-123!', 'new_password': next_password}, token=account['token'])
+        self.assertEqual(changed['id'], account['id'])
+        self.assertTrue(changed['university_verified'])
+        self.assertNotIn(changed['token'], (account['token'], login['token']))
+        for token in (account['token'], login['token']):
+            self.call('GET', '/api/me', token=token, expected=401)
+        self.call('GET', '/api/me', token=changed['token'])
+        self.call('GET', '/api/me', token=other['token'])
+        self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': 'Strong-pass-123!'}, expected=401)
+        self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': next_password})
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            salt, digest, iterations = db.execute('SELECT salt,password_hash,iterations FROM members WHERE id=?', (account['id'],)).fetchone()
+            self.assertNotEqual(salt, previous_salt)
+            self.assertEqual(digest, hashlib.pbkdf2_hmac('sha256', next_password.encode(), salt, iterations))
+
+    def test_password_change_failure_keeps_old_credentials_and_sessions(self):
+        account = self.register(verified=False)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute("CREATE TRIGGER fail_new_session BEFORE INSERT ON sessions BEGIN SELECT RAISE(ABORT,'injected'); END")
+            db.commit()
+        self.call('PATCH', '/api/me/password', {'current_password': 'Strong-pass-123!', 'new_password': 'New-password-123!'}, token=account['token'], expected=500)
+        self.call('GET', '/api/me', token=account['token'])
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('DROP TRIGGER fail_new_session')
+            db.commit()
+        self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': 'New-password-123!'}, expected=401)
+        self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': 'Strong-pass-123!'})
+
+    def test_logout_all_affects_only_current_member(self):
+        account, other = self.register(verified=False), self.register('other', verified=False)
+        second = self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': 'Strong-pass-123!'})
+        self.call('POST', '/api/auth/logout-all', {}, token=account['token'], expected=204)
+        for token in (account['token'], second['token']):
+            self.call('GET', '/api/me', token=token, expected=401)
+        self.call('GET', '/api/me', token=other['token'])
+        self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': 'Strong-pass-123!'})
+
+    def test_concurrent_password_changes_have_one_winner(self):
+        account = self.register(verified=False)
+        barrier = threading.Barrier(2)
+        def change(index):
+            connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=15)
+            body = {'current_password': 'Strong-pass-123!', 'new_password': f'New-password-{index}!'}
+            try:
+                barrier.wait(timeout=5)
+                connection.request('PATCH', '/api/me/password', json.dumps(body), {'Content-Type': 'application/json', 'Authorization': 'Bearer '+account['token']})
+                response = connection.getresponse()
+                return response.status, json.loads(response.read()), index
+            finally:
+                connection.close()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(change, range(2)))
+        self.assertEqual(sorted(result[0] for result in results), [200, 401])
+        winner = next(result for result in results if result[0] == 200)
+        self.call('GET', '/api/me', token=winner[1]['token'])
+        self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': f'New-password-{winner[2]}!'})
+        self.call('GET', '/api/me', token=account['token'], expected=401)
+
+    def test_delete_preflight_allows_browser_method(self):
+        connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+        try:
+            connection.request('OPTIONS', '/api/me', headers={'Origin': 'http://localhost:5173', 'Access-Control-Request-Method': 'DELETE',
+                                                             'Access-Control-Request-Headers': 'authorization, content-type'})
+            response = connection.getresponse()
+            response.read()
+            self.assertEqual(response.status, 204)
+            self.assertIn('DELETE', response.getheader('Access-Control-Allow-Methods'))
+            self.assertEqual(response.getheader('Access-Control-Allow-Origin'), 'http://localhost:5173')
+            self.assertEqual(response.getheader('Cache-Control'), 'no-store')
+        finally:
+            connection.close()
+        self.call('OPTIONS', '/api/me', headers={'Origin': 'https://evil.example', 'Access-Control-Request-Method': 'DELETE'}, expected=403)
+
+    def test_account_password_attempts_are_rate_limited(self):
+        account = self.register(verified=False)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE auth_limits SET attempts=30')
+            db.commit()
+        self.call('PATCH', '/api/me/password', {'current_password': 'Strong-pass-123!', 'new_password': 'New-password-123!'}, token=account['token'], expected=429)
+        self.call('DELETE', '/api/me', {'password': 'Strong-pass-123!', 'confirmation': 'DELETE'}, token=account['token'], expected=429)
+        self.call('GET', '/api/me', token=account['token'])
+
+    def test_revoked_sessions_cannot_complete_waiting_writes(self):
+        account = self.register(verified=False)
+        proof = self.upload(account['token'])
+        cases = [('PATCH', '/api/me', {'nickname': 'changed'}, None, None),
+                 ('POST', '/api/runs', self.run_body(), None, None),
+                 ('POST', '/api/me/university-verifications', None, PNG, PROOF_HEADERS),
+                 ('POST', f"/api/me/university-verifications/{proof['id']}/cancel", {}, None, None)]
+        for method, path, body, raw, headers in cases:
+            with self.subTest(path=path):
+                token = self.call('POST', '/api/auth/login', {'nickname': 'runner', 'password': 'Strong-pass-123!'})['token']
+                with contextlib.closing(sqlite3.connect(self.db)) as db, concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                    db.execute('BEGIN IMMEDIATE')
+                    try:
+                        result = pool.submit(self.call, method, path, body, token, 401, headers, raw)
+                        # Reads can authenticate in WAL mode while this write lock
+                        # delays the mutation. Revoke the session before releasing it.
+                        time.sleep(.2)
+                        db.execute('DELETE FROM sessions WHERE member_id=?', (account['id'],))
+                        db.commit()
+                    finally:
+                        db.rollback()
+                    result.result(timeout=10)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT nickname FROM members WHERE id=?', (account['id'],)).fetchone()[0], 'runner')
+            self.assertEqual(db.execute('SELECT count(*) FROM runs').fetchone()[0], 0)
+            self.assertEqual(db.execute('SELECT status,image FROM university_verifications WHERE id=?', (proof['id'],)).fetchone(), ('pending', PNG))
 
 
 if __name__ == '__main__':

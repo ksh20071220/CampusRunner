@@ -67,7 +67,8 @@ static int serve(int argc, char **argv) {
     const char *listen = argc > 2 ? argv[2] : "127.0.0.1:8080";
     const char *admin = getenv("CR_ADMIN_TOKEN"), *origin = getenv("CR_ALLOWED_ORIGIN");
     const char *options[] = {"listening_ports", listen, "num_threads", "4", "request_timeout_ms", "15000",
-        "enable_keep_alive", "no", "max_request_size", "16384", "decode_url", "no", NULL};
+        "enable_keep_alive", "no", "max_request_size", "16384", "decode_url", "no",
+        "access_control_allow_methods", "", NULL};
     CrServer server;
     struct mg_context *ctx;
     struct mg_callbacks callbacks;

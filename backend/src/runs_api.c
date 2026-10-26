@@ -129,7 +129,8 @@ static int submit_run(CrRequest *r) {
     }
     free(points);
     if (!gps || !cr_sha256(gps, strlen(gps), digest)) { free(gps); return cr_error(r, 500, "crypto_error"); }
-    if (!cr_db_exec(r->db, "BEGIN IMMEDIATE")) { free(gps); return cr_error(r, 503, "database_busy"); }
+    step = cr_begin_member_write(r);
+    if (step) { free(gps); return cr_error(r, step, step == 401 ? "authentication_required" : step == 503 ? "database_busy" : "database_error"); }
     stmt = cr_db_prepare(r->db, "SELECT id,client_key,fingerprint FROM runs WHERE member_id=? AND (client_key=? OR fingerprint=?) ORDER BY id");
     if (!stmt) goto fail;
     sqlite3_bind_int64(stmt, 1, r->member_id); sqlite3_bind_text(stmt, 2, key, -1, SQLITE_TRANSIENT);

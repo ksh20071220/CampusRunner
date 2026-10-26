@@ -95,7 +95,8 @@ static int upload(CrRequest *r) {
     mime=image_type(bytes,length);
     if (!mime || strcmp(mime,declared)) { free(bytes); return cr_error(r,400,"invalid_image"); }
     if (!cr_sha256(bytes,length,digest)) { free(bytes); return cr_error(r,500,"crypto_error"); }
-    if (!cr_db_exec(r->db,"BEGIN IMMEDIATE")) { free(bytes); return cr_error(r,503,"database_busy"); }
+    step=cr_begin_member_write(r);
+    if (step) { free(bytes); return cr_error(r,step,step==401?"authentication_required":step==503?"database_busy":"database_error"); }
     s=cr_db_prepare(r->db,"SELECT university_verified_at IS NOT NULL FROM members WHERE id=?");
     if (!s) goto fail;
     sqlite3_bind_int64(s,1,r->member_id); step=sqlite3_step(s);
@@ -158,7 +159,10 @@ static int decision(CrRequest *r,int64_t id,int mode) {
     const char *error="database_error";
     if ((cancel && cJSON_GetArraySize(r->body)!=0) || (!cancel && (!value || (!revoke && strcmp(value,"approved") && strcmp(value,"rejected")) || !reviewer || !reason || cJSON_GetArraySize(r->body)!=(revoke?2:3))))
         return cr_error(r,400,"invalid_review");
-    if (!cr_db_exec(r->db,"BEGIN IMMEDIATE")) return cr_error(r,503,"database_busy");
+    if (cancel) {
+        step=cr_begin_member_write(r);
+        if (step) return cr_error(r,step,step==401?"authentication_required":step==503?"database_busy":"database_error");
+    } else if (!cr_db_exec(r->db,"BEGIN IMMEDIATE")) return cr_error(r,503,"database_busy");
     s=cr_db_prepare(r->db,"SELECT v.member_id,v.university_id,v.status,m.university_id,v.expires_at FROM university_verifications v JOIN members m ON m.id=v.member_id WHERE v.id=?");
     if (!s) goto fail;
     sqlite3_bind_int64(s,1,id); step=sqlite3_step(s);

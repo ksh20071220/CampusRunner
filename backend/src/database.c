@@ -104,6 +104,8 @@ int cr_db_init(const char *path) {
             "PRAGMA user_version=2;");
     }
     if (ok) ok = cr_db_exec(db,
+        "CREATE INDEX IF NOT EXISTS verification_member ON university_verifications(member_id,id);"
+        "CREATE INDEX IF NOT EXISTS verification_audit_member ON verification_audit(member_id,id);"
         "CREATE INDEX IF NOT EXISTS verification_audit_request ON verification_audit(request_id,id);"
         "CREATE INDEX IF NOT EXISTS verification_pending_expiry ON university_verifications(expires_at) WHERE status='pending';"
         "COMMIT;");

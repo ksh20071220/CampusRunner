@@ -22,6 +22,9 @@ int cr_error(CrRequest *r, int status, const char *code);
 int cr_json_integer(const cJSON *item, int64_t min, int64_t max, int64_t *value);
 const char *cr_json_text(const cJSON *object, const char *key, size_t capacity);
 int cr_authenticate(CrRequest *r);
+/* Begin a member write and recheck the session under the write lock.
+ * Returns zero on success, otherwise an HTTP status (no transaction remains). */
+int cr_begin_member_write(CrRequest *r);
 int cr_auth_route(CrRequest *r, const char *path, const char *method);
 int cr_run_route(CrRequest *r, const char *path, const char *method);
 cJSON *cr_member_json(sqlite3_stmt *stmt);

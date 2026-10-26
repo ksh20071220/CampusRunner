@@ -41,6 +41,8 @@ try {
         & python tests\test_backup.py
         if ($LASTEXITCODE -ne 0) { throw 'Backup failure-injection tests failed.' }
         if (Get-Command node -ErrorAction SilentlyContinue) {
+            & node --test tests\test_api_client.cjs
+            if ($LASTEXITCODE -ne 0) { throw 'Member API client tests failed.' }
             & node --test tests\test_verification_admin.cjs
             if ($LASTEXITCODE -ne 0) { throw 'Verification admin UI tests failed.' }
         } else {

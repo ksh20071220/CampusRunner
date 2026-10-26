@@ -40,6 +40,22 @@ export class CampusRunnerApi {
     await this.request("/api/auth/logout", { method: "POST", body: {} });
     this.token = null;
   }
+  async logoutAll() {
+    await this.request("/api/auth/logout-all", { method: "POST", body: {} });
+    this.token = null;
+  }
+  async changePassword(currentPassword, newPassword) {
+    const user = await this.request("/api/me/password", {
+      method: "PATCH", body: { current_password: currentPassword, new_password: newPassword },
+    });
+    this.token = user.token;
+    return user;
+  }
+  /** Ask the user to confirm permanent deletion before calling this method. */
+  async deleteAccount(password) {
+    await this.request("/api/me", { method: "DELETE", body: { password, confirmation: "DELETE" } });
+    this.token = null;
+  }
   me() { return this.request("/api/me"); }
   updateProfile(profile) { return this.request("/api/me", { method: "PATCH", body: profile }); }
   /** Generate key ONCE at the end of a run and retain it for every network retry.
