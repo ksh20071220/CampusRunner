@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f6f2">
+  <title>소속 인증 · CampusRunner</title>
+  <link rel="stylesheet" href="verification-admin.css">
+  <script src="verification-admin.js" defer></script>
+</head>
+<body>
+<div class="app" id="app" data-view="queue">
+  <header class="topbar">
+    <a class="brand" href="verification-admin.html" aria-label="CampusRunner 소속 인증 홈">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M10 9h14l-3 5H9l-3 5h13l-3 5H2L10 9Z" fill="currentColor"/><path d="m24 17 5-8h-3l-5 8h3Z" fill="currentColor"/></svg></span>
+      <span>campus<span class="brand-light">runner</span><span class="brand-dot">.</span></span>
+    </a>
+    <span class="admin-label">운영자 모드</span>
+  </header>
+  <details class="connection" id="connection">
+    <summary><span class="connection-dot" id="connection-dot"></span><span id="connection-label">관리자 연결 설정</span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 17h16M9 4v6m6 4v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></summary>
+    <div class="connection-body">
+      <div class="section-kicker">WORKSPACE CONNECTION</div>
+      <h2>검토할 준비를 해볼까요?</h2>
+      <p class="muted">서버 정보와 담당자 이름을 입력해 주세요.</p>
+      <label for="base">API 주소</label>
+      <input id="base" value="http://127.0.0.1:8080" type="url" inputmode="url" autocomplete="off" spellcheck="false">
+      <label for="token">관리자 토큰</label>
+      <input id="token" type="password" autocomplete="off" placeholder="관리자 토큰을 붙여넣으세요">
+      <label for="reviewer">검토 담당자 이름</label>
+      <input id="reviewer" autocomplete="off" placeholder="검토 기록에 남길 이름">
+      <p class="connection-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4.5" y="8" width="11" height="8" rx="2" stroke="currentColor"/><path d="M7 8V5a3 3 0 0 1 6 0v3" stroke="currentColor"/></svg>토큰과 사진은 브라우저에 저장하지 않아요.<br>담당자 이름은 처리 기록에 남습니다.</p>
+      <p id="connection-feedback" class="inline-error" role="alert" hidden></p>
+      <button class="button button-dark connection-submit" id="connect-load">연결하고 목록 불러오기 <span aria-hidden="true">↗</span></button>
+    </div>
+  </details>
+  <div class="page-intro">
+    <div class="intro-eyebrow"><span></span> YOUR CAMPUS, YOUR TEAM</div>
+    <div class="intro-title"><h1>함께 달릴 준비,<br>소속 인증부터.</h1><span class="intro-art" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none"><circle cx="40" cy="40" r="35" stroke="currentColor" stroke-width="1"/><path d="m23 54 31-31M28 23h26v26" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+    <p>학생들의 서류를 확인하고 캠퍼스 팀에 합류시켜 주세요.</p>
+  </div>
+  <p id="message" class="notice" role="status" aria-live="polite" hidden></p>
+  <main class="workspace">
+    <section class="queue-panel" aria-labelledby="queue-heading">
+      <div class="section-title"><h2 id="queue-heading">인증 신청 <span id="queue-count" class="count">—</span></h2><span class="sort-label">오래된 순</span></div>
+      <div class="queue-toolbar">
+        <label class="sr-only" for="status">상태</label>
+        <div class="select-wrap"><select id="status"><option value="pending">검토 대기</option><option value="approved">승인 완료</option><option value="rejected">반려</option><option value="cancelled">제출 취소</option><option value="expired">기한 만료</option><option value="revoked">승인 철회</option></select><span aria-hidden="true">⌄</span></div>
+        <button class="button refresh-button" id="refresh"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15.5 7A6 6 0 1 0 16 12M16 3v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>새로고침</button>
+      </div>
+      <ul id="queue" class="queue" aria-label="인증 신청 목록"></ul>
+      <div class="queue-empty" id="queue-empty">
+        <div class="empty-illustration" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none"><rect x="15" y="17" width="50" height="43" rx="9" fill="#e6eddf" transform="rotate(-9 40 40)"/><rect x="13" y="22" width="54" height="40" rx="8" fill="#fff" stroke="#9aa891" stroke-width="1.4"/><circle cx="29" cy="37" r="5" stroke="#607254" stroke-width="1.5"/><path d="M21 52c0-8 16-8 16 0m7-17h13m-13 8h9" stroke="#607254" stroke-width="1.5" stroke-linecap="round"/><circle cx="61" cy="57" r="11" fill="#c5f16b"/><path d="m56 57 3 3 6-6" stroke="#26391b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3 id="empty-title">신청 목록을 불러와 주세요</h3>
+        <p id="empty-description">관리자 연결 후 학생들이 제출한<br>인증 서류를 확인할 수 있어요.</p>
+        <button class="button empty-connect" id="connect-button">관리자 연결하기 <span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="pagination" id="pagination" hidden>
+        <p id="page-info"></p>
+        <div><button id="previous" class="page-button" disabled aria-label="이전 페이지">←</button><button id="next" class="page-button" disabled aria-label="다음 페이지">→</button></div>
+      </div>
+      <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2 16 5v5c0 4-6 7-6 7s-6-3-6-7V5l6-3Z" stroke="currentColor" stroke-width="1.3"/><path d="m7 9 2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>검토가 끝난 서류 사진은 자동 삭제돼요.</span></div>
+    </section>
+    <section class="review-panel" id="review-panel" aria-labelledby="heading">
+      <div class="review-empty" id="review-empty">
+        <span class="review-empty-mark" aria-hidden="true">↗</span><h2>한 번의 확인,<br>새로운 러닝 메이트.</h2><p>목록에서 신청을 선택하면<br>제출한 서류를 확인할 수 있어요.</p><span class="review-empty-caption">LET’S RUN TOGETHER</span>
+      </div>
+      <div id="review-content" hidden>
+        <button class="back-button" id="back"><span aria-hidden="true">←</span> 신청 목록</button>
+        <div class="review-topline"><span class="section-kicker" id="request-id">신청 정보</span><span id="request-status" class="status-badge"></span></div>
+        <h2 id="heading" class="review-heading">신청을 선택하세요</h2>
+        <p id="university-name" class="university-name"></p>
+        <p id="details" class="request-details"></p>
+        <div class="document-label"><h3>제출 서류</h3><span id="document-type"></span></div>
+        <div class="photo-stage" id="photo-stage">
+          <div class="photo-placeholder" id="photo-placeholder"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="6" y="7" width="28" height="26" rx="5" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m7 29 9-9 6 6 5-5 7 7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><p id="photo-note">서류를 불러오는 중이에요.</p></div>
+          <img id="photo" hidden alt="신청자가 제출한 대학 인증 사진">
+        </div>
+        <p class="photo-help" id="photo-help">학교명과 소속 근거가 잘 보이는지 확인해 주세요.</p>
+        <div class="review-form">
+          <div class="memo-label"><label for="reason">검토 사유</label><span>신청자에게 전달돼요</span></div>
+          <textarea id="reason" maxlength="160" placeholder="확인한 내용이나 구체적인 반려 사유를 남겨주세요."></textarea>
+          <p id="reason-error" class="inline-error" hidden>검토 사유를 입력해 주세요.</p>
+          <div class="quick-reasons" id="quick-reasons"><button id="reason-approved" type="button">학교·서류 확인 완료</button><button id="reason-unclear" type="button">서류 식별 어려움</button></div>
+        </div>
+        <div class="review-actions" id="review-actions">
+          <button id="reject" class="button button-secondary" disabled>반려</button>
+          <button id="approve" class="button button-primary" disabled><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 10 3.5 3.5L15 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>승인하기</button>
+          <button id="revoke" class="button button-revoke" disabled hidden>승인 철회하기</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><span>campusrunner.</span> 작은 한 걸음이, 우리 캠퍼스의 기록으로.</footer>
+</div>
+</body>
+</html>
