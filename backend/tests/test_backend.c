@@ -43,6 +43,13 @@ static void registrations(void) {
     assert(cr_add_member(s, 31, "   ", 1) == CR_INVALID);
     assert(cr_add_member(s, 31, "trailing ", 1) == CR_INVALID);
     assert(cr_add_member(s, 31, "\xc0\xaf", 1) == CR_INVALID);
+    assert(cr_valid_utf8("한글😀", strlen("한글😀")));
+    assert(cr_valid_utf8("", 0));
+    assert(!cr_valid_utf8("\xe2\x82", 2));
+    assert(!cr_valid_utf8("\xed\xa0\x80", 3));
+    assert(!cr_valid_utf8("\xf4\x90\x80\x80", 4));
+    assert(!cr_valid_utf8("\xc0\xaf", 2));
+    assert(!cr_valid_text("bad\x7f", 8));
     free(s);
 }
 static void validation(void) {

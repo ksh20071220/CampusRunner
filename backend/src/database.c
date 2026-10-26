@@ -56,11 +56,14 @@ int cr_db_init(const char *path) {
     sqlite3_stmt *stmt;
     int version, ok = 0;
     if (!cr_db_open(path, &db)) return 0;
+    /* Read the version only after taking the migration lock. Two processes
+     * starting together must not both apply the same ALTER TABLE sequence. */
+    if (!cr_db_exec(db, "PRAGMA journal_mode=WAL; BEGIN IMMEDIATE;")) goto done;
     stmt = cr_db_prepare(db, "PRAGMA user_version");
     if (!stmt) goto done;
     version = sqlite3_step(stmt) == SQLITE_ROW ? sqlite3_column_int(stmt, 0) : -1;
     sqlite3_finalize(stmt);
-    if (version < 0 || version > 2 || !cr_db_exec(db, "PRAGMA journal_mode=WAL; BEGIN IMMEDIATE;")) goto done;
+    if (version < 0 || version > 2) goto done;
     ok = cr_db_exec(db,
         "CREATE TABLE IF NOT EXISTS universities(id INTEGER PRIMARY KEY CHECK(id>0),name TEXT NOT NULL UNIQUE);"
         "CREATE TABLE IF NOT EXISTS members(id INTEGER PRIMARY KEY AUTOINCREMENT, nickname TEXT NOT NULL UNIQUE,"
@@ -78,12 +81,9 @@ int cr_db_init(const char *path) {
         "UNIQUE(member_id,client_key),UNIQUE(member_id,fingerprint));"
         "CREATE INDEX IF NOT EXISTS runs_period ON runs(started_at,university_id) WHERE flags=0 AND distance_mm>0;"
         "CREATE INDEX IF NOT EXISTS runs_member_time ON runs(member_id,started_at,ended_at);"
-        "CREATE TABLE IF NOT EXISTS auth_limits(ip TEXT PRIMARY KEY,window_at INTEGER NOT NULL,attempts INTEGER NOT NULL);"
-        "COMMIT;");
-    if (!ok) cr_db_exec(db, "ROLLBACK");
+        "CREATE TABLE IF NOT EXISTS auth_limits(ip TEXT PRIMARY KEY,window_at INTEGER NOT NULL,attempts INTEGER NOT NULL);");
     if (ok && version < 2) {
         ok = cr_db_exec(db,
-            "BEGIN IMMEDIATE;"
             "ALTER TABLE universities ADD COLUMN kind TEXT NOT NULL DEFAULT '';"
             "ALTER TABLE universities ADD COLUMN regions_json TEXT NOT NULL DEFAULT '[]';"
             "ALTER TABLE universities ADD COLUMN aliases_json TEXT NOT NULL DEFAULT '[]';"
@@ -101,18 +101,19 @@ int cr_db_init(const char *path) {
             "CREATE INDEX verification_queue ON university_verifications(status,submitted_at);"
             "CREATE TABLE verification_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,request_id INTEGER REFERENCES university_verifications(id),"
             "member_id INTEGER NOT NULL REFERENCES members(id),action TEXT NOT NULL,reviewer TEXT NOT NULL,reason TEXT NOT NULL,created_at INTEGER NOT NULL);"
-            "PRAGMA user_version=2; COMMIT;");
-        if (!ok) cr_db_exec(db, "ROLLBACK");
+            "PRAGMA user_version=2;");
     }
+    if (ok) ok = cr_db_exec(db,
+        "CREATE INDEX IF NOT EXISTS verification_audit_request ON verification_audit(request_id,id);"
+        "CREATE INDEX IF NOT EXISTS verification_pending_expiry ON university_verifications(expires_at) WHERE status='pending';"
+        "COMMIT;");
     if (ok) {
         const char *seed = getenv("CR_SEED_UNIVERSITIES");
         if (!seed || strcmp(seed, "0")) ok = cr_seed_catalog(db);
     }
-    if (ok) ok = cr_db_exec(db,
-        "CREATE INDEX IF NOT EXISTS verification_audit_request ON verification_audit(request_id,id);"
-        "CREATE INDEX IF NOT EXISTS verification_pending_expiry ON university_verifications(expires_at) WHERE status='pending'");
     if (ok) ok = cr_db_expire_verifications(db);
 done:
     if (!ok) fprintf(stderr, "Database initialization failed: %s\n", sqlite3_errmsg(db));
+    if (!sqlite3_get_autocommit(db)) cr_db_exec(db, "ROLLBACK");
     sqlite3_close(db); return ok;
 }

@@ -207,6 +207,7 @@ int cr_auth_route(CrRequest *r, const char *path, const char *method) {
     } else if (!strcmp(method, "POST")) {
         sqlite3_stmt *stmt = cr_db_prepare(r->db, "DELETE FROM sessions WHERE token_hash=?");
         int step;
+        if (cJSON_GetArraySize(r->body) != 0) { sqlite3_finalize(stmt); return cr_error(r, 400, "invalid_logout"); }
         if (!stmt) return cr_error(r, 500, "database_error");
         sqlite3_bind_blob(stmt, 1, r->token_hash, 32, SQLITE_TRANSIENT);
         step = sqlite3_step(stmt); sqlite3_finalize(stmt);

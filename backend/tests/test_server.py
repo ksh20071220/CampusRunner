@@ -594,7 +594,138 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(p.returncode, 0, p.stderr)
         with contextlib.closing(sqlite3.connect(backup)) as db:
             self.assertEqual(db.execute('SELECT status,image FROM university_verifications').fetchone(), ('cancelled', None))
+            self.assertEqual(db.execute('SELECT count(*) FROM sessions').fetchone()[0], 0)
         self.assertEqual(self.proof_image(proof['id'], token), PNG)
+        self.stop()
+        self.db = backup
+        self.start()
+        self.call('GET', '/api/me', token=token, expected=401)
+
+    def test_strict_json_grammar_and_unicode(self):
+        invalid = [b'{"id":03,"name":"bad"}', b'{"id":4.,"name":"bad"}',
+                   b'{"id":+4,"name":"bad"}', b'{"id":.4,"name":"bad"}',
+                   b'{"id":4e,"name":"bad"}', b'{"id":4e+,"name":"bad"}',
+                   b'{\x0b"id":4,"name":"bad"}', b'{"id":4,"name":"\xff"}',
+                   b'{"id":4,"name":"\xed\xa0\x80"}', b'{"id":4,"name":"\xc0\xaf"}',
+                   b'{"id":4,"name":"bad\\u0000tail"}', b'{"id":4,"name":"bad\x00tail"}',
+                   b'{"id":4,"name":"bad\\x41"}', b'{"id":4,"name":"\\uD800"}']
+        for body in invalid:
+            with self.subTest(body=body):
+                self.call('POST', '/api/universities', raw=body, token=ADMIN, expected=400)
+        result = self.call('POST', '/api/universities', raw=b'{"id":4e0,"name":"\\uD83C\\uDFC3 University"}', token=ADMIN, expected=201)
+        self.assertEqual(result['name'], '🏃 University')
+        self.assertEqual(len(self.call('GET', '/api/universities')), 3)
+
+    def test_query_and_path_encoding_reject_truncation(self):
+        invalid = ['/api/rankings?from=0%00junk&to=2000', '/api/me/runs?limit=1%00junk',
+                   '/api/universities?q=%', '/api/universities?q=%2', '/api/universities?q=%GG',
+                   '/api/universities?q=%ff', '/api/universities?q=%c0%af', '/api/universities?q=%0d',
+                   '/api/universities?q=%7f', '/api/universities%00suffix', '/api%2funiversities']
+        for path in invalid:
+            with self.subTest(path=path):
+                self.call('GET', path, expected=400)
+        query = urllib.parse.urlencode({'q': '서울대학교'})
+        self.assertEqual(self.call('GET', '/api/universities?'+query)[0]['id'], 1)
+
+    def test_duplicate_headers_and_request_framing(self):
+        cases = [
+            ['Content-Length: +2'], ['Content-Length: 2junk'],
+            ['Content-Length: 2', 'content-length: 2'],
+            ['Transfer-Encoding: chunked', 'Content-Length: 2'],
+            ['Content-Length: 2', 'Authorization: Bearer '+ADMIN, 'authorization: Bearer '+ADMIN],
+            ['Content-Length: 2', 'Origin: http://localhost:5173', 'Origin: http://localhost:5173'],
+            ['Content-Length: 2', 'Content-Type: application/json'],
+            ['Content-Length: 2', 'Host: localhost'],
+        ]
+        for headers in cases:
+            with self.subTest(headers=headers):
+                with socket.create_connection(('127.0.0.1', self.port), timeout=5) as sock:
+                    request = '\r\n'.join(['POST /api/universities HTTP/1.1', 'Host: localhost',
+                                           'Content-Type: application/json', *headers, 'Connection: close', '', '{}'])
+                    sock.sendall(request.encode('ascii'))
+                    response = http.client.HTTPResponse(sock)
+                    response.begin()
+                    self.assertEqual(response.status, 400)
+                    response.read()
+
+    def test_protected_routes_authenticate_before_reading_body(self):
+        # Do not send the advertised body: rejection must not wait for 15s timeout.
+        for path, expected in [('/api/universities', 403), ('/api/admin/university-verifications/1/decision', 403),
+                               ('/api/runs', 401), ('/api/me/university-verifications', 401), ('/api/auth/logout', 401)]:
+            with self.subTest(path=path), socket.create_connection(('127.0.0.1', self.port), timeout=3) as sock:
+                sock.sendall(f'POST {path} HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: 1000000\r\nConnection: close\r\n\r\n'.encode('ascii'))
+                response = http.client.HTTPResponse(sock)
+                response.begin()
+                self.assertEqual(response.status, expected)
+                response.read()
+
+    def test_maximum_gps_request_survives_parser_budget(self):
+        token = self.register()['token']
+        points = [{'timestamp': 1000+i, 'latitude': 0, 'longitude': i*.000001} for i in range(20000)]
+        result = self.call('POST', '/api/runs', {'key': 'maximum-points', 'points': points}, token=token, expected=201)
+        self.assertGreater(result['distance_m'], 2000)
+
+    def test_cancel_and_logout_require_empty_object(self):
+        token = self.register(verified=False)['token']
+        proof = self.upload(token)
+        self.call('POST', f"/api/me/university-verifications/{proof['id']}/cancel", {'ignored': True}, token=token, expected=400)
+        self.assertEqual(self.call('GET', '/api/me', token=token)['verification_status'], 'pending')
+        self.call('POST', '/api/auth/logout', {'ignored': True}, token=token, expected=400)
+        self.call('GET', '/api/me', token=token)
+
+    def test_invalid_server_configuration_does_not_create_database(self):
+        cases = [('8080', 'http://localhost:5173'), ('127.0.0.1:0', 'http://localhost:5173'),
+                 ('127.0.0.1:65536', 'http://localhost:5173'), ('256.0.0.1:8080', 'http://localhost:5173')]
+        cases += [('127.0.0.1:8080', origin) for origin in ['http://', 'https://localhost/path', 'https://user@localhost',
+                  'http://localhost:0', 'http://localhost:abc', 'http://localhost/', 'http://local host', 'null']]
+        for index, (listen, origin) in enumerate(cases):
+            with self.subTest(listen=listen, origin=origin):
+                db = self.cwd / f'invalid-{index}.sqlite3'
+                result = subprocess.run([str(EXE), str(db), listen], env=dict(os.environ, CR_ALLOWED_ORIGIN=origin, CR_ADMIN_TOKEN=ADMIN),
+                                        capture_output=True, timeout=5)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertFalse(db.exists())
+
+    def test_concurrent_fresh_database_migration(self):
+        database = self.cwd / 'concurrent.sqlite3'
+        processes, ports = [], []
+        env = dict(os.environ, CR_SEED_UNIVERSITIES='0', CR_ADMIN_TOKEN=ADMIN, CR_ALLOWED_ORIGIN='http://localhost:5173')
+        with contextlib.closing(sqlite3.connect(database)) as db:
+            db.execute('PRAGMA journal_mode=WAL')
+            db.execute('BEGIN IMMEDIATE')
+            try:
+                for _ in range(2):
+                    with socket.socket() as sock:
+                        sock.bind(('127.0.0.1', 0))
+                        ports.append(sock.getsockname()[1])
+                    processes.append(subprocess.Popen([str(EXE), str(database), f'127.0.0.1:{ports[-1]}'],
+                                                       env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL))
+                time.sleep(.5)
+                db.commit()
+                for port, process in zip(ports, processes):
+                    for _ in range(100):
+                        self.assertIsNone(process.poll(), 'Concurrent migration failed')
+                        connection = http.client.HTTPConnection('127.0.0.1', port, timeout=1)
+                        try:
+                            connection.request('GET', '/health')
+                            response = connection.getresponse()
+                            response.read()
+                            self.assertEqual(response.status, 200)
+                            break
+                        except (OSError, http.client.HTTPException):
+                            time.sleep(.05)
+                        finally:
+                            connection.close()
+                    else:
+                        self.fail('Concurrent server failed to become healthy')
+                self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2)
+                self.assertEqual(db.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
+            finally:
+                db.rollback()
+                for process in processes:
+                    if process.poll() is None:
+                        process.terminate()
+                    process.wait(timeout=10)
 
 
 if __name__ == '__main__':

@@ -9,31 +9,84 @@
 #include <windows.h>
 #else
 #include <time.h>
+#include <sys/stat.h>
 #endif
 static volatile sig_atomic_t stopping = 0;
 static void stop_server(int sig) { (void)sig; stopping = 1; }
+static int valid_port(const char *text) {
+    unsigned value = 0;
+    size_t digits = 0;
+    while (*text) {
+        if (*text < '0' || *text > '9' || ++digits > 5) return 0;
+        value = value*10+(unsigned)(*text++-'0');
+    }
+    return digits && value > 0 && value <= 65535;
+}
+static int valid_listen(const char *text) {
+    unsigned octet;
+    int part;
+    for (part = 0; part < 4; ++part) {
+        size_t digits = 0;
+        octet = 0;
+        while (*text >= '0' && *text <= '9') {
+            if (++digits > 3) return 0;
+            octet = octet*10+(unsigned)(*text++-'0');
+        }
+        if (!digits || octet > 255 || *text++ != (part == 3 ? ':' : '.')) return 0;
+    }
+    return valid_port(text);
+}
+static int valid_origin(const char *text) {
+    const char *host, *p;
+    size_t length = strlen(text);
+    if (length > 256) return 0;
+    host = !strncmp(text, "http://", 7) ? text+7 : !strncmp(text, "https://", 8) ? text+8 : NULL;
+    if (!host || !*host) return 0;
+    p = host;
+    if (*p == '[') {
+        const char *start = ++p;
+        int colon = 0;
+        while (*p && *p != ']') {
+            if (*p == ':') colon = 1;
+            else if (!((*p >= '0' && *p <= '9') || (*p >= 'a' && *p <= 'f') || (*p >= 'A' && *p <= 'F') || *p == '.')) return 0;
+            ++p;
+        }
+        if (p == start || !colon || *p != ']') return 0;
+        ++p;
+    } else {
+        while (*p && *p != ':') {
+            if (!((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '-' || *p == '.')) return 0;
+            ++p;
+        }
+        if (p == host) return 0;
+    }
+    return !*p || (*p == ':' && valid_port(p+1));
+}
 static int serve(int argc, char **argv) {
     const char *db = argc > 1 ? argv[1] : "campus.sqlite3";
     const char *listen = argc > 2 ? argv[2] : "127.0.0.1:8080";
     const char *admin = getenv("CR_ADMIN_TOKEN"), *origin = getenv("CR_ALLOWED_ORIGIN");
     const char *options[] = {"listening_ports", listen, "num_threads", "4", "request_timeout_ms", "15000",
-        "enable_keep_alive", "no", "max_request_size", "16384", NULL};
+        "enable_keep_alive", "no", "max_request_size", "16384", "decode_url", "no", NULL};
     CrServer server;
     struct mg_context *ctx;
     struct mg_callbacks callbacks;
     size_t i;
     unsigned maintenance_ticks=0;
     if (argc > 3 || !*db || !*listen) { fprintf(stderr, "Usage: campus_server [database.sqlite3] [IPv4:port]\n"); return 2; }
-    for (i = 0; listen[i]; ++i) if (!((listen[i] >= '0' && listen[i] <= '9') || listen[i] == '.' || listen[i] == ':')) {
+    if (!valid_listen(listen)) {
         fprintf(stderr, "Listen address must be an IPv4 address and port.\n"); return 2;
     }
     if (admin && (strlen(admin) < 32 || strlen(admin) > 256)) { fprintf(stderr, "CR_ADMIN_TOKEN must have 32-256 ASCII characters.\n"); return 2; }
     if (admin) for (i = 0; admin[i]; ++i) if ((unsigned char)admin[i] < 33 || (unsigned char)admin[i] > 126) return 2;
     if (!origin) origin = "http://localhost:5173";
-    if (strchr(origin, '\r') || strchr(origin, '\n') || strlen(origin) > 256 ||
-        (strncmp(origin, "http://", 7) && strncmp(origin, "https://", 8))) {
+    if (!valid_origin(origin)) {
         fprintf(stderr, "CR_ALLOWED_ORIGIN must be a single http(s) origin.\n"); return 2;
     }
+#ifndef _WIN32
+    /* SQLite DB, WAL and journal files contain personal data. */
+    umask(0077);
+#endif
     if (!cr_db_init(db)) return 1;
     /* Return value is a feature bitset; zero is normal for a plain HTTP build. */
     mg_init_library(0);

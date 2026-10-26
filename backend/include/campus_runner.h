@@ -43,6 +43,8 @@ typedef struct {
 
 CrPolicy cr_default_policy(void);
 int cr_valid_text(const char *text, size_t capacity);
+/* Validate exactly length bytes; unlike cr_valid_text, spaces/empty spans are allowed. */
+int cr_valid_utf8(const char *text, size_t length);
 CrStatus cr_analyze_run(const CrPoint *points, size_t count,
                         const CrPolicy *policy, CrRun *result);
 const char *cr_status_string(CrStatus status);

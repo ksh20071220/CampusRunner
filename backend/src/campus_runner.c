@@ -4,15 +4,13 @@
 #include <string.h>
 #include <limits.h>
 
-int cr_valid_text(const char *s, size_t cap) {
+int cr_valid_utf8(const char *s, size_t length) {
     size_t i = 0;
-    if (!s || !s[0]) return 0;
-    if (s[0] == ' ') return 0;
-    while (i < cap && s[i]) {
+    if (!s) return 0;
+    while (i < length) {
         unsigned char c = (unsigned char)s[i++];
         unsigned code;
         size_t extra, j;
-        if (c < 32 || c == 127) return 0;
         if (c < 128) continue;
         if (c >= 0xc2 && c <= 0xdf) { extra = 1; code = c & 31u; }
         else if (c >= 0xe0 && c <= 0xef) { extra = 2; code = c & 15u; }
@@ -20,7 +18,7 @@ int cr_valid_text(const char *s, size_t cap) {
         else return 0;
         for (j = 0; j < extra; ++j) {
             unsigned char next;
-            if (i >= cap) return 0;
+            if (i >= length) return 0;
             next = (unsigned char)s[i++];
             if (next < 0x80 || next > 0xbf) return 0;
             code = (code << 6) | (next & 63u);
@@ -29,7 +27,16 @@ int cr_valid_text(const char *s, size_t cap) {
             (extra == 3 && code < 0x10000) || code > 0x10ffff ||
             (code >= 0xd800 && code <= 0xdfff)) return 0;
     }
-    return i < cap && i > 0 && s[i-1] != ' ';
+    return 1;
+}
+int cr_valid_text(const char *s, size_t cap) {
+    size_t length = 0;
+    if (!s || !s[0] || s[0] == ' ') return 0;
+    while (length < cap && s[length]) {
+        unsigned char c = (unsigned char)s[length++];
+        if (c < 32 || c == 127) return 0;
+    }
+    return length < cap && length > 0 && s[length-1] != ' ' && cr_valid_utf8(s, length);
 }
 static const CrUniversity *university(const CrStore *s, int id) {
     size_t i;

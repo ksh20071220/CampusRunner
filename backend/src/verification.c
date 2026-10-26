@@ -156,7 +156,7 @@ static int decision(CrRequest *r,int64_t id,int mode) {
     int step,response=500;
     int64_t member_id=0, university_id=0, now=(int64_t)time(NULL);
     const char *error="database_error";
-    if (!cancel && (!value || (!revoke && strcmp(value,"approved") && strcmp(value,"rejected")) || !reviewer || !reason || cJSON_GetArraySize(r->body)!=(revoke?2:3)))
+    if ((cancel && cJSON_GetArraySize(r->body)!=0) || (!cancel && (!value || (!revoke && strcmp(value,"approved") && strcmp(value,"rejected")) || !reviewer || !reason || cJSON_GetArraySize(r->body)!=(revoke?2:3))))
         return cr_error(r,400,"invalid_review");
     if (!cr_db_exec(r->db,"BEGIN IMMEDIATE")) return cr_error(r,503,"database_busy");
     s=cr_db_prepare(r->db,"SELECT v.member_id,v.university_id,v.status,m.university_id,v.expires_at FROM university_verifications v JOIN members m ON m.id=v.member_id WHERE v.id=?");

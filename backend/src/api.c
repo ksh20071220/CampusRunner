@@ -67,11 +67,112 @@ int cr_is_admin(CrRequest *r) {
     return r->server->admin_token && auth && !strncmp(auth, "Bearer ", 7) &&
         strlen(auth+7) == strlen(r->server->admin_token) && cr_equal(auth+7, r->server->admin_token, strlen(auth+7));
 }
+static int hex_digit(unsigned char c) {
+    if (c >= '0' && c <= '9') return c-'0';
+    if (c >= 'a' && c <= 'f') return c-'a'+10;
+    if (c >= 'A' && c <= 'F') return c-'A'+10;
+    return -1;
+}
+static int json_delimiter(unsigned char c) {
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == ',' || c == ']' || c == '}';
+}
+/* cJSON intentionally accepts some non-JSON lexemes. Check UTF-8, strings and
+ * number grammar before allocating its tree. cJSON still validates structure. */
+static int strict_json_input(const char *text, size_t length) {
+    size_t i = 0, tokens = 0;
+    unsigned depth = 0;
+    if (!cr_valid_utf8(text, length)) return 0;
+    while (i < length) {
+        unsigned char c = (unsigned char)text[i];
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n') { ++i; continue; }
+        if (c == ',' || c == ':') { ++i; continue; }
+        if (++tokens > 180000) return 0; /* 20,000 three-field GPS objects need about 160,008. */
+        if (c == '{' || c == '[') { if (++depth > 32) return 0; ++i; continue; }
+        if (c == '}' || c == ']') { if (!depth) return 0; --depth; ++i; continue; }
+        if (c == '"') {
+            int closed = 0;
+            ++i;
+            while (i < length) {
+                c = (unsigned char)text[i++];
+                if (c == '"') { closed = 1; break; }
+                if (c < 32) return 0;
+                if (c == '\\') {
+                    if (i == length) return 0;
+                    c = (unsigned char)text[i++];
+                    if (c == 'u') {
+                        unsigned value = 0;
+                        size_t j;
+                        if (length-i < 4) return 0;
+                        for (j = 0; j < 4; ++j) {
+                            int digit = hex_digit((unsigned char)text[i++]);
+                            if (digit < 0) return 0;
+                            value = value*16+(unsigned)digit;
+                        }
+                        if (!value) return 0; /* cJSON represents strings with C NUL termination. */
+                    } else if (!strchr("\"\\/bfnrt", c)) return 0;
+                }
+            }
+            if (!closed) return 0;
+            continue;
+        }
+        if (c == '-' || (c >= '0' && c <= '9')) {
+            if (c == '-' && ++i == length) return 0;
+            if (text[i] == '0') ++i;
+            else {
+                if (text[i] < '1' || text[i] > '9') return 0;
+                do { ++i; } while (i < length && text[i] >= '0' && text[i] <= '9');
+            }
+            if (i < length && text[i] == '.') {
+                ++i;
+                if (i == length || text[i] < '0' || text[i] > '9') return 0;
+                do { ++i; } while (i < length && text[i] >= '0' && text[i] <= '9');
+            }
+            if (i < length && (text[i] == 'e' || text[i] == 'E')) {
+                ++i;
+                if (i < length && (text[i] == '+' || text[i] == '-')) ++i;
+                if (i == length || text[i] < '0' || text[i] > '9') return 0;
+                do { ++i; } while (i < length && text[i] >= '0' && text[i] <= '9');
+            }
+            if (i < length && !json_delimiter((unsigned char)text[i])) return 0;
+            continue;
+        }
+        {
+            size_t literal = c == 't' ? 4 : c == 'f' ? 5 : c == 'n' ? 4 : 0;
+            const char *expected = c == 't' ? "true" : c == 'f' ? "false" : "null";
+            if (!literal || length-i < literal || memcmp(text+i, expected, literal)) return 0;
+            i += literal;
+            if (i < length && !json_delimiter((unsigned char)text[i])) return 0;
+        }
+    }
+    return depth == 0;
+}
+static int valid_headers(CrRequest *r) {
+    static const char *const unique[] = {"Host", "Content-Length", "Authorization", "Origin", "Content-Type", "X-Document-Type", "X-Verification-Consent"};
+    unsigned seen = 0;
+    int i;
+    for (i = 0; i < r->info->num_headers; ++i) {
+        const struct mg_header *header = &r->info->http_headers[i];
+        size_t j;
+        if (!mg_strcasecmp(header->name, "Transfer-Encoding")) return 0;
+        for (j = 0; j < sizeof(unique)/sizeof(unique[0]); ++j) {
+            if (!mg_strcasecmp(header->name, unique[j])) {
+                if (seen & (1u << j)) return 0;
+                seen |= 1u << j;
+                if (j == 1) {
+                    const char *p = header->value;
+                    if (!*p) return 0;
+                    while (*p) { if (*p < '0' || *p > '9') return 0; ++p; }
+                }
+            }
+        }
+    }
+    return 1;
+}
 static cJSON *read_body(CrRequest *r, int *error) {
     const char *type = mg_get_header(r->conn, "Content-Type"), *end;
     cJSON *json;
     char *body;
-    size_t length, offset = 0, i;
+    size_t length, offset = 0;
     *error = 400;
     if (!type || strncmp(type, "application/json", 16) || (type[16] && type[16] != ';')) { *error = 415; return NULL; }
     if (r->info->content_length < 0) { *error = 411; return NULL; }
@@ -86,15 +187,7 @@ static cJSON *read_body(CrRequest *r, int *error) {
         offset += (size_t)n;
     }
     body[length] = 0;
-    if (memchr(body, 0, length)) { free(body); return NULL; }
-    /* cJSON strings are NUL terminated: reject JSON's escaped NUL rather than
-     * silently accepting the truncated prefix of a password/name. */
-    for (i = 0; i < length; ++i) {
-        if (body[i] == '\\' && i+1 < length) {
-            if (body[i+1] == 'u' && i+5 < length && !memcmp(body+i+2, "0000", 4)) { free(body); return NULL; }
-            ++i;
-        }
-    }
+    if (memchr(body, 0, length) || !strict_json_input(body, length)) { free(body); return NULL; }
     json = cJSON_ParseWithLengthOpts(body, length+1, &end, 1);
     if (!json || !cJSON_IsObject(json) || !clean_json(json)) { cJSON_Delete(json); json = NULL; }
     free(body); return json;
@@ -117,6 +210,23 @@ static int valid_query(const char *query) {
               n == 4 && !memcmp(p, "kind", 4) ? 64u : n == 6 && !memcmp(p, "status", 6) ? 128u : 0u;
         if (!bit || (seen & bit)) return 0;
         seen |= bit;
+        {
+            char decoded[257];
+            size_t length = 0;
+            const char *value;
+            for (value = equal+1; value < end; ++value) {
+                unsigned char c = (unsigned char)*value;
+                if (c == '%') {
+                    int high, low;
+                    if (end-value < 3 || (high = hex_digit((unsigned char)value[1])) < 0 ||
+                        (low = hex_digit((unsigned char)value[2])) < 0) return 0;
+                    c = (unsigned char)(high*16+low); value += 2;
+                } else if (c == '+') c = ' ';
+                if (c < 32 || c == 127) return 0;
+                decoded[length++] = (char)c;
+            }
+            if (!cr_valid_utf8(decoded, length)) return 0;
+        }
         if (!*end) break;
         p = end+1;
         if (!*p) return 0;
@@ -205,17 +315,32 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
     const char *path, *method, *origin;
     r.conn = conn; r.info = mg_get_request_info(conn); r.server = data;
     path = r.info->local_uri; method = r.info->request_method;
-    if (!path || !method) return cr_error(&r, 400, "invalid_request");
+    if (!path || !method || strchr(path, '%') || !valid_headers(&r)) return cr_error(&r, 400, "invalid_request");
     origin = mg_get_header(conn, "Origin");
     if (origin && (!r.server->allowed_origin || strcmp(origin, r.server->allowed_origin))) return cr_error(&r, 403, "origin_not_allowed");
     if (!strcmp(method, "OPTIONS")) return cr_reply(&r, 204, NULL);
     if (!valid_query(r.info->query_string)) return cr_error(&r, 400, "invalid_query");
+    if (!cr_db_open(r.server->db_path, &r.db)) { status = cr_error(&r, 503, "database_unavailable"); goto done; }
+    /* Reject protected mutations before reading or allocating a request body. */
+    if (!strcmp(method, "POST") || !strcmp(method, "PATCH")) {
+        if (!strncmp(path, "/api/admin/", 11) || !strcmp(path, "/api/universities")) {
+            if (!cr_is_admin(&r)) { status = cr_error(&r, 403, "admin_required"); goto done; }
+        } else if (!strncmp(path, "/api/me", 7) || !strcmp(path, "/api/runs") || !strcmp(path, "/api/auth/logout")) {
+            int authenticated = cr_authenticate(&r);
+            if (authenticated != 1) {
+                status = cr_error(&r, authenticated < 0 ? 503 : 401, authenticated < 0 ? "database_unavailable" : "authentication_required");
+                goto done;
+            }
+        }
+    }
     if ((!strcmp(method, "POST") || !strcmp(method, "PATCH")) && !cr_verification_upload_path(path)) {
         int error;
         r.body = read_body(&r, &error);
-        if (!r.body) return cr_error(&r, error, error == 413 ? "body_too_large" : error == 415 ? "json_required" : "invalid_json");
+        if (!r.body) {
+            status = cr_error(&r, error, error == 413 ? "body_too_large" : error == 415 ? "json_required" : error == 500 ? "internal_error" : "invalid_json");
+            goto done;
+        }
     }
-    if (!cr_db_open(r.server->db_path, &r.db)) { status = cr_error(&r, 503, "database_unavailable"); goto done; }
     if (!cr_db_expire_verifications(r.db)) { status=cr_error(&r,503,"database_unavailable"); goto done; }
     if (!strcmp(path, "/health") && !strcmp(method, "GET")) {
         sqlite3_stmt *probe = cr_db_prepare(r.db, "SELECT id FROM universities LIMIT 1");

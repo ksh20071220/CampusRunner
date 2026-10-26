@@ -21,7 +21,11 @@
 | GET | /api/rankings?from=0&to=2000000000&limit=100&offset=0 | 공개 | 200 대학 순위 배열 |
 | GET | /api/universities/{id}/stats?from=0&to=2000000000 | 공개 | 200 해당 대학의 기간 성적·전체 순위 객체 |
 
-알 수 없는 경로는 404, 허용하지 않는 HTTP 메서드는 405입니다. 알려진 개인 경로는 메서드 검사보다 인증을 먼저 수행하므로 미인증 요청은 401일 수 있습니다. Origin 헤더가 있으면 설정한 Origin과 일치해야 합니다. OPTIONS preflight를 지원합니다. GET 조회 응답도 `Cache-Control: no-store`입니다.
+알 수 없는 경로는 404, 허용하지 않는 HTTP 메서드는 405입니다. 알려진 개인 경로는 메서드 검사보다 인증을 먼저 수행하므로 미인증 요청은 401일 수 있습니다. 보호된 POST/PATCH는 본문을 읽기 전에 권한부터 확인합니다. Origin 헤더가 있으면 설정한 Origin과 일치해야 합니다. OPTIONS preflight를 지원합니다. GET 조회 응답도 `Cache-Control: no-store`입니다.
+
+요청에는 정확한 십진수 Content-Length를 보내세요. Transfer-Encoding은 지원하지 않으며 Host·Content-Length·Authorization·Origin·Content-Type·사진 제출 헤더의 중복은 400 invalid_request입니다. API 경로는 문서의 ASCII 경로 그대로 사용하고 검색 값만 URL 인코딩합니다. 경로의 퍼센트 인코딩, 쿼리의 NUL·제어 문자·잘못된 퍼센트 인코딩·잘못된 UTF-8은 400입니다.
+
+JSON은 숫자 문법·문자열 이스케이프·UTF-8을 엄격히 확인합니다. 예를 들어 03, 4., +4, 수직 탭 공백, NUL 문자열은 거부하며 유효한 지수 표기와 유니코드 문자는 지원합니다. 본문은 최대 2MiB·깊이 32·어휘 토큰 180,000개이며 GPS 최대 20,000점을 수용합니다. 로그아웃은 빈 객체 `{}`를 보내며 알 수 없는 필드를 추가하면 400 invalid_logout입니다.
 
 ## 입력
 
@@ -105,7 +109,7 @@ rankings: 기본 limit 100, 최대 500. me/runs: 기본 limit 50, 최대 200. �
 
 | HTTP | 주요 코드 | 처리 |
 | --- | --- | --- |
-| 400 | invalid_json, invalid_query, invalid_credentials_format, invalid_profile, invalid_university, invalid_run, invalid_point_count, invalid_gps_or_future_time, invalid_period, invalid_period_or_pagination, invalid_pagination, university_not_found | 입력 수정 |
+| 400 | invalid_request, invalid_json, invalid_query, invalid_logout, invalid_credentials_format, invalid_profile, invalid_university, invalid_run, invalid_point_count, invalid_gps_or_future_time, invalid_period, invalid_period_or_pagination, invalid_pagination, university_not_found | 입력 수정 |
 | 401 | authentication_required, invalid_credentials | 재로그인·비밀번호 확인 |
 | 403 | admin_required, origin_not_allowed | 권한·Origin 설정 확인 |
 | 404 | not_found | 경로·본인 소유 기록 확인 |
