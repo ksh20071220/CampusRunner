@@ -41,6 +41,10 @@ try {
         & python tests\test_backup.py
         if ($LASTEXITCODE -ne 0) { throw 'Backup failure-injection tests failed.' }
         if (Get-Command node -ErrorAction SilentlyContinue) {
+            if (Test-Path -LiteralPath '..\frontend\tests\run-tracker.test.cjs') {
+                & node --test ..\frontend\tests\run-tracker.test.cjs
+                if ($LASTEXITCODE -ne 0) { throw 'GPS tracker lifecycle tests failed.' }
+            }
             & node --test tests\test_api_client.cjs
             if ($LASTEXITCODE -ne 0) { throw 'Member API client tests failed.' }
             & node --test tests\test_verification_admin.cjs

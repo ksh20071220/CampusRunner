@@ -1,5 +1,5 @@
 CampusRunner 담당 기능 구현 점검표
-기준: 2026-10-26 / C11 HTTP 백엔드 / 스키마 버전 2
+기준: 2026-11-02 / C11 HTTP 백엔드 / 스키마 버전 2
 
 사용자 담당 범위: 회원/소속 대학 등록, 대학별 합산, 1인당 평균 거리,
 대학별 순위, 비정상 기록 탐지. 아래 완료는 백엔드 API 기준이다.
@@ -71,3 +71,16 @@ CampusRunner 담당 기능 구현 점검표
   src/database.c: 회원별 검토/이력 인덱스. 신규 스키마 마이그레이션은 필요 없다.
   tests/test_server.py, tests/test_api_client.cjs: 실제 HTTP/프런트 연결 회귀 검사.
   API.md/BACKEND_HANDOFF_KO.txt: 정확한 요청/응답/변수·함수 규칙.
+
+6. GPS 모듈 머지 및 후속 점검 (2026-11-02)
+
+  main의 frontend/run-tracker.js를 기능 브랜치로 머지했다. GPS 수집/시작/종료/
+  실시간 거리·시간/임시 기록 복구 모듈은 있으나 앱 화면과 자동 저장 연결 코드는 아직 없다.
+  저장 확인 후 dispose()가 임시 기록을 다시 만들던 오류를 수정했다.
+  서버 저장 확인 시 uploadPending을 먼저 해제하고 미저장 상태의 좌표만 임시 보관한다.
+  로컬 삭제 실패의 경고는 유지하며 정리 과정에서 저장 완료 기록을 다시 덮어쓰지 않는다.
+  frontend/tests/run-tracker.test.cjs의 16개 테스트를 build.ps1/CTest에 포함했다.
+  GitHub Actions도 GPS 모듈/테스트가 변경되면 실행되도록 경로를 추가했다.
+  실제 C 서버에 가상 GPS 결과를 전송해 저장/조회/중복 방지/대학 점수 반영을 검증했다.
+  미구현 항목과 프런트 구성 제안은 frontend/FRONTEND_PLAN_KO.txt를 참고한다.
+  새 회원 화면/기록 서비스/지도/그래프 코드나 Vite 프로젝트 틀 자체는 이번에 만들지 않았다.

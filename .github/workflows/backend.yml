@@ -1,9 +1,9 @@
 name: C backend
 on:
   push:
-    paths: ['backend/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'frontend/run-tracker.js', 'frontend/tests/**', '.github/workflows/backend.yml']
   pull_request:
-    paths: ['backend/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'frontend/run-tracker.js', 'frontend/tests/**', '.github/workflows/backend.yml']
 permissions:
   contents: read
 jobs:

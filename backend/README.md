@@ -153,6 +153,7 @@ SQLite online backup으로 커밋된 WAL 데이터까지 포함하고 integrity_
 - 백업 테스트: 7개. `python tests/test_backup.py`로 별도 실행할 수 있습니다. 사진·세션 제거, 원본 보존, 정리 실패, 최종 파일 생성 경합, 기존 파일 덮어쓰기 방지와 임시 파일 정리를 검사합니다. build.ps1 -Test와 CTest에도 포함됩니다.
 - 관리자 화면 테스트: 11개. 모바일 목록/검토 이동·스크롤 복원·처리 상태별 버튼·검토 사유 입력·이전 응답 혼선·중복 처리 방지를 확인합니다.
 - 회원 API 클라이언트 테스트: 5개. `node --test tests/test_api_client.cjs`. 비밀번호 변경 때 토큰 교체, 탈퇴 확인 필드/DELETE 본문, 성공/실패 시 세션 상태, 전체 로그아웃 요청을 검사합니다.
+- GPS 모듈 테스트: 16개. 저장소 루트에서 `node --test frontend/tests/run-tracker.test.cjs`. 좌표 수집/중복 정리/오류/복구와 저장 완료 후 정리 시 임시 기록이 다시 생성되지 않는지 확인합니다. Node와 frontend 디렉터리가 있으면 build.ps1 -Test와 CTest에도 포함됩니다. backend 폴더만 사용하는 Docker 컨텍스트에는 이 테스트가 포함되지 않습니다.
 
 외부 라이브러리의 버전·라이선스·원본 다운로드 해시는 [vendor 안내](vendor/README.md)와 manifest.json에 있습니다. 저장소의 MIT 라이선스와 별도로 각 라이브러리 고지를 유지합니다.
 
