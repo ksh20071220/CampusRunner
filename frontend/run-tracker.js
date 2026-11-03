@@ -226,10 +226,11 @@ export class RunTracker {
 
   /** Remove the local draft after the server confirms that this run was saved. */
   markSaved() {
+    // Remote acknowledgement is final even if local cleanup fails.
+    this.uploadPending = false;
     try {
       this.storage?.removeItem(this.storageKey);
       this.draftSaved = false;
-      this.uploadPending = false;
       this.storageError = null;
       this.error = null;
       if (this.points.length > 0) this.status = "stopped";
@@ -441,7 +442,9 @@ export class RunTracker {
   }
 
   _persistDraft(force = false) {
-    if (!this.storage || this.points.length === 0) return;
+    // Keep saved points available to the result screen, but never recreate their
+    // recovery draft when stop()/dispose() runs again after acknowledgement.
+    if (!this.uploadPending || !this.storage || this.points.length === 0) return;
     const now = this.now();
     if (!force && this.lastPersistedAt !== null && now - this.lastPersistedAt < this.checkpointIntervalMs) return;
     try {

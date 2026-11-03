@@ -1,0 +1,13 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      CR_ADMIN_TOKEN: ${CR_ADMIN_TOKEN:?Set CR_ADMIN_TOKEN to a random secret of at least 32 characters}
+      CR_ALLOWED_ORIGIN: ${CR_ALLOWED_ORIGIN:-http://localhost:5173}
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - campus-data:/data
+volumes:
+  campus-data:

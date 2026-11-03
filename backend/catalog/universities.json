@@ -1,0 +1,7374 @@
+{
+  "metadata": {
+    "source": "https://www.data.go.kr/data/15107736/standard.do",
+    "provider": "한국대학교육협의회",
+    "reference_years": [
+      "2025"
+    ],
+    "source_dates": [
+      "2026-03-18"
+    ],
+    "reviewed_at": "2026-10-22",
+    "changes_source": "https://m.academyinfo.go.kr/empty/intro/intro0351/intro.do",
+    "source_sha256": "7865cee7fdc1ebddb7099eef2c138a4c61a15003cf5656c59ef2fa904ed370f0",
+    "source_records": 1995,
+    "count": 385,
+    "scope": "학부 대학·전문대학·교육대학·방송통신·사이버·기능·기술대학. 대학원 단독 항목 제외. 동일 학교명 캠퍼스 합산, 공식 별도 분교 명칭 유지.",
+    "excluded": [
+      {
+        "name": "동부산대학교",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "대구미래대학교",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "구세군사관학교",
+        "reason": "대학원대학으로 전환: 이번 학부 목록 범위 제외"
+      },
+      {
+        "name": "성심외국어대학",
+        "reason": "역사 학교명: 현재 학부 명칭 확인 전까지 가입 선택 제외"
+      },
+      {
+        "name": "서해대학",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "대구외국어대학교",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "서남대학교",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "서남대학교",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "한중대학교",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "한려대학교",
+        "reason": "폐교: 대학알리미 현황"
+      },
+      {
+        "name": "강원관광대학교",
+        "reason": "폐교: 대학알리미 현황"
+      }
+    ]
+  },
+  "universities": [
+    {
+      "id": 135479999,
+      "name": "ICT폴리텍대학",
+      "kind": "기능대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "ICT폴리텍대학",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 광주시 순암로 16-26",
+          "website": "www.ict.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 134883216,
+      "name": "가야대학교(고령)",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "가야대학교(고령)",
+          "division": "제2캠퍼",
+          "region": "경상북도",
+          "address": "경상북도 고령군 대가야읍 대가야로 1103",
+          "website": "www.kaya.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 363719697,
+      "name": "가야대학교(김해)",
+      "kind": "대학교",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "가야대학교(김해)",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 김해시 삼계로 208",
+          "website": "www.kaya.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 571356318,
+      "name": "가천대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "가천대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 성남시 수정구 성남대로 1342",
+          "website": "www.gachon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 14428689,
+      "name": "가톨릭관동대학교",
+      "kind": "대학교",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "가톨릭관동대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 강릉시 범일로579번길 24",
+          "website": "www.cku.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 543977270,
+      "name": "가톨릭꽃동네대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "가톨릭꽃동네대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 서원구 현도면 상삼길 133",
+          "website": "www.kkot.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 941235889,
+      "name": "가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "가톨릭대학교",
+          "division": "제3캠퍼",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 창경궁로 296-12",
+          "website": "www.catholic.ac.kr"
+        },
+        {
+          "source_name": "가톨릭대학교",
+          "division": "제2캠퍼",
+          "region": "서울특별시",
+          "address": "서울특별시 서초구 반포대로 222",
+          "website": "www.catholic.ac.kr"
+        },
+        {
+          "source_name": "가톨릭대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 부천시 원미구 지봉로 43",
+          "website": "www.catholic.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 76056041,
+      "name": "가톨릭상지대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "가톨릭상지대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 안동시 상지길 45",
+          "website": "www.csj.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 117853896,
+      "name": "감리교신학대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "감리교신학대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 독립문로 56",
+          "website": "www.mtu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1059595926,
+      "name": "강남대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "강남대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 용인시 기흥구 강남로 40",
+          "website": "www.kangnam.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 304841212,
+      "name": "강동대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "강동대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 음성군 감곡면 대학길 278",
+          "website": "www.gangdong.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 567102423,
+      "name": "강릉영동대학교",
+      "kind": "전문대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "강릉영동대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 강릉시 공제로 357",
+          "website": "www.gyu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 590860339,
+      "name": "강서대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "강서대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 강서구 까치산로24길 47",
+          "website": "gangseo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 121104191,
+      "name": "강원대학교",
+      "kind": "대학교",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [
+        "국립강릉원주대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "강원대학교",
+          "division": "제2캠퍼",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 삼척시 중앙로 346",
+          "website": "www.kangwon.ac.kr"
+        },
+        {
+          "source_name": "강원대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 춘천시 강원대학길 1",
+          "website": "www.kangwon.ac.kr"
+        },
+        {
+          "source_name": "국립강릉원주대학교",
+          "division": "제2캠퍼",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 원주시 흥업면 남원로 150",
+          "website": "www.gwnu.ac.kr"
+        },
+        {
+          "source_name": "국립강릉원주대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 강릉시 죽헌길 7",
+          "website": "www.gwnu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 578980215,
+      "name": "강원도립대학교",
+      "kind": "전문대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "강원도립대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 강릉시 주문진읍 연주로 270",
+          "website": "www.gw.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 888396068,
+      "name": "거제대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "거제대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 거제시 마전1길 91",
+          "website": "www.koje.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 414269865,
+      "name": "건국대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "건국대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 광진구 능동로 120",
+          "website": "www.konkuk.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 760760837,
+      "name": "건국대학교(글로컬)",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "건국대학교(글로컬)",
+          "division": "분교",
+          "region": "충청북도",
+          "address": "충청북도 충주시 충원대로 268",
+          "website": "www.kku.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 30166319,
+      "name": "건양대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시",
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "건양대학교",
+          "division": "제2캠퍼",
+          "region": "대전광역시",
+          "address": "대전광역시 서구 관저동로 158",
+          "website": "www.konyang.ac.kr"
+        },
+        {
+          "source_name": "건양대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 논산시 대학로 121",
+          "website": "www.konyang.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 268208048,
+      "name": "건양사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "건양사이버대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 서구 관저동로 158",
+          "website": "www.kycu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 979036163,
+      "name": "경기과학기술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경기과학기술대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 시흥시 경기과기대로 269",
+          "website": "www.gtec.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 527628185,
+      "name": "경기대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경기대학교",
+          "division": "제2캠퍼",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 경기대로9길 24",
+          "website": "www.kyonggi.ac.kr"
+        },
+        {
+          "source_name": "경기대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 수원시 영통구 광교산로 154-42",
+          "website": "www.kyonggi.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 393957060,
+      "name": "경남대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경남대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 창원시 마산합포구 경남대학로 7",
+          "website": "www.kyungnam.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 546305056,
+      "name": "경남정보대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경남정보대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 사상구 주례로 45",
+          "website": "www.kit.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1006342249,
+      "name": "경동대학교",
+      "kind": "대학교",
+      "regions": [
+        "강원특별자치도",
+        "경기도"
+      ],
+      "aliases": [
+        "동우대학"
+      ],
+      "campuses": [
+        {
+          "source_name": "동우대학",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 속초시 도리원길 5",
+          "website": ""
+        },
+        {
+          "source_name": "경동대학교",
+          "division": "제4캠퍼",
+          "region": "경기도",
+          "address": "경기도 양주시 경동대학로 27",
+          "website": "www.kduniv.ac.kr"
+        },
+        {
+          "source_name": "경동대학교",
+          "division": "제3캠퍼",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 원주시 문막읍 견훤로 815",
+          "website": "www.kduniv.ac.kr"
+        },
+        {
+          "source_name": "경동대학교",
+          "division": "제2캠퍼",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 속초시 도리원길 5",
+          "website": "www.kduniv.ac.kr"
+        },
+        {
+          "source_name": "경동대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 고성군 토성면 봉포4길 46",
+          "website": "www.kduniv.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 309102023,
+      "name": "경민대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경민대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 의정부시 서부로 545",
+          "website": "www.kyungmin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 265616937,
+      "name": "경복대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경복대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 남양주시 진접읍 경복대로 425-44",
+          "website": "www.kbu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 317469241,
+      "name": "경북과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경북과학대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 칠곡군 기산면 지산로 634",
+          "website": "www.kbsu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 314194728,
+      "name": "경북대학교",
+      "kind": "대학교",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경북대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 북구 대학로 80",
+          "website": "www.knu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 125102316,
+      "name": "경북보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경북보건대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 김천시 대학로 168",
+          "website": "www.gch.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 112047902,
+      "name": "경북전문대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경북전문대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 영주시 대학로 77",
+          "website": "www.kbc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 633614017,
+      "name": "경상국립대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [
+        "경남과학기술대학교",
+        "진주산업대학교(산업대)"
+      ],
+      "campuses": [
+        {
+          "source_name": "경상국립대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 진주시 진주대로 501",
+          "website": "www.gnu.ac.kr"
+        },
+        {
+          "source_name": "경남과학기술대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 진주시 동진로 33",
+          "website": "www.gntech.ac.kr"
+        },
+        {
+          "source_name": "진주산업대학교(산업대)",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 진주시 동진로 33",
+          "website": ""
+        }
+      ]
+    },
+    {
+      "id": 995606129,
+      "name": "경성대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경성대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 남구 수영로 309",
+          "website": "www.ks.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 344581488,
+      "name": "경운대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [
+        "경운대학교(산업대)"
+      ],
+      "campuses": [
+        {
+          "source_name": "경운대학교(산업대)",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 구미시 산동읍 강동로 730",
+          "website": "www.ikw.ac.kr"
+        },
+        {
+          "source_name": "경운대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 구미시 산동읍 강동로 730",
+          "website": "www.ikw.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 811100330,
+      "name": "경인교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "경기도",
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경인교육대학교",
+          "division": "제2캠퍼",
+          "region": "경기도",
+          "address": "경기도 안양시 만안구 삼막로 155",
+          "website": "www.ginue.ac.kr"
+        },
+        {
+          "source_name": "경인교육대학교",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 계양구 계산로 62",
+          "website": "www.ginue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 250752798,
+      "name": "경인여자대학교",
+      "kind": "전문대학",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경인여자대학교",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 계양구 계양산로 63",
+          "website": "www.kiwu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 128550442,
+      "name": "경일대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경일대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 하양읍 가마실길 50",
+          "website": "www.kiu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 308224509,
+      "name": "경희대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경희대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동대문구 경희대로 26",
+          "website": "www.khu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 422977541,
+      "name": "경희사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "경희사이버대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동대문구 경희대로 26",
+          "website": "www.khcu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 538202563,
+      "name": "계명대학교",
+      "kind": "대학교",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "계명대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 달서구 달구벌대로 1095",
+          "website": "www.kmu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 741626033,
+      "name": "계명문화대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "계명문화대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 달서구 달서대로 675",
+          "website": "www.kmcu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 982141206,
+      "name": "계원예술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "계원예술대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 의왕시 계원대학로 66",
+          "website": "www.kaywon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 894726300,
+      "name": "고려대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "고려대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성북구 안암로 145 (안암동5가)",
+          "website": "www.korea.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1029850554,
+      "name": "고려대학교(세종)",
+      "kind": "대학교",
+      "regions": [
+        "세종특별자치시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "고려대학교(세종)",
+          "division": "분교",
+          "region": "세종특별자치시",
+          "address": "세종특별자치시 조치원읍 세종로 2511",
+          "website": "sejong.korea.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1029641192,
+      "name": "고려사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "고려사이버대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 북촌로 106",
+          "website": "www.koreacu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 307210819,
+      "name": "고신대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "고신대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 영도구 와치로 194",
+          "website": "www.kosin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 637814521,
+      "name": "공주교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "공주교육대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 공주시 웅진로 27",
+          "website": "www.gjue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 381263322,
+      "name": "광신대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광신대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 북구 양산택지소로 36",
+          "website": "www.kwangshin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 811419602,
+      "name": "광양보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광양보건대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 광양시 광양읍 대학로 85",
+          "website": "www.gy.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 561481757,
+      "name": "광운대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광운대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 노원구 광운로 20",
+          "website": "www.kw.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 73263893,
+      "name": "광주가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광주가톨릭대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 나주시 남평읍 중남길 12-25",
+          "website": "www.gjc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 632400819,
+      "name": "광주과학기술원",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광주과학기술원",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 북구 첨단과기로 123",
+          "website": "www.gist.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 113462830,
+      "name": "광주교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광주교육대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 북구 필문대로 55",
+          "website": "www.gnue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 607687732,
+      "name": "광주대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광주대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 남구 효덕로 277",
+          "website": "www.gwangju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 903206155,
+      "name": "광주보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광주보건대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 광산구 북문대로419번길 73",
+          "website": "www.ghu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 355649429,
+      "name": "광주여자대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "광주여자대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 광산구 광주여대길 40",
+          "website": "www.kwu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 652318782,
+      "name": "구미대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "구미대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 구미시 야은로 37",
+          "website": "www.gumi.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 210730861,
+      "name": "국립경국대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [
+        "경북도립대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "국립경국대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 안동시 경동로 1375",
+          "website": "www.andong.ac.kr"
+        },
+        {
+          "source_name": "경북도립대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 예천군 예천읍 도립대학길 114",
+          "website": "www.gpc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 101138702,
+      "name": "국립공주대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립공주대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 공주시 공주대학로 56",
+          "website": "www.kongju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 517955334,
+      "name": "국립군산대학교",
+      "kind": "대학교",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립군산대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 군산시 대학로 558",
+          "website": "www.kunsan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 740862549,
+      "name": "국립금오공과대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립금오공과대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 구미시 대학로 61",
+          "website": "www.kumoh.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 385546401,
+      "name": "국립목포대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [
+        "전남도립대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "전남도립대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 담양군 담양읍 죽녹원로 152",
+          "website": "www.dorip.ac.kr"
+        },
+        {
+          "source_name": "국립목포대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 무안군 청계면 영산로 1666",
+          "website": "www.mokpo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 976867301,
+      "name": "국립목포해양대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립목포해양대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 목포시 해양대학로 91",
+          "website": "www.mmu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 321801074,
+      "name": "국립부경대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립부경대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 남구 용소로 45",
+          "website": "www.pknu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 326092149,
+      "name": "국립순천대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립순천대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 순천시 중앙로 255",
+          "website": "www.scnu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 786016751,
+      "name": "국립창원대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [
+        "경남도립거창대학",
+        "경남도립남해대학",
+        "국립창원대학교(거창캠퍼스)",
+        "국립창원대학교(남해캠퍼스)"
+      ],
+      "campuses": [
+        {
+          "source_name": "국립창원대학교(남해캠퍼스)",
+          "division": "제3캠퍼",
+          "region": "경상남도",
+          "address": "경상남도 남해군 남해읍 화전로78번길 30",
+          "website": "www.changwon.ac.kr"
+        },
+        {
+          "source_name": "국립창원대학교(거창캠퍼스)",
+          "division": "제2캠퍼",
+          "region": "경상남도",
+          "address": "경상남도 거창군 거창읍 거창대학로 72",
+          "website": "www.changwon.ac.kr"
+        },
+        {
+          "source_name": "국립창원대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 창원시 의창구 창원대학로 20",
+          "website": "www.changwon.ac.kr"
+        },
+        {
+          "source_name": "경남도립남해대학",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 남해군 남해읍 화전로78번길 30",
+          "website": "www.namhae.ac.kr"
+        },
+        {
+          "source_name": "경남도립거창대학",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 거창군 거창읍 거창대학로 72",
+          "website": "www.gc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 341078577,
+      "name": "국립한국교통대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립한국교통대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 충주시 대소원면 대학로 50",
+          "website": "www.ut.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 718956895,
+      "name": "국립한국해양대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국립한국해양대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 영도구 태종로 727",
+          "website": "www.kmou.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 529564301,
+      "name": "국립한밭대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [
+        "한밭대학교(산업대)"
+      ],
+      "campuses": [
+        {
+          "source_name": "국립한밭대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 유성구 동서대로 125",
+          "website": "www.hanbat.ac.kr"
+        },
+        {
+          "source_name": "한밭대학교(산업대)",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 유성구 동서대로 125",
+          "website": "www.hanbat.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 916613694,
+      "name": "국민대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국민대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성북구 정릉로 77",
+          "website": "www.kookmin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 86849189,
+      "name": "국제대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국제대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 평택시 장안웃길 56",
+          "website": "www.kookje.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 491849108,
+      "name": "국제사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "국제사이버대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 수원시 팔달구 경수대로 490",
+          "website": "www.gjcu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 945541972,
+      "name": "군산간호대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "군산간호대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 군산시 동개정길 7",
+          "website": "www.kcn.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 449553539,
+      "name": "군장대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "군장대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 군산시 성산면 군장대길 13",
+          "website": "www.kunjang.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 691232986,
+      "name": "극동대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "극동대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 음성군 감곡면 대학길 76-32",
+          "website": "www.kdu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 454606498,
+      "name": "글로벌사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "글로벌사이버대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 동남구 목천읍 교천지산길 284-88",
+          "website": "www.global.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 75123672,
+      "name": "금강대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "금강대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 논산시 상월면 상월로 522",
+          "website": "www.ggu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 886557008,
+      "name": "기독간호대학교",
+      "kind": "전문대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "기독간호대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 남구 백서로70번길 6",
+          "website": "ccn.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 588058399,
+      "name": "김천대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "김천대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 김천시 대학로 214",
+          "website": "www.gimcheon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 370127474,
+      "name": "김포대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "김포대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 김포시 모담공원로 10",
+          "website": "ukp.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 282612906,
+      "name": "김해대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "김해대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 김해시 삼안로112번길 198",
+          "website": "www.gimhae.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 946612234,
+      "name": "나사렛대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "나사렛대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 서북구 월봉로 48",
+          "website": "www.kornu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 443971561,
+      "name": "나주대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "나주대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 나주시 다시면 백호로 125",
+          "website": "www.naju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 526618364,
+      "name": "남부대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "남부대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 광산구 남부대길 1",
+          "website": "www.nambu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 699714783,
+      "name": "남서울대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [
+        "남서울대학교(산업대)"
+      ],
+      "campuses": [
+        {
+          "source_name": "남서울대학교(산업대)",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 서북구 성환읍 대학로 91",
+          "website": "www.nsu.ac.kr"
+        },
+        {
+          "source_name": "남서울대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 서북구 성환읍 대학로 91",
+          "website": "www.nsu.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 379990419,
+      "name": "농협대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "농협대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 고양시 덕양구 서삼릉길 281",
+          "website": "www.nonghyup.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 359310306,
+      "name": "단국대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "단국대학교",
+          "division": "제2캠퍼",
+          "region": "충청남도",
+          "address": "충청남도 천안시 동남구 단대로 119",
+          "website": "www.dankook.ac.kr"
+        },
+        {
+          "source_name": "단국대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 용인시 수지구 죽전로 152",
+          "website": "www.dankook.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 330312777,
+      "name": "대경대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대경대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 자인면 단북1길 65",
+          "website": "www.tk.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 829748170,
+      "name": "대구가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구가톨릭대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 하양읍 하양로 13-13",
+          "website": "www.cu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 916727416,
+      "name": "대구경북과학기술원",
+      "kind": "대학교",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구경북과학기술원",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 달성군 현풍읍 테크노중앙대로 333",
+          "website": "www.dgist.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 992670104,
+      "name": "대구공업대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구공업대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 달서구 송현로 205",
+          "website": "www.ttc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 332223574,
+      "name": "대구과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구과학대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 북구 영송로 47",
+          "website": "www.tsu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 178577143,
+      "name": "대구교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구교육대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 남구 중앙대로 219",
+          "website": "www.dnue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 462842392,
+      "name": "대구대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 진량읍 대구대로 201",
+          "website": "www.daegu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 856563263,
+      "name": "대구보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구보건대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 북구 영송로 15",
+          "website": "www.dhc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 584915535,
+      "name": "대구사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구사이버대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 진량읍 대구대로 201",
+          "website": "www.dcu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 523440310,
+      "name": "대구예술대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구예술대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 칠곡군 가산면 다부거문1길 202",
+          "website": "www.dgau.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 865352905,
+      "name": "대구한의대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대구한의대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 한의대로 1",
+          "website": "www.dhu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 260134058,
+      "name": "대덕대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대덕대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 유성구 가정북로 68",
+          "website": "www.ddu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 969063876,
+      "name": "대동대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대동대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 금정구 동부곡로27번길 88",
+          "website": "www.daedong.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 723435505,
+      "name": "대림대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대림대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안양시 동안구 임곡로 29",
+          "website": "www.daelim.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 803036850,
+      "name": "대신대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대신대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 경청로222길 33",
+          "website": "www.daeshin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 126994818,
+      "name": "대원대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대원대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 제천시 대학로 316",
+          "website": "www.daewon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 101365507,
+      "name": "대전가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "세종특별자치시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대전가톨릭대학교",
+          "division": "본교",
+          "region": "세종특별자치시",
+          "address": "세종특별자치시 전의면 가톨릭대학로 30",
+          "website": "www.dcatholic.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 651017436,
+      "name": "대전과학기술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대전과학기술대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 서구 혜천로 100",
+          "website": "www.dst.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1047123690,
+      "name": "대전대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대전대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 동구 대학로 62",
+          "website": "www.dju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 369088831,
+      "name": "대전보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대전보건대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 동구 충정로 21",
+          "website": "www.hit.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 894950637,
+      "name": "대전신학대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대전신학대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 대덕구 한남로 41",
+          "website": "www.daejeon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 527169753,
+      "name": "대진대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "대진대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 포천시 호국로 1007",
+          "website": "www.daejin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 516330901,
+      "name": "덕성여자대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "덕성여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 도봉구 삼양로144길 33",
+          "website": "www.duksung.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 828633054,
+      "name": "동강대학교",
+      "kind": "전문대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동강대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 북구 동문대로 50",
+          "website": "www.dkc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 677553766,
+      "name": "동국대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동국대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 중구 필동로1길 30",
+          "website": "www.dongguk.edu"
+        }
+      ]
+    },
+    {
+      "id": 258098531,
+      "name": "동국대학교(WISE)",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동국대학교(WISE)",
+          "division": "분교",
+          "region": "경상북도",
+          "address": "경상북도 경주시 동대로 123",
+          "website": "wise.dongguk.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 21157028,
+      "name": "동남보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동남보건대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 수원시 장안구 천천로74번길 50",
+          "website": "www.dongnam.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 849257760,
+      "name": "동덕여자대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동덕여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성북구 화랑로13길 60",
+          "website": "www.dongduk.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 953751752,
+      "name": "동명대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동명대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 남구 신선로 428",
+          "website": "www.tu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 482336234,
+      "name": "동서대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동서대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 사상구 주례로 47",
+          "website": "www.dongseo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 571616871,
+      "name": "동서울대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동서울대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 성남시 수정구 복정로 76",
+          "website": "www.du.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 255401251,
+      "name": "동신대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동신대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 나주시 동신대길 67",
+          "website": "www.dsu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 718990450,
+      "name": "동아대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동아대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 사하구 낙동대로550번길 37",
+          "website": "www.donga.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 150156971,
+      "name": "동아방송예술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동아방송예술대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안성시 삼죽면 동아예대길 47",
+          "website": "www.dima.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 17829507,
+      "name": "동아보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동아보건대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 영암군 학산면 영산로 76-57",
+          "website": "www.duh.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 449835752,
+      "name": "동양대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동양대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 영주시 풍기읍 동양대로 145",
+          "website": "www.dyu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 48099995,
+      "name": "동양미래대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동양미래대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 구로구 경인로 445",
+          "website": "www.dongyang.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 1009923620,
+      "name": "동원과학기술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동원과학기술대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 양산시 명곡로 321",
+          "website": "www.dist.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 654252073,
+      "name": "동원대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동원대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 광주시 곤지암읍 경충대로 26",
+          "website": "www.tw.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 198143647,
+      "name": "동의과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동의과학대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 부산진구 양지로 54",
+          "website": "www.dit.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 938300656,
+      "name": "동의대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "동의대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 부산진구 엄광로 176",
+          "website": "www.deu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 201727160,
+      "name": "두원공과대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "두원공과대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안성시 죽산면 관음당길 51",
+          "website": "www.doowon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 457933845,
+      "name": "디지털서울문화예술대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "디지털서울문화예술대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 통일로37길 60",
+          "website": "www.scau.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 547670606,
+      "name": "루터대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "루터대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 용인시 기흥구 금화로82번길 20",
+          "website": "www.ltu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 598132529,
+      "name": "마산대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "마산대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 창원시 마산회원구 내서읍 함마대로 2640",
+          "website": "www.masan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 826310260,
+      "name": "명지대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "명지대학교",
+          "division": "제2캠퍼",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 거북골로 34",
+          "website": "www.mju.ac.kr"
+        },
+        {
+          "source_name": "명지대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 용인시 처인구 명지로 116",
+          "website": "www.mju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 497677445,
+      "name": "명지전문대학",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "명지전문대학",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 가좌로 134",
+          "website": "www.mjc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 125219566,
+      "name": "목원대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "목원대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 서구 도안북로 88",
+          "website": "www.mokwon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 334885717,
+      "name": "목포가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "목포가톨릭대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 목포시 영산로 697",
+          "website": "www.mcu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 743446977,
+      "name": "목포과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "목포과학대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 목포시 영산로 413-1",
+          "website": "www.msu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 346687104,
+      "name": "문경대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "문경대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 문경시 호계면 대학길 161",
+          "website": "www.mkc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 240047884,
+      "name": "배재대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "배재대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 서구 배재로 155-40",
+          "website": "www.pcu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 856905253,
+      "name": "배화여자대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "배화여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 필운대로1길 34",
+          "website": "www.baewha.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1067887562,
+      "name": "백석대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "백석대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 동남구 백석대학로 1",
+          "website": "www.bu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 797760558,
+      "name": "백석문화대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "백석문화대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 동남구 백석대학로 1",
+          "website": "www.bscu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 330926874,
+      "name": "백제예술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "백제예술대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 완주군 봉동읍 백제대학로 171",
+          "website": "www.paekche.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 809042852,
+      "name": "부산가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산가톨릭대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 금정구 오륜대로 57",
+          "website": "www.cup.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 899172691,
+      "name": "부산경상대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산경상대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 연제구 고분로 170",
+          "website": "www.bsks.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 860927377,
+      "name": "부산과학기술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산과학기술대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 북구 시랑로132번길 88",
+          "website": "bist.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 27902343,
+      "name": "부산교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산교육대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 연제구 교대로 24",
+          "website": "www.bnue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 738007499,
+      "name": "부산대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 금정구 부산대학로63번길 2",
+          "website": "www.pusan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 156206973,
+      "name": "부산디지털대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산디지털대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 사상구 주례로 57",
+          "website": "www.bdu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 679503727,
+      "name": "부산보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산보건대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 사하구 사리로55번길 16",
+          "website": "www.bhu.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 89444058,
+      "name": "부산여자대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산여자대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 부산진구 진남로 506",
+          "website": "www.bwc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 30224361,
+      "name": "부산예술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산예술대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 남구 못골번영로71번길 74",
+          "website": "www.busanarts.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 140769359,
+      "name": "부산외국어대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산외국어대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 금정구 금샘로485번길 65",
+          "website": "www.bufs.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 926314769,
+      "name": "부산장신대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부산장신대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 김해시 김해대로 1894-68",
+          "website": "www.bpu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 619095097,
+      "name": "부천대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "부천대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 부천시 원미구 신흥로56번길 25",
+          "website": "www.bc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 884681930,
+      "name": "사이버한국외국어대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "사이버한국외국어대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동대문구 이문로 107",
+          "website": "www.cufs.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 721579451,
+      "name": "삼육대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "삼육대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 노원구 화랑로 815",
+          "website": "www.syu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 797933222,
+      "name": "삼육보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "삼육보건대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동대문구 망우로 82",
+          "website": "www.shu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 605929187,
+      "name": "상명대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시",
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "상명대학교",
+          "division": "제2캠퍼",
+          "region": "충청남도",
+          "address": "충청남도 천안시 동남구 상명대길 31",
+          "website": "www.smuc.ac.kr"
+        },
+        {
+          "source_name": "상명대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 홍지문2길 20",
+          "website": "www.smu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1005219916,
+      "name": "상지대학교",
+      "kind": "대학교",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [
+        "상지영서대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "상지영서대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 원주시 상지대길 83",
+          "website": ""
+        },
+        {
+          "source_name": "상지대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 원주시 상지대길 83",
+          "website": "www.sangji.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 437593497,
+      "name": "서강대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서강대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 마포구 백범로 35",
+          "website": "www.sogang.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 263055590,
+      "name": "서경대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서경대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성북구 서경로 124",
+          "website": "www.skuniv.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 227229208,
+      "name": "서영대학교",
+      "kind": "전문대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서영대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 북구 서강로 1",
+          "website": "www.seoyeong.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 537002477,
+      "name": "서울과학기술대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울과학기술대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 노원구 공릉로 232",
+          "website": "www.seoultech.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 386946280,
+      "name": "서울교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울교육대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서초구 서초중앙로 96",
+          "website": "www.snue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 491030407,
+      "name": "서울기독대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울기독대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 은평구 갈현로4길 26-2",
+          "website": "www.scu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 82154294,
+      "name": "서울대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 관악구 관악로 1",
+          "website": "www.snu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 525313406,
+      "name": "서울디지털대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울디지털대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 강서구 공항대로 424",
+          "website": "www.sdu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 393711035,
+      "name": "서울사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울사이버대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 강북구 솔매로49길 60",
+          "website": "www.iscu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 88961537,
+      "name": "서울시립대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울시립대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동대문구 서울시립대로 163",
+          "website": "www.uos.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 538877564,
+      "name": "서울신학대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울신학대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 부천시 소사구 호현로489번길 52",
+          "website": "www.stu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 548823337,
+      "name": "서울여자간호대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울여자간호대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 간호대로 38",
+          "website": "www.snjc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 917327566,
+      "name": "서울여자대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 노원구 화랑로 621",
+          "website": "www.swu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 158197866,
+      "name": "서울예술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울예술대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안산시 단원구 예술대학로 171",
+          "website": "www.seoularts.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 484071280,
+      "name": "서울장신대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울장신대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 광주시 경안로 145",
+          "website": "www.sjs.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 517580415,
+      "name": "서울한영대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서울한영대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 구로구 경인로 290-42",
+          "website": "shyu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 897063807,
+      "name": "서원대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서원대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 서원구 무심서로 377-3",
+          "website": "www.seowon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 472251000,
+      "name": "서일대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서일대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 중랑구 용마산로90길 28",
+          "website": "www.seoil.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 246738596,
+      "name": "서정대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "서정대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 양주시 은현면 서정로 27",
+          "website": "www.seojeong.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 224526686,
+      "name": "선린대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "선린대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 포항시 북구 흥해읍 선린대길 30",
+          "website": "www.sunlin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 756873055,
+      "name": "선문대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "선문대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 아산시 탕정면 선문로221번길 70",
+          "website": "www.sunmoon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 206811194,
+      "name": "성결대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "성결대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안양시 만안구 성결대학로 53",
+          "website": "www.sungkyul.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 644076714,
+      "name": "성공회대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "성공회대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 구로구 연동로 320",
+          "website": "www.skhu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 401166122,
+      "name": "성균관대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "성균관대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 성균관로 25-2",
+          "website": "www.skku.edu"
+        }
+      ]
+    },
+    {
+      "id": 93814380,
+      "name": "성신여자대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "성신여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성북구 보문로34다길 2",
+          "website": "www.sungshin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 637121632,
+      "name": "성운대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "성운대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 영천시 신녕면 대학길 105",
+          "website": "www.sw.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 640203428,
+      "name": "세경대학교",
+      "kind": "전문대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "세경대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 영월군 영월읍 하송로 197",
+          "website": "www.saekyung.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 485375955,
+      "name": "세명대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "세명대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 제천시 세명로 65",
+          "website": "www.semyung.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 691561539,
+      "name": "세종대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "세종대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 광진구 능동로 209",
+          "website": "www.sejong.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 399462404,
+      "name": "세종사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "세종사이버대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 광진구 군자로 121",
+          "website": "home.sjcu.ac.kr/ko/index.do"
+        }
+      ]
+    },
+    {
+      "id": 1072055552,
+      "name": "세한대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "세한대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 영암군 삼호읍 녹색로 1113",
+          "website": "www.sehan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 621866422,
+      "name": "송곡대학교",
+      "kind": "전문대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "송곡대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 춘천시 남산면 송곡대학길 34",
+          "website": "www.songgok.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 530089740,
+      "name": "송원대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "송원대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 남구 송암로 73",
+          "website": "www.songwon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 229615642,
+      "name": "송호대학교",
+      "kind": "전문대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "송호대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 횡성군 횡성읍 남산로 210",
+          "website": "www.songho.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 773540661,
+      "name": "수성대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "수성대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 수성구 달구벌대로528길 15",
+          "website": "www.sc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 262863577,
+      "name": "수원가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "수원가톨릭대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 화성시 효행구 봉담읍 왕림1길 67",
+          "website": "www.suwoncatholic.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 737437788,
+      "name": "수원과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "수원과학대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 화성시 효행구 정남면 세자로 288",
+          "website": "www.ssc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 10579380,
+      "name": "수원대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "수원대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 화성시 효행구 봉담읍 와우안길 17",
+          "website": "www.suwon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 463639243,
+      "name": "수원여자대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "수원여자대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 수원시 권선구 온정로 72",
+          "website": "www.swc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 130610106,
+      "name": "숙명여자대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "숙명여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 용산구 청파로47길 90",
+          "website": "www.sookmyung.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 374731853,
+      "name": "순복음총회신학교",
+      "kind": "각종학교(대학)",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "순복음총회신학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 제천시 덕산면 도전로 320",
+          "website": "www.kcc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 275163851,
+      "name": "순천제일대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "순천제일대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 순천시 제일대학길 17",
+          "website": "www.suncheon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 867261874,
+      "name": "순천향대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "순천향대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 아산시 신창면 순천향로 22",
+          "website": "www.sch.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 429762536,
+      "name": "숭실대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "숭실대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동작구 상도로 369",
+          "website": "www.ssu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 491751345,
+      "name": "숭실사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "숭실사이버대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 삼일대로30길 23",
+          "website": "www.kcu.ac"
+        }
+      ]
+    },
+    {
+      "id": 166703292,
+      "name": "숭의여자대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "숭의여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 중구 소파로2길 10",
+          "website": "www.sewu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 528238523,
+      "name": "신경주대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [
+        "서라벌대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "서라벌대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경주시 태종로 478-20",
+          "website": ""
+        },
+        {
+          "source_name": "신경주대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경주시 태종로 188",
+          "website": "sgu.ac.kr/ko/main.php"
+        }
+      ]
+    },
+    {
+      "id": 299054556,
+      "name": "신구대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "신구대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 성남시 중원구 광명로 377",
+          "website": "www.shingu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 124691859,
+      "name": "신라대학교",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "신라대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 사상구 백양대로700번길 140",
+          "website": "www.silla.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 492563333,
+      "name": "신성대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "신성대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 당진시 정미면 대학로 1",
+          "website": "www.shinsung.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 930278757,
+      "name": "신안산대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "신안산대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안산시 단원구 신안산대학로 135",
+          "website": "www.sau.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 312873042,
+      "name": "신한대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [
+        "신흥대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "신흥대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 의정부시 호암로 95",
+          "website": ""
+        },
+        {
+          "source_name": "신한대학교",
+          "division": "제2캠퍼",
+          "region": "경기도",
+          "address": "경기도 의정부시 호암로 95",
+          "website": "www.shinhan.ac.kr/"
+        },
+        {
+          "source_name": "신한대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 동두천시 벌마들로40번길 30",
+          "website": "www.shinhan.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 295940962,
+      "name": "아신대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "아신대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 양평군 옥천면 경강로 1276",
+          "website": "www.acts.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 507063432,
+      "name": "아주대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "아주대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 수원시 영통구 월드컵로 206",
+          "website": "www.ajou.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 243224374,
+      "name": "아주자동차대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "아주자동차대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 보령시 주포면 대학길 106",
+          "website": "www.motor.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 444314541,
+      "name": "안동과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "안동과학대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 안동시 서후면 서선길 189",
+          "website": "www.asc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 9775568,
+      "name": "안산대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "안산대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안산시 상록구 안산대학로 155",
+          "website": "www.ansan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 472402871,
+      "name": "안양대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "안양대학교",
+          "division": "제2캠퍼",
+          "region": "인천광역시",
+          "address": "인천광역시 강화군 불은면 중앙로 602-14",
+          "website": "www.anyang.ac.kr/main/index.do"
+        },
+        {
+          "source_name": "안양대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안양시 만안구 삼덕로37번길 22",
+          "website": "www.anyang.ac.kr/main/index.do"
+        }
+      ]
+    },
+    {
+      "id": 709423155,
+      "name": "여주대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "여주대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 여주시 세종로 338",
+          "website": "www.yit.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 417416541,
+      "name": "연성대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "연성대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안양시 만안구 양화로37번길 34",
+          "website": "www.yeonsung.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 49752713,
+      "name": "연세대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "연세대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 연세로 50",
+          "website": "www.yonsei.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 230474557,
+      "name": "연세대학교(미래)",
+      "kind": "대학교",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "연세대학교(미래)",
+          "division": "분교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 원주시 흥업면 연세대길 1",
+          "website": "mirae.yonsei.ac.kr/wj/index.do"
+        }
+      ]
+    },
+    {
+      "id": 469572037,
+      "name": "연암공과대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "연암공과대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 진주시 진주대로629번길 35 (가좌동)",
+          "website": "www.yc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 35952849,
+      "name": "연암대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "연암대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 서북구 성환읍 연암로 313",
+          "website": "www.yonam.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 639331927,
+      "name": "영남대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영남대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 대학로 280",
+          "website": "www.yu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 89915022,
+      "name": "영남신학대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영남신학대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 진량읍 봉회1길 26",
+          "website": "www.ytus.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 491864580,
+      "name": "영남외국어대학",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영남외국어대학",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 남천면 남천로 780-9",
+          "website": "www.yflc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 300508428,
+      "name": "영남이공대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영남이공대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 남구 현충로 170",
+          "website": "www.ync.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 445878827,
+      "name": "영산대학교(양산)",
+      "kind": "대학교",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영산대학교(양산)",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 양산시 주남로 288",
+          "website": "www.ysu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 638594339,
+      "name": "영산대학교(해운대)",
+      "kind": "대학교",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영산대학교(해운대)",
+          "division": "제2캠퍼",
+          "region": "부산광역시",
+          "address": "부산광역시 해운대구 반송순환로 142",
+          "website": "www.ysu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 783160032,
+      "name": "영산선학대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영산선학대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 영광군 백수읍 성지로 1357",
+          "website": "www.youngsan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 748732329,
+      "name": "영진사이버대학교",
+      "kind": "사이버대학(전문)",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영진사이버대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 북구 복현로 35",
+          "website": "www.ycu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1040501462,
+      "name": "영진전문대학교",
+      "kind": "전문대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "영진전문대학교",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 북구 복현로 35",
+          "website": "www.yju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 536043232,
+      "name": "예수대학교",
+      "kind": "대학교",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "예수대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 전주시 완산구 서원로 383",
+          "website": "www.jesus.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 849823429,
+      "name": "예원예술대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "예원예술대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 임실군 신평면 창인로 117",
+          "website": "www.yewon.ac.kr"
+        },
+        {
+          "source_name": "예원예술대학교",
+          "division": "제2캠퍼",
+          "region": "경기도",
+          "address": "경기도 양주시 은현면 예원대학로 56",
+          "website": "www.yewon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 93916143,
+      "name": "오산대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "오산대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 오산시 청학로 45",
+          "website": "www.osan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 365920508,
+      "name": "용인대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "용인대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 용인시 처인구 용인대학로 134",
+          "website": "www.yongin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 254941406,
+      "name": "용인예술과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "용인예술과학대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 용인시 처인구 동부로 61",
+          "website": "www.ysc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 805831780,
+      "name": "우석대학교",
+      "kind": "대학교",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "우석대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 완주군 삼례읍 삼례로 443",
+          "website": "www.woosuk.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 629061159,
+      "name": "우송대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [
+        "우송대학교(산업대)"
+      ],
+      "campuses": [
+        {
+          "source_name": "우송대학교(산업대)",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 동구 동대전로 171",
+          "website": "www.wsu.ac.kr"
+        },
+        {
+          "source_name": "우송대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 동구 동대전로 171",
+          "website": "www.wsu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 32677500,
+      "name": "우송정보대학",
+      "kind": "전문대학",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "우송정보대학",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 동구 백룡로 59 (자양동)",
+          "website": "www.wsi.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 704651446,
+      "name": "울산과학기술원",
+      "kind": "대학교",
+      "regions": [
+        "울산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "울산과학기술원",
+          "division": "본교",
+          "region": "울산광역시",
+          "address": "울산광역시 울주군 언양읍 유니스트길 50",
+          "website": "www.unist.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 547952986,
+      "name": "울산과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "울산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "울산과학대학교",
+          "division": "본교",
+          "region": "울산광역시",
+          "address": "울산광역시 동구 봉수로 101",
+          "website": "www.uc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 946983009,
+      "name": "울산대학교",
+      "kind": "대학교",
+      "regions": [
+        "울산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "울산대학교",
+          "division": "본교",
+          "region": "울산광역시",
+          "address": "울산광역시 남구 대학로 93",
+          "website": "www.ulsan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 337889871,
+      "name": "웅지세무대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "웅지세무대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 파주시 탄현면 웅지로144번길 73",
+          "website": "www.wat.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 49765185,
+      "name": "원광대학교",
+      "kind": "대학교",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [
+        "원광보건대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "원광보건대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 익산시 익산대로 514",
+          "website": "www.wu.ac.kr"
+        },
+        {
+          "source_name": "원광대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 익산시 익산대로 460",
+          "website": "www.wku.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 477238730,
+      "name": "원광디지털대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "원광디지털대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 익산시 익산대로 460",
+          "website": "www.wdu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 117123551,
+      "name": "위덕대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "위덕대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경주시 강동면 동해대로 261",
+          "website": "www.uu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 311094772,
+      "name": "유원대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "유원대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 영동군 영동읍 대학로 310",
+          "website": "www.U1.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 603315379,
+      "name": "유한대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "유한대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 부천시 소사구 경인로 590",
+          "website": "www.yuhan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 828789607,
+      "name": "을지대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "을지대학교",
+          "division": "제3캠퍼",
+          "region": "경기도",
+          "address": "경기도 의정부시 동일로 712",
+          "website": "www.eulji.ac.kr"
+        },
+        {
+          "source_name": "을지대학교",
+          "division": "제2캠퍼",
+          "region": "경기도",
+          "address": "경기도 성남시 수정구 산성대로 553",
+          "website": "www.eulji.ac.kr"
+        },
+        {
+          "source_name": "을지대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 중구 계룡로771번길 77",
+          "website": "www.eulji.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 517648395,
+      "name": "이화여자대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "이화여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 이화여대길 52",
+          "website": "www.ewha.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 557715134,
+      "name": "인덕대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "인덕대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 노원구 초안산로 12",
+          "website": "www.induk.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 223621457,
+      "name": "인제대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상남도",
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "인제대학교",
+          "division": "제2캠퍼",
+          "region": "부산광역시",
+          "address": "부산광역시 부산진구 복지로 75",
+          "website": "www.inje.ac.kr"
+        },
+        {
+          "source_name": "인제대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 김해시 인제로 197",
+          "website": "www.inje.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 117311925,
+      "name": "인천가톨릭대학교",
+      "kind": "대학교",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "인천가톨릭대학교",
+          "division": "제2캠퍼",
+          "region": "인천광역시",
+          "address": "인천광역시 연수구 송도문화로120번길 20",
+          "website": "www.iccu.ac.kr"
+        },
+        {
+          "source_name": "인천가톨릭대학교",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 강화군 양도면 고려왕릉로 53-1",
+          "website": "www.iccu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 97887241,
+      "name": "인천대학교",
+      "kind": "대학교",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "인천대학교",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 연수구 아카데미로 119",
+          "website": "www.inu.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 606701136,
+      "name": "인하공업전문대학",
+      "kind": "전문대학",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "인하공업전문대학",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 미추홀구 인하로 100",
+          "website": "www.inhatc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 194744091,
+      "name": "인하대학교",
+      "kind": "대학교",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "인하대학교",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 미추홀구 인하로 100",
+          "website": "www.inha.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 9425466,
+      "name": "장로회신학대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "장로회신학대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 광진구 광장로5길 25-1",
+          "website": "www.puts.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 971634181,
+      "name": "장안대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "장안대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 화성시 효행구 봉담읍 삼천병마로 1182",
+          "website": "www.jangan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1052073992,
+      "name": "재능대학교",
+      "kind": "전문대학",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "재능대학교",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 동구 재능로 178",
+          "website": "www.jeiu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 638021048,
+      "name": "전남과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전남과학대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 곡성군 옥과면 대학로 113",
+          "website": "www.cntu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 209504036,
+      "name": "전남대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시",
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전남대학교",
+          "division": "제2캠퍼",
+          "region": "전라남도",
+          "address": "전라남도 여수시 대학로 50",
+          "website": "www.chonnam.ac.kr"
+        },
+        {
+          "source_name": "전남대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 북구 용봉로 77",
+          "website": "www.chonnam.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 636662950,
+      "name": "전북과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전북과학대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 정읍시 정읍사로 509",
+          "website": "www.jbsc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 139985832,
+      "name": "전북대학교",
+      "kind": "대학교",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전북대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 전주시 덕진구 백제대로 567",
+          "website": "www.jbnu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 679508378,
+      "name": "전주교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전주교육대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 전주시 완산구 서학로 50",
+          "website": "www.jnue.kr"
+        }
+      ]
+    },
+    {
+      "id": 554940574,
+      "name": "전주기전대학",
+      "kind": "전문대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전주기전대학",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 전주시 완산구 전주천서로 267",
+          "website": "www.kijeon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1053918596,
+      "name": "전주대학교",
+      "kind": "대학교",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전주대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 전주시 완산구 천잠로 303",
+          "website": "www.jj.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 824302853,
+      "name": "전주비전대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "전주비전대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 전주시 완산구 천잠로 235",
+          "website": "www.jvision.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 247184220,
+      "name": "정석대학",
+      "kind": "기술대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "정석대학",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 강서구 오정로 576",
+          "website": ""
+        }
+      ]
+    },
+    {
+      "id": 83910532,
+      "name": "제주관광대학교",
+      "kind": "전문대학",
+      "regions": [
+        "제주특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "제주관광대학교",
+          "division": "본교",
+          "region": "제주특별자치도",
+          "address": "제주특별자치도 제주시 애월읍 평화로 2715",
+          "website": "www.jtu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 373123879,
+      "name": "제주국제대학교",
+      "kind": "대학교",
+      "regions": [
+        "제주특별자치도"
+      ],
+      "aliases": [
+        "제주산업정보대학",
+        "탐라대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "제주산업정보대학",
+          "division": "본교",
+          "region": "제주특별자치도",
+          "address": "제주특별자치도 제주시 516로 2870",
+          "website": "www.jeju.ac.kr"
+        },
+        {
+          "source_name": "탐라대학교",
+          "division": "본교",
+          "region": "제주특별자치도",
+          "address": "제주특별자치도 서귀포시 1100로 506-1",
+          "website": ""
+        },
+        {
+          "source_name": "제주국제대학교",
+          "division": "본교",
+          "region": "제주특별자치도",
+          "address": "제주특별자치도 제주시 516로 2870",
+          "website": "www.jeju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1008936308,
+      "name": "제주대학교",
+      "kind": "대학교",
+      "regions": [
+        "제주특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "제주대학교",
+          "division": "본교",
+          "region": "제주특별자치도",
+          "address": "제주특별자치도 제주시 제주대학로 102",
+          "website": "www.jejunu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 44241457,
+      "name": "제주한라대학교",
+      "kind": "전문대학",
+      "regions": [
+        "제주특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "제주한라대학교",
+          "division": "본교",
+          "region": "제주특별자치도",
+          "address": "제주특별자치도 제주시 한라대학로 38",
+          "website": "www.chu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 767657414,
+      "name": "조선간호대학교",
+      "kind": "전문대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "조선간호대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 동구 조선대2길 70",
+          "website": "www.cnc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 843587823,
+      "name": "조선대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "조선대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 동구 조선대길 146",
+          "website": "www.chosun.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 268118857,
+      "name": "조선이공대학교",
+      "kind": "전문대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "조선이공대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 동구 조선이공대길 11",
+          "website": "www.cst.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 288281103,
+      "name": "중부대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "중부대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 금산군 추부면 대학로 201",
+          "website": "www.joongbu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 961479209,
+      "name": "중앙대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도",
+        "서울특별시"
+      ],
+      "aliases": [
+        "적십자간호대학"
+      ],
+      "campuses": [
+        {
+          "source_name": "적십자간호대학",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동작구 흑석로 84",
+          "website": ""
+        },
+        {
+          "source_name": "중앙대학교",
+          "division": "제2캠퍼",
+          "region": "경기도",
+          "address": "경기도 안성시 대덕면 서동대로 4726",
+          "website": "www.cau.ac.kr"
+        },
+        {
+          "source_name": "중앙대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동작구 흑석로 84",
+          "website": "www.cau.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 608078046,
+      "name": "중앙승가대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "중앙승가대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 김포시 승가로 123",
+          "website": "admission.sangha.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 757135076,
+      "name": "중원대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "중원대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 괴산군 괴산읍 문무로 85",
+          "website": "www.jwu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 781047289,
+      "name": "진주교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "진주교육대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 진주시 진양호로369번길 3",
+          "website": "www.cue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 846029033,
+      "name": "진주보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "진주보건대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 진주시 의병로 51",
+          "website": "www.jhc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 499772252,
+      "name": "차의과학대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "차의과학대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 포천시 해룡로 120",
+          "website": "www.cha.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 66685220,
+      "name": "창신대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [
+        "창신대학"
+      ],
+      "campuses": [
+        {
+          "source_name": "창신대학",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 창원시 마산회원구 팔용로 262",
+          "website": ""
+        },
+        {
+          "source_name": "창신대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 창원시 마산회원구 팔용로 262",
+          "website": "www.cs.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1059974934,
+      "name": "창원문성대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "창원문성대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 창원시 성산구 충혼로 91",
+          "website": "www.cmu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1026466708,
+      "name": "청강문화산업대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "청강문화산업대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 이천시 마장면 청강가창로 389-94",
+          "website": "www.ck.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 422544289,
+      "name": "청암대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "청암대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 순천시 녹색로 1641",
+          "website": "ca.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 949700257,
+      "name": "청운대학교",
+      "kind": "산업대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "청운대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 홍성군 홍성읍 대학길 25",
+          "website": "www.chungwoon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 101720747,
+      "name": "청주교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "청주교육대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 서원구 청남로 2065",
+          "website": "www.cje.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 547311881,
+      "name": "청주대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "청주대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 청원구 대성로 298",
+          "website": "www.cju.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 314212075,
+      "name": "초당대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "초당대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 무안군 무안읍 무안로 380",
+          "website": "www.cdu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 184119220,
+      "name": "총신대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "총신대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동작구 사당로 143",
+          "website": "www.chongshin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 715478685,
+      "name": "추계예술대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "추계예술대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 서대문구 북아현로11가길 7",
+          "website": "www.chugye.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 821975672,
+      "name": "춘천교육대학교",
+      "kind": "교육대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "춘천교육대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 춘천시 공지로 126",
+          "website": "www.cnue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 502671419,
+      "name": "춘해보건대학교",
+      "kind": "전문대학",
+      "regions": [
+        "울산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "춘해보건대학교",
+          "division": "본교",
+          "region": "울산광역시",
+          "address": "울산광역시 울주군 웅촌면 대학길 9",
+          "website": "www.ch.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 418307086,
+      "name": "충남대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "충남대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 유성구 대학로 99",
+          "website": "www.cnu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 426518181,
+      "name": "충남도립대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "충남도립대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 청양군 청양읍 학사길 55",
+          "website": "www.cnsu.ac.kr/univ/main.do"
+        }
+      ]
+    },
+    {
+      "id": 166487203,
+      "name": "충북대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "충북대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 서원구 충대로 1",
+          "website": "www.chungbuk.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1067477667,
+      "name": "충북도립대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "충북도립대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 옥천군 옥천읍 대학길 15",
+          "website": "www.cpu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 807280203,
+      "name": "충북보건과학대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "충북보건과학대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 청원구 내수읍 덕암길 10",
+          "website": "www.chsu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 236434780,
+      "name": "충청대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "충청대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 흥덕구 강내면 월곡길 38",
+          "website": "www.ok.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 946956852,
+      "name": "칼빈대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "칼빈대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 용인시 기흥구 마북로 184",
+          "website": "www.calvin.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 412533695,
+      "name": "태재대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "태재대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 창덕궁5길 22-8",
+          "website": "www.taejae.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 85860072,
+      "name": "평택대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "평택대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 평택시 서동대로 3825",
+          "website": "www.ptu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 880873251,
+      "name": "포항공과대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "포항공과대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 포항시 남구 청암로 77",
+          "website": "www.postech.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 292221025,
+      "name": "포항대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "포항대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 포항시 북구 흥해읍 포항대학로 7",
+          "website": "www.pohang.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 501137684,
+      "name": "한경국립대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [
+        "한국복지대학교"
+      ],
+      "campuses": [
+        {
+          "source_name": "한국복지대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 평택시 삼남로 283",
+          "website": ""
+        },
+        {
+          "source_name": "한경국립대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안성시 중앙로 327",
+          "website": "www.hknu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 226412162,
+      "name": "한국골프과학기술대학교",
+      "kind": "전문대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국골프과학기술대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 횡성군 우천면 하대5길 109",
+          "website": "www.kg.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 95553046,
+      "name": "한국공학대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국공학대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 시흥시 산기대학로 237",
+          "website": "www.tukorea.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 673969252,
+      "name": "한국과학기술원",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국과학기술원",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 유성구 대학로 291",
+          "website": "www.kaist.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 81735102,
+      "name": "한국관광대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국관광대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 이천시 신둔면 이장로311번길 197-73",
+          "website": "www.ktc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 627112079,
+      "name": "한국교원대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국교원대학교",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 흥덕구 강내면 태성탑연로 250",
+          "website": "www.knue.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 870521861,
+      "name": "한국기술교육대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국기술교육대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 천안시 동남구 병천면 충절로 1600",
+          "website": "www.koreatech.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 804620793,
+      "name": "한국농수산대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국농수산대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 전주시 덕진구 콩쥐팥쥐로 1515",
+          "website": "www.af.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 625251889,
+      "name": "한국방송통신대학교",
+      "kind": "방송통신대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국방송통신대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 종로구 대학로 86",
+          "website": "www.knou.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 72465716,
+      "name": "한국복지사이버대학교",
+      "kind": "사이버대학(전문)",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국복지사이버대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 남천면 남천로 746-10",
+          "website": "www.corea.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 554004596,
+      "name": "한국성서대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국성서대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 노원구 동일로214길 32",
+          "website": "www.bible.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 943739829,
+      "name": "한국승강기대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국승강기대학교",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 거창군 거창읍 운정1길 120",
+          "website": "www.klc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 778776747,
+      "name": "한국에너지공과대학교",
+      "kind": "대학교",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국에너지공과대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 나주시 켄텍길 21",
+          "website": "www.kentech.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 56701495,
+      "name": "한국열린사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국열린사이버대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 중랑구 망우로 353, C동 9층",
+          "website": "www.ocu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 439979319,
+      "name": "한국영상대학교",
+      "kind": "전문대학",
+      "regions": [
+        "세종특별자치시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국영상대학교",
+          "division": "본교",
+          "region": "세종특별자치시",
+          "address": "세종특별자치시 장군면 대학길 300",
+          "website": "www.pro.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 17972632,
+      "name": "한국예술종합학교",
+      "kind": "각종학교(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국예술종합학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성북구 화랑로32길 146-37",
+          "website": "Karts.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 147038795,
+      "name": "한국외국어대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국외국어대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 동대문구 이문로 107",
+          "website": "www.hufs.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 502152561,
+      "name": "한국전통문화대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국전통문화대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 부여군 규암면 백제문로 367",
+          "website": "www.knuh.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 825418812,
+      "name": "한국체육대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국체육대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 송파구 양재대로 1239",
+          "website": "www.knsu.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 846585903,
+      "name": "한국침례신학대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국침례신학대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 유성구 북유성대로 190",
+          "website": "www.kbtus.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1024876441,
+      "name": "한국폴리텍 I 대학 서울강서캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 I 대학 서울강서캠퍼스",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 강서구 우장산로10길 112",
+          "website": "kangseo.kopo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1026182008,
+      "name": "한국폴리텍 I 대학 서울정수캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 I 대학 서울정수캠퍼스",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 용산구 보광로 73",
+          "website": "www.kopo.ac.kr/jungsu/index.do"
+        }
+      ]
+    },
+    {
+      "id": 501276423,
+      "name": "한국폴리텍 I 대학 성남캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 I 대학 성남캠퍼스",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 성남시 수정구 수정로 398",
+          "website": "seongnam.kopo.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 172143651,
+      "name": "한국폴리텍 I 대학 제주캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "제주특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 I 대학 제주캠퍼스",
+          "division": "본교",
+          "region": "제주특별자치도",
+          "address": "제주특별자치도 제주시 산천단동3길 2",
+          "website": "jeju.kopo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 371616639,
+      "name": "한국폴리텍 II 대학 남인천캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 II 대학 남인천캠퍼스",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 미추홀구 염전로333번길 23 (주안동)",
+          "website": "www.kopo.ac.kr/namincheon/index.do"
+        }
+      ]
+    },
+    {
+      "id": 833421466,
+      "name": "한국폴리텍 II 대학 인천캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "인천광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 II 대학 인천캠퍼스",
+          "division": "본교",
+          "region": "인천광역시",
+          "address": "인천광역시 부평구 무네미로448번길 56",
+          "website": "www.kopo.ac.kr/incheon"
+        }
+      ]
+    },
+    {
+      "id": 993775165,
+      "name": "한국폴리텍 II 대학 화성캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 II 대학 화성캠퍼스",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 화성시 만세구 팔탄면 제암고주로 108",
+          "website": "www.kopo.ac.kr/hwaseong"
+        }
+      ]
+    },
+    {
+      "id": 626917414,
+      "name": "한국폴리텍 III 대학 강릉캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 III 대학 강릉캠퍼스",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 강릉시 남산초교길 121",
+          "website": "kopo.ac.kr/gangneung"
+        }
+      ]
+    },
+    {
+      "id": 691297849,
+      "name": "한국폴리텍 III 대학 원주캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 III 대학 원주캠퍼스",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 원주시 북원로2425번길 73",
+          "website": "kopo.ac.kr/wonju"
+        }
+      ]
+    },
+    {
+      "id": 37065267,
+      "name": "한국폴리텍 III 대학 춘천캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 III 대학 춘천캠퍼스",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 춘천시 동산면 영서로 1290-31",
+          "website": "www.kopo.ac.kr/chuncheon/index.do"
+        }
+      ]
+    },
+    {
+      "id": 274193884,
+      "name": "한국폴리텍 IV 대학 대전캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 IV 대학 대전캠퍼스",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 동구 우암로 352-21",
+          "website": "www.kopo.ac.kr/daejeon"
+        }
+      ]
+    },
+    {
+      "id": 763959714,
+      "name": "한국폴리텍 IV 대학 아산캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 IV 대학 아산캠퍼스",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 아산시 신창면 행목로 45",
+          "website": "kopo.ac.kr/asan"
+        }
+      ]
+    },
+    {
+      "id": 255012124,
+      "name": "한국폴리텍 IV 대학 청주캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "충청북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 IV 대학 청주캠퍼스",
+          "division": "본교",
+          "region": "충청북도",
+          "address": "충청북도 청주시 흥덕구 산단로 54",
+          "website": "kopo.ac.kr/cheongju"
+        }
+      ]
+    },
+    {
+      "id": 791224507,
+      "name": "한국폴리텍 IV 대학 충남캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 IV 대학 충남캠퍼스",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 홍성군 홍성읍 충서로 1200",
+          "website": "www.kopo.ac.kr/chungnam"
+        }
+      ]
+    },
+    {
+      "id": 18103951,
+      "name": "한국폴리텍 V 대학 광주캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 V 대학 광주캠퍼스",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 북구 하서로 85",
+          "website": "www.kopo.ac.kr/gwangju"
+        }
+      ]
+    },
+    {
+      "id": 379481546,
+      "name": "한국폴리텍 V 대학 순천캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 V 대학 순천캠퍼스",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 순천시 기적의도서관1길 41",
+          "website": "kopo.ac.kr/suncheon"
+        }
+      ]
+    },
+    {
+      "id": 965829757,
+      "name": "한국폴리텍 V 대학 익산캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 V 대학 익산캠퍼스",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 익산시 선화로 579",
+          "website": "www.kopo.ac.kr/iksan"
+        }
+      ]
+    },
+    {
+      "id": 937576500,
+      "name": "한국폴리텍 V 대학 전남캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 V 대학 전남캠퍼스",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 무안군 청계면 영산로 1854-16",
+          "website": "www.kopo.ac.kr/jeonnam"
+        }
+      ]
+    },
+    {
+      "id": 152168064,
+      "name": "한국폴리텍 V 대학 전북캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 V 대학 전북캠퍼스",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 김제시 백학제길 154",
+          "website": "www.kopo.ac.kr/jb/index.do"
+        }
+      ]
+    },
+    {
+      "id": 96318769,
+      "name": "한국폴리텍 VI 대학 구미캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VI 대학 구미캠퍼스",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 구미시 수출대로3길 84",
+          "website": "kopo.ac.kr/gumi"
+        }
+      ]
+    },
+    {
+      "id": 776811448,
+      "name": "한국폴리텍 VI 대학 대구캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VI 대학 대구캠퍼스",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 서구 국채보상로43길 15",
+          "website": "daegu.kopo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 880544419,
+      "name": "한국폴리텍 VI 대학 영남융합기술캠퍼",
+      "kind": "기능대학",
+      "regions": [
+        "대구광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VI 대학 영남융합기술캠퍼",
+          "division": "본교",
+          "region": "대구광역시",
+          "address": "대구광역시 동구 팔공로 222",
+          "website": "kopo.ac.kr/yct"
+        }
+      ]
+    },
+    {
+      "id": 708639839,
+      "name": "한국폴리텍 VI 대학 영주캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VI 대학 영주캠퍼스",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 영주시 가흥로 2",
+          "website": "www.kopo.ac.kr/yeongju"
+        }
+      ]
+    },
+    {
+      "id": 1010351747,
+      "name": "한국폴리텍 VII 대학 동부산캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VII 대학 동부산캠퍼스",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 기장군 정관읍 산단4로 2-69",
+          "website": "www.kopo.ac.kr/dongbusan"
+        }
+      ]
+    },
+    {
+      "id": 730185728,
+      "name": "한국폴리텍 VII 대학 부산캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VII 대학 부산캠퍼스",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 북구 만덕대로155번길 99",
+          "website": "www.kopo.ac.kr/busan"
+        }
+      ]
+    },
+    {
+      "id": 379035278,
+      "name": "한국폴리텍 VII 대학 울산캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "울산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VII 대학 울산캠퍼스",
+          "division": "본교",
+          "region": "울산광역시",
+          "address": "울산광역시 중구 산전길 155",
+          "website": "kopo.ac.kr/ulsan"
+        }
+      ]
+    },
+    {
+      "id": 1035634626,
+      "name": "한국폴리텍 VII 대학 진주캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VII 대학 진주캠퍼스",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 진주시 모덕로 299",
+          "website": "jinju.kopo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 10491066,
+      "name": "한국폴리텍 VII 대학 창원캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 VII 대학 창원캠퍼스",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 창원시 성산구 외동반림로 51-88",
+          "website": "changwon.kopo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 119834749,
+      "name": "한국폴리텍 특성화대학 로봇캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 특성화대학 로봇캠퍼스",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 영천시 로봇캠퍼스로 1",
+          "website": "www.kopo.ac.kr/robot/index.do"
+        }
+      ]
+    },
+    {
+      "id": 387988269,
+      "name": "한국폴리텍 특성화대학 바이오캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 특성화대학 바이오캠퍼스",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 논산시 강경읍 동안로112번길 48",
+          "website": "kopo.ac.kr/bio"
+        }
+      ]
+    },
+    {
+      "id": 315581494,
+      "name": "한국폴리텍 특성화대학 반도체융합캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 특성화대학 반도체융합캠퍼스",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 안성시 공도읍 송원길 41-12",
+          "website": "www.kopo.ac.kr/semi"
+        }
+      ]
+    },
+    {
+      "id": 382999565,
+      "name": "한국폴리텍 특성화대학 항공캠퍼스",
+      "kind": "기능대학",
+      "regions": [
+        "경상남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국폴리텍 특성화대학 항공캠퍼스",
+          "division": "본교",
+          "region": "경상남도",
+          "address": "경상남도 사천시 대학길 46",
+          "website": "www.kopo.ac.kr/kapc"
+        }
+      ]
+    },
+    {
+      "id": 112756329,
+      "name": "한국항공대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한국항공대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 고양시 덕양구 항공대학로 76",
+          "website": "www.kau.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 98974058,
+      "name": "한남대학교",
+      "kind": "대학교",
+      "regions": [
+        "대전광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한남대학교",
+          "division": "본교",
+          "region": "대전광역시",
+          "address": "대전광역시 대덕구 한남로 70",
+          "website": "www.hannam.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1044623557,
+      "name": "한동대학교",
+      "kind": "대학교",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한동대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 포항시 북구 흥해읍 한동로 558",
+          "website": "www.handong.edu"
+        }
+      ]
+    },
+    {
+      "id": 61634333,
+      "name": "한라대학교",
+      "kind": "대학교",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한라대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 원주시 흥업면 한라대길 28",
+          "website": "www.halla.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 741090072,
+      "name": "한림대학교",
+      "kind": "대학교",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한림대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 춘천시 한림대학길 1",
+          "website": "www.hallym.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 231088071,
+      "name": "한림성심대학교",
+      "kind": "전문대학",
+      "regions": [
+        "강원특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한림성심대학교",
+          "division": "본교",
+          "region": "강원특별자치도",
+          "address": "강원특별자치도 춘천시 동면 장학길 48",
+          "website": "www.hsc.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 588251207,
+      "name": "한서대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한서대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 서산시 해미면 한서1로 46",
+          "website": "www.hanseo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 450434123,
+      "name": "한성대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한성대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성북구 삼선교로16길 116",
+          "website": "www.hansung.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1029993356,
+      "name": "한세대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한세대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 군포시 한세로 30",
+          "website": "www.hansei.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 259534007,
+      "name": "한신대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한신대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 오산시 한신대길 137",
+          "website": "www.hs.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 926863283,
+      "name": "한양대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한양대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성동구 왕십리로 222",
+          "website": "www.hanyang.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 775244585,
+      "name": "한양대학교(ERICA)",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한양대학교(ERICA)",
+          "division": "분교",
+          "region": "경기도",
+          "address": "경기도 안산시 상록구 한양대학로 55",
+          "website": "www.hanyang.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 920804929,
+      "name": "한양사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한양사이버대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성동구 왕십리로 220",
+          "website": "www.hycu.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 217133874,
+      "name": "한양여자대학교",
+      "kind": "전문대학",
+      "regions": [
+        "서울특별시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한양여자대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 성동구 살곶이길 200",
+          "website": "www.hywoman.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 800949469,
+      "name": "한영대학교",
+      "kind": "전문대학",
+      "regions": [
+        "전라남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한영대학교",
+          "division": "본교",
+          "region": "전라남도",
+          "address": "전라남도 여수시 장군산길 18-43",
+          "website": "www.hanyeong.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 263634255,
+      "name": "한일장신대학교",
+      "kind": "대학교",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "한일장신대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 완주군 상관면 왜목로 726-15",
+          "website": "www.hanil.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 734177891,
+      "name": "협성대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "협성대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 화성시 효행구 봉담읍 최루백로 72",
+          "website": "www.uhs.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 67595469,
+      "name": "혜전대학교",
+      "kind": "전문대학",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "혜전대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 홍성군 홍성읍 대학1길 19",
+          "website": "www.hj.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 906933325,
+      "name": "호남대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "호남대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 광산구 호남대길 120",
+          "website": "www.honam.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 1011256555,
+      "name": "호남신학대학교",
+      "kind": "대학교",
+      "regions": [
+        "광주광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "호남신학대학교",
+          "division": "본교",
+          "region": "광주광역시",
+          "address": "광주광역시 남구 제중로 77",
+          "website": "www.htus.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 372661585,
+      "name": "호산대학교",
+      "kind": "전문대학",
+      "regions": [
+        "경상북도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "호산대학교",
+          "division": "본교",
+          "region": "경상북도",
+          "address": "경상북도 경산시 하양읍 대경로105길 19",
+          "website": "www.hosan.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 272230619,
+      "name": "호서대학교",
+      "kind": "대학교",
+      "regions": [
+        "충청남도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "호서대학교",
+          "division": "본교",
+          "region": "충청남도",
+          "address": "충청남도 아산시 배방읍 호서로79번길 20",
+          "website": "www.hoseo.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 89924753,
+      "name": "호원대학교",
+      "kind": "산업대학",
+      "regions": [
+        "전북특별자치도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "호원대학교",
+          "division": "본교",
+          "region": "전북특별자치도",
+          "address": "전북특별자치도 군산시 임피면 호원대3길 64",
+          "website": "www.howon.ac.kr"
+        }
+      ]
+    },
+    {
+      "id": 369224315,
+      "name": "홍익대학교",
+      "kind": "대학교",
+      "regions": [
+        "서울특별시",
+        "세종특별자치시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "홍익대학교",
+          "division": "제2캠퍼",
+          "region": "세종특별자치시",
+          "address": "세종특별자치시 조치원읍 세종로 2639",
+          "website": "www.hongik.ac.kr"
+        },
+        {
+          "source_name": "홍익대학교",
+          "division": "본교",
+          "region": "서울특별시",
+          "address": "서울특별시 마포구 와우산로 94",
+          "website": "www.hongik.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 947944912,
+      "name": "화성의과학대학교",
+      "kind": "대학교",
+      "regions": [
+        "경기도"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "화성의과학대학교",
+          "division": "본교",
+          "region": "경기도",
+          "address": "경기도 화성시 만세구 남양읍 남양중앙로 400-5",
+          "website": "www.hsmu.ac.kr/"
+        }
+      ]
+    },
+    {
+      "id": 627524364,
+      "name": "화신사이버대학교",
+      "kind": "사이버대학(대학)",
+      "regions": [
+        "부산광역시"
+      ],
+      "aliases": [],
+      "campuses": [
+        {
+          "source_name": "화신사이버대학교",
+          "division": "본교",
+          "region": "부산광역시",
+          "address": "부산광역시 연제구 고분로191번길 1",
+          "website": "www.hscu.ac.kr"
+        }
+      ]
+    }
+  ]
+}
