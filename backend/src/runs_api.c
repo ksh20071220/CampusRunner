@@ -1,5 +1,6 @@
 #include "api.h"
 #include "auth.h"
+#include "run_limits.h"
 #include "campus_runner.h"
 #include <errno.h>
 #include <math.h>
@@ -7,6 +8,51 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+/* Admit before allocating/parsing the body. Failed requests also consume this
+ * small per-member request budget; successful idempotent retries consume no
+ * daily/storage budget. Authentication/IP limits are intentionally unchanged. */
+int cr_run_upload_admit(CrRequest *r) {
+    sqlite3_stmt *stmt = NULL;
+    sqlite3_int64 now = (sqlite3_int64)time(NULL), window = now/60;
+    int step, attempts = 0, response;
+    response = cr_begin_member_write(r);
+    if (response) return cr_error(r,response,response==401?"authentication_required":response==503?"database_busy":"database_error");
+    now=(sqlite3_int64)time(NULL); window=now/60;
+    stmt = cr_db_prepare(r->db,"INSERT INTO run_request_limits VALUES(?,?,1) ON CONFLICT(member_id) DO UPDATE SET "
+        "attempts=CASE WHEN window_at=excluded.window_at THEN min(attempts+1,?) ELSE 1 END,window_at=excluded.window_at RETURNING attempts");
+    if (!stmt) goto fail;
+    sqlite3_bind_int64(stmt,1,r->member_id); sqlite3_bind_int64(stmt,2,window); sqlite3_bind_int(stmt,3,CR_RUN_REQUESTS_PER_MINUTE+1);
+    step=sqlite3_step(stmt);
+    if (step==SQLITE_ROW) { attempts=sqlite3_column_int(stmt,0); step=sqlite3_step(stmt); }
+    sqlite3_finalize(stmt); stmt=NULL;
+    if (step!=SQLITE_DONE || !cr_db_exec(r->db,"COMMIT")) goto fail;
+    if (attempts<=CR_RUN_REQUESTS_PER_MINUTE) return 0;
+    r->retry_after_seconds=(int)(60-now%60);
+    return cr_error(r,429,"run_upload_rate_limited");
+fail:
+    sqlite3_finalize(stmt); cr_db_exec(r->db,"ROLLBACK"); return cr_error(r,503,"database_busy");
+}
+
+/* Caller holds BEGIN IMMEDIATE, shared with the insert and usage triggers. */
+static int storage_budget(CrRequest *r,size_t bytes) {
+    sqlite3_stmt *stmt=cr_db_prepare(r->db,"SELECT coalesce(s.total_runs,0),coalesce(s.total_bytes,0),"
+        "coalesce(d.day_kst,-1),coalesce(d.uploads,0),coalesce(d.gps_bytes,0) FROM members m "
+        "LEFT JOIN run_storage_usage s ON s.member_id=m.id LEFT JOIN run_daily_usage d ON d.member_id=m.id WHERE m.id=?");
+    sqlite3_int64 now=(sqlite3_int64)time(NULL), day=(now+32400)/86400;
+    int response=500;
+    if (!stmt) return response;
+    sqlite3_bind_int64(stmt,1,r->member_id);
+    if (sqlite3_step(stmt)==SQLITE_ROW) {
+        response=0;
+        if (sqlite3_column_int64(stmt,0)>=CR_RUNS_TOTAL || sqlite3_column_int64(stmt,1)>CR_RUN_BYTES_TOTAL-(sqlite3_int64)bytes) response=409;
+        else if (sqlite3_column_int64(stmt,2)==day && (sqlite3_column_int64(stmt,3)>=CR_RUNS_PER_DAY ||
+                 sqlite3_column_int64(stmt,4)>CR_RUN_BYTES_PER_DAY-(sqlite3_int64)bytes)) {
+            response=429; r->retry_after_seconds=(int)((day+1)*86400-32400-now);
+        }
+    }
+    sqlite3_finalize(stmt); return response;
+}
 
 #define RUN_COLUMNS "id,client_key,university_id,started_at,ended_at,distance_mm,flags,max_segment_mps,max_window_mps,average_mps,policy_version,gps_json," \
     "EXISTS(SELECT 1 FROM members WHERE members.id=runs.member_id AND members.university_id=runs.university_id AND members.university_verified_at IS NOT NULL)"
@@ -147,6 +193,9 @@ static int submit_run(CrRequest *r) {
     }
     sqlite3_finalize(stmt); stmt = NULL;
     if (step != SQLITE_DONE) goto fail;
+    response = storage_budget(r,strlen(gps));
+    if (response) { error=response==409?"run_storage_quota":response==429?"run_daily_quota":"database_error"; goto fail; }
+    response=500;
     if (!run.flags && run.distance_m > 0) {
         stmt = cr_db_prepare(r->db, "SELECT 1 FROM runs WHERE member_id=? AND flags=0 AND distance_mm>0 AND started_at<? AND ended_at>? LIMIT 1");
         if (!stmt) goto fail;
@@ -195,7 +244,8 @@ static int own_stats(CrRequest *r) {
     cJSON *obj;
     if (!cr_query_range(r, &from, &to)) return cr_error(r, 400, "invalid_period");
     stmt = cr_db_prepare(r->db, "SELECT coalesce(sum(CASE WHEN flags=0 THEN distance_mm ELSE 0 END),0),"
-        "sum(CASE WHEN flags=0 THEN 1 ELSE 0 END),sum(CASE WHEN flags<>0 THEN 1 ELSE 0 END) "
+        "sum(CASE WHEN flags=0 THEN 1 ELSE 0 END),sum(CASE WHEN flags<>0 THEN 1 ELSE 0 END),"
+        "coalesce(sum(CASE WHEN flags=0 AND distance_mm>0 THEN ended_at-started_at ELSE 0 END),0) "
         "FROM runs WHERE member_id=? AND started_at>=? AND started_at<?");
     if (!stmt) return cr_error(r, 500, "database_error");
     sqlite3_bind_int64(stmt, 1, r->member_id); sqlite3_bind_int64(stmt, 2, from); sqlite3_bind_int64(stmt, 3, to);
@@ -205,6 +255,12 @@ static int own_stats(CrRequest *r) {
     cJSON_AddNumberToObject(obj, "distance_m", (double)sqlite3_column_int64(stmt, 0)/1000.0);
     cJSON_AddNumberToObject(obj, "accepted_runs", (double)sqlite3_column_int64(stmt, 1));
     cJSON_AddNumberToObject(obj, "flagged_runs", (double)sqlite3_column_int64(stmt, 2));
+    {
+        double seconds=(double)sqlite3_column_int64(stmt,3), distance=(double)sqlite3_column_int64(stmt,0)/1000.0;
+        cJSON_AddNumberToObject(obj,"duration_seconds",seconds);
+        if (distance>0) cJSON_AddNumberToObject(obj,"pace_seconds_per_km",seconds*1000/distance);
+        else cJSON_AddNullToObject(obj,"pace_seconds_per_km");
+    }
     sqlite3_finalize(stmt); return cr_reply(r, 200, obj);
 }
 int cr_run_route(CrRequest *r, const char *path, const char *method) {

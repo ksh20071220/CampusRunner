@@ -238,10 +238,20 @@ export class RunTracker {
       this.storageError = makeError("local_storage_failed", "The saved GPS draft could not be cleared.");
     }
     this._emit();
+    return !this.storageError;
   }
 
   /** Discard a recovered or unsaved run and clear its local draft. */
   discardDraft() {
+    // Local deletion is reversible only while the original points are retained.
+    // A remote acknowledgement (markSaved) has different failure semantics.
+    try {
+      this.storage?.removeItem(this.storageKey);
+    } catch {
+      this.storageError = makeError("local_storage_failed", "The GPS draft could not be deleted.");
+      this._emit();
+      return false;
+    }
     this._clearWatch();
     this._clearTimers();
     if (this.rejectStart) {
@@ -256,7 +266,10 @@ export class RunTracker {
     this.error = null;
     this.uploadPending = false;
     this.status = "idle";
-    this.markSaved();
+    this.draftSaved = false;
+    this.storageError = null;
+    this._emit();
+    return true;
   }
 
   /** Stop this account's capture while keeping an unsaved run recoverable. */

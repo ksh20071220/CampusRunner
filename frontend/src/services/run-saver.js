@@ -57,6 +57,7 @@ export class RunSaver {
     this.generation = 0;
     this.timer = null;
     this.inflight = null;
+    this.controller = null;
     this.connected = false;
     this.legacyUnowned = LEGACY_KEYS.some((key) => Boolean(this._read(key, storage).value));
     this.state = this._empty();
@@ -89,9 +90,7 @@ export class RunSaver {
     const next = user && Number.isSafeInteger(user.id) && user.id > 0 && typeof user.token === "string" && user.token
       ? { id: user.id, token: user.token } : null;
     if (next?.id === this.identity?.id && next?.token === this.identity?.token) return;
-    this._clearTimer();
-    ++this.generation;
-    this.inflight = null;
+    this.cancelPendingRequest();
     this.identity = next;
     if (!next) { this._set(this._empty()); return; }
     const cached = this.cache.get(next.id);
@@ -133,6 +132,7 @@ export class RunSaver {
 
   save() {
     if (!this.identity || !this.state.pending) return Promise.resolve(this.state.result);
+    if (this.state.error?.status === 429 && this.state.nextRetryAt > Date.now()) return Promise.resolve(null);
     if (this.inflight) return this.inflight;
     const identity = { ...this.identity };
     const pending = this.state.pending;
@@ -142,16 +142,18 @@ export class RunSaver {
     }
     this._clearTimer();
     const generation = this.generation;
+    const controller = new AbortController();
+    this.controller = controller;
     const active = () => generation === this.generation && this.state.pending?.key === pending.key;
     const persisted = this._write(this._key("pending"), pending, this.storage);
     this._set({ phase: "saving", error: null, nextRetryAt: null, pendingPersisted: persisted,
       storageWarning: persisted ? null : problem("pending_not_persisted") });
     const request = Promise.resolve()
-      .then(() => this.api.me({ token: identity.token }))
+      .then(() => this.api.me({ token: identity.token, signal: controller.signal }))
       .then((me) => {
         if (!active()) return null;
         if (me.id !== identity.id) throw problem("record_owner_mismatch", 403);
-        return this.api.submitRun(pending.key, pending.points, { token: identity.token });
+        return this.api.submitRun(pending.key, pending.points, { token: identity.token, signal: controller.signal });
       })
       .then((result) => {
         if (!active() || !result) return null;
@@ -165,36 +167,54 @@ export class RunSaver {
         if (error.status === 401) this._set({ phase: "needs_login", error, attempt, retryable: true });
         else if (error.message === "duplicate_run") this._complete(null, identity, error);
         else if (retryable(error) && attempt <= RETRY_DELAYS_MS.length) {
-          const delay = RETRY_DELAYS_MS[attempt - 1];
+          const delay = Math.max(RETRY_DELAYS_MS[attempt - 1], (error.retryAfterSeconds || 0) * 1000);
           this._set({ phase: "retrying", error, attempt, retryable: true, nextRetryAt: Date.now() + delay });
           this.timer = setTimeout(() => this.save(), delay);
-        } else this._set({ phase: "failed", error, attempt, retryable: retryable(error) });
+        } else this._set({ phase: "failed", error, attempt, retryable: retryable(error),
+          nextRetryAt: error.status === 429 ? Date.now() + (error.retryAfterSeconds || 0) * 1000 : null });
         return null;
       })
-      .finally(() => { if (this.inflight === request) this.inflight = null; });
+      .finally(() => {
+        if (this.inflight === request) this.inflight = null;
+        if (this.controller === controller) this.controller = null;
+      });
     this.inflight = request;
     return request;
   }
 
   _complete(result, identity, error = null) {
-    this.onSaved(result, identity);
+    const activeRemoved = this.onSaved(result, identity) !== false;
     const removed = this._write(this._key("pending"), null, this.storage);
     const stored = this._write(this._key("result"), result ? { ownerId: identity.id, scope: this.scope, result } : null, this.resultStorage);
     this._set({ phase: "saved", pending: null, result, error, attempt: 0, retryable: false,
-      pendingPersisted: false, storageWarning: !removed ? problem("pending_cleanup_failed") : !stored ? problem("result_not_persisted") : null });
+      pendingPersisted: false, storageWarning: !removed || !activeRemoved ? problem("pending_cleanup_failed") : !stored ? problem("result_not_persisted") : null });
   }
 
-  retryNow() { this._set({ attempt: 0 }); return this.save(); }
+  retryNow() {
+    if (this.state.error?.status === 429 && this.state.nextRetryAt > Date.now()) return Promise.resolve(null);
+    this._set({ attempt: 0 }); return this.save();
+  }
+
+  cancelPendingRequest() {
+    this._clearTimer();
+    ++this.generation;
+    this.controller?.abort();
+    this.controller = null;
+    this.inflight = null;
+  }
+
+  reportDiscardFailure() {
+    this._set({ phase: "failed", error: problem("local_delete_failed"), retryable: false,
+      storageWarning: problem("pending_cleanup_failed") });
+  }
 
   discard() {
-    this._clearTimer();
+    this.cancelPendingRequest();
     if (this.identity && !this._write(this._key("pending"), null, this.storage)) {
       this._set({ phase: "failed", error: problem("local_delete_failed"), retryable: false,
         storageWarning: problem("pending_cleanup_failed") });
       return false;
     }
-    ++this.generation;
-    this.inflight = null;
     this._set({ ...this._empty(), ownerId: this.identity?.id ?? null });
     return true;
   }

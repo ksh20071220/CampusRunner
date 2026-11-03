@@ -1,6 +1,13 @@
 // 서버/GPS 오류 코드를 사용자에게 보여줄 한국어 문장으로 바꾼다.
 
 const API_MESSAGES = {
+  request_timeout: "서버 응답이 늦어 요청을 중단했어요. 연결을 확인하고 다시 시도해 주세요.",
+  request_cancelled: "요청을 취소했어요.",
+  session_changed: "로그인 계정이 변경되어 이전 요청의 화면 반영을 중단했어요.",
+  run_upload_rate_limited: "러닝 저장 요청이 많아요. 잠시 기다리면 다시 시도해요.",
+  run_daily_quota: "오늘의 러닝 저장 한도에 도달했어요. 한국 시간 자정 이후 저장해 주세요.",
+  run_storage_quota: "계정의 러닝 보관 한도에 도달했어요. 운영자에게 문의해 주세요.",
+  record_list_limit: "전체 목록 조회 한도에 도달했어요. 기간별 조회를 이용해 주세요.",
   record_owner_mismatch: "러닝의 계정 정보가 맞지 않아 전송을 중단했어요. 원래 계정으로 다시 로그인해 주세요.",
   pending_save: "저장 대기 중인 러닝부터 저장하거나 삭제해 주세요.",
   pending_not_persisted: "기기에 임시 저장하지 못했어요. 기록은 현재 화면에만 있어 새로고침하거나 탭을 닫으면 사라져요. 연결 후 저장해 주세요.",

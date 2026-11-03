@@ -28,7 +28,11 @@ export function finishRun({ tracker, saver }) {
 
 /** 저장하지 않고 버리기 */
 export function discardRun({ tracker, saver }) {
-  if (!saver.discard()) return false;
-  tracker?.discardDraft();
-  return true;
+  saver.cancelPendingRequest();
+  if (tracker && !tracker.discardDraft()) {
+    saver.reportDiscardFailure();
+    return false;
+  }
+  // If this second deletion fails, pending still contains the original points/key.
+  return saver.discard();
 }

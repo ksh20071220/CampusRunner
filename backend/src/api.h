@@ -14,6 +14,7 @@ typedef struct {
     sqlite3 *db;
     cJSON *body;
     int64_t member_id;
+    int retry_after_seconds;
     unsigned char token_hash[32];
 } CrRequest;
 int cr_api_handler(struct mg_connection *conn, void *data);
@@ -26,6 +27,8 @@ int cr_authenticate(CrRequest *r);
  * Returns zero on success, otherwise an HTTP status (no transaction remains). */
 int cr_begin_member_write(CrRequest *r);
 int cr_auth_route(CrRequest *r, const char *path, const char *method);
+/* Per-member attempt admission; responds on rejection, returns 0 on admission. */
+int cr_run_upload_admit(CrRequest *r);
 int cr_run_route(CrRequest *r, const char *path, const char *method);
 cJSON *cr_member_json(sqlite3_stmt *stmt);
 int cr_query_range(CrRequest *r, int64_t *from, int64_t *to);

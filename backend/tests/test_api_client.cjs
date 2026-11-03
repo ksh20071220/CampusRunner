@@ -84,3 +84,79 @@ test('logoutAll clears the token only after success', async t => {
   assert.equal(requests[0].options.method, 'POST');
   assert.deepEqual(JSON.parse(requests[0].options.body), {});
 });
+
+for (const action of ['logoutAll', 'deleteAccount', 'changePassword']) {
+  test(`late ${action} rejects stale completion without modifying another session`, async t => {
+    const { api } = await setup(t, 204, null);
+    let finish;
+    t.mock.method(globalThis, 'fetch', async () => {
+      await new Promise(resolve => { finish = resolve; });
+      return { status: action === 'changePassword' ? 200 : 204, ok: true,
+        json: async () => ({ id: 1, token: 'replacement-A' }) };
+    });
+    const request = action === 'changePassword' ? api.changePassword('old-password!', 'new-password!')
+      : action === 'deleteAccount' ? api.deleteAccount('old-password!') : api.logoutAll();
+    const rejected = assert.rejects(request, { message: 'session_changed', status: 409 });
+    api.token = 'other-account';
+    finish(); await rejected;
+    assert.equal(api.token, 'other-account');
+  });
+}
+
+test('same token value after an intervening session still invalidates old account actions', async t => {
+  const { api } = await setup(t, 204, null);
+  let finish;
+  api.request = () => new Promise(resolve => { finish = resolve; });
+  const pending = api.logoutAll();
+  const rejected = assert.rejects(pending, { message: 'session_changed' });
+  api.token = null; api.token = 'previous-session'; finish(null); await rejected;
+  assert.equal(api.token, 'previous-session');
+});
+
+test('timeout aborts fetch and rejects even when transport never settles', async t => {
+  const { api } = await setup(t, 200, {}); api.timeoutMs = 5;
+  let signal;
+  t.mock.method(globalThis, 'fetch', (_url, options) => { signal = options.signal; return new Promise(() => {}); });
+  await assert.rejects(api.me(), { message: 'request_timeout', status: 408 });
+  assert.equal(signal.aborted, true);
+});
+
+test('timeout covers a stalled response body as well as response headers', async t => {
+  const { api } = await setup(t, 200, {}); api.timeoutMs = 5;
+  t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, json: () => new Promise(() => {}) }));
+  await assert.rejects(api.me(), { message: 'request_timeout', status: 408 });
+});
+
+test('caller cancellation releases a hanging request and preserves the token', async t => {
+  const { api } = await setup(t, 200, {});
+  t.mock.method(globalThis, 'fetch', () => new Promise(() => {}));
+  const controller = new AbortController();
+  const request = api.me({ signal: controller.signal });
+  const rejected = assert.rejects(request, { message: 'request_cancelled', status: 0 });
+  controller.abort(); await rejected;
+  assert.equal(api.token, 'previous-session');
+});
+
+test('already aborted requests never call fetch', async t => {
+  const { api, requests } = await setup(t, 200, {});
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(api.me({ signal: controller.signal }), { message: 'request_cancelled' });
+  assert.equal(requests.length, 0);
+});
+
+test('proof upload has its own timeout and keeps the binary body', async t => {
+  const { api } = await setup(t, 201, {}); api.uploadTimeoutMs = 5;
+  const file = new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' });
+  let options;
+  t.mock.method(globalThis, 'fetch', (_url, opts) => { options = opts; return new Promise(() => {}); });
+  await assert.rejects(api.submitUniversityProof(file, 'student_card', { consent: true }), { message: 'request_timeout' });
+  assert.equal(options.body, file); assert.equal(options.signal.aborted, true);
+  assert.equal(options.headers.Authorization, 'Bearer previous-session');
+});
+
+test('server retry-after is exposed on the API error', async t => {
+  const { api } = await setup(t, 429, { error: 'run_daily_quota' });
+  t.mock.method(globalThis, 'fetch', async () => ({ ok: false, status: 429,
+    headers: { get: () => '3600' }, json: async () => ({ error: 'run_daily_quota' }) }));
+  await assert.rejects(api.submitRun('key', []), { message: 'run_daily_quota', retryAfterSeconds: 3600 });
+});

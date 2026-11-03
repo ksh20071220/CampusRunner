@@ -720,7 +720,7 @@ class ServerTests(unittest.TestCase):
                             connection.close()
                     else:
                         self.fail('Concurrent server failed to become healthy')
-                self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 2)
+                self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
                 self.assertEqual(db.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
             finally:
                 db.rollback()
@@ -925,6 +925,143 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(db.execute('SELECT nickname FROM members WHERE id=?', (account['id'],)).fetchone()[0], 'runner')
             self.assertEqual(db.execute('SELECT count(*) FROM runs').fetchone()[0], 0)
             self.assertEqual(db.execute('SELECT status,image FROM university_verifications WHERE id=?', (proof['id'],)).fetchone(), ('pending', PNG))
+
+
+    def test_run_rate_limit_rejects_before_reading_body_and_resets(self):
+        account = self.register(verified=False)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('INSERT INTO run_request_limits VALUES(?,?,60)', (account['id'], int(time.time())//60))
+            db.commit()
+        conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=3)
+        try:
+            conn.putrequest('POST', '/api/runs')
+            conn.putheader('Authorization', 'Bearer '+account['token'])
+            conn.putheader('Content-Type', 'application/json')
+            conn.putheader('Content-Length', '1000000')
+            conn.endheaders()
+            response = conn.getresponse()
+            self.assertEqual(response.status, 429)
+            self.assertTrue(1 <= int(response.getheader('Retry-After')) <= 60)
+            self.assertIn('Retry-After', response.getheader('Access-Control-Expose-Headers'))
+            self.assertEqual(json.loads(response.read())['error'], 'run_upload_rate_limited')
+        finally:
+            conn.close()
+        self.call('GET', '/api/me', token=account['token'])
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE run_request_limits SET window_at=window_at-2'); db.commit()
+        self.call('POST', '/api/runs', {}, token=account['token'], expected=400)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT attempts FROM run_request_limits').fetchone()[0], 1)
+        other = self.register('other', verified=False)
+        self.call('POST', '/api/runs', self.run_body(), token=other['token'], expected=201)
+
+    def test_run_daily_quota_preserves_idempotent_retries(self):
+        account = self.register(verified=False)
+        first = self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE run_daily_usage SET uploads=100 WHERE member_id=?', (account['id'],)); db.commit()
+        retry = self.call('POST', '/api/runs', self.run_body(), token=account['token'])
+        self.assertEqual(retry['id'], first['id'])
+        result = self.call('POST', '/api/runs', self.run_body('second', 2000), token=account['token'], expected=429)
+        self.assertEqual(result['error'], 'run_daily_quota')
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT uploads FROM run_daily_usage').fetchone()[0], 100)
+            self.assertEqual(db.execute('SELECT total_runs FROM run_storage_usage').fetchone()[0], 1)
+            db.execute('UPDATE run_daily_usage SET day_kst=day_kst-1'); db.commit()
+        self.call('POST', '/api/runs', self.run_body('second', 2000), token=account['token'], expected=201)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT uploads FROM run_daily_usage').fetchone()[0], 1)
+
+    def test_run_daily_bytes_and_total_storage_quota(self):
+        account = self.register(verified=False)
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE run_daily_usage SET gps_bytes=?', (50*1024*1024,)); db.commit()
+        result = self.call('POST', '/api/runs', self.run_body('second', 2000), token=account['token'], expected=429)
+        self.assertEqual(result['error'], 'run_daily_quota')
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE run_daily_usage SET gps_bytes=0')
+            db.execute('UPDATE run_storage_usage SET total_bytes=?', (256*1024*1024,)); db.commit()
+        result = self.call('POST', '/api/runs', self.run_body('second', 2000), token=account['token'], expected=409)
+        self.assertEqual(result['error'], 'run_storage_quota')
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'])
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM runs').fetchone()[0], 1)
+        other = self.register('other', verified=False)
+        self.call('POST', '/api/runs', self.run_body(), token=other['token'], expected=201)
+
+    def test_concurrent_uploads_cannot_exceed_daily_quota(self):
+        account = self.register(verified=False)
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute('UPDATE run_daily_usage SET uploads=99'); db.commit()
+        def submit(index):
+            conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=15)
+            try:
+                conn.request('POST', '/api/runs', json.dumps(self.run_body('race-'+str(index), 2000+index*1000)),
+                    {'Authorization': 'Bearer '+account['token'], 'Content-Type':'application/json'})
+                response = conn.getresponse(); response.read(); return response.status
+            finally:
+                conn.close()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(submit, range(2)))
+        self.assertEqual(sorted(results), [201, 429])
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT uploads FROM run_daily_usage').fetchone()[0], 100)
+            self.assertEqual(db.execute('SELECT total_runs FROM run_storage_usage').fetchone()[0], 2)
+
+    def test_failed_run_insert_rolls_back_storage_counters(self):
+        account = self.register(verified=False)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute("CREATE TRIGGER fail_run AFTER INSERT ON runs BEGIN SELECT RAISE(ABORT,'injected'); END"); db.commit()
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=500)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            for table in ('runs','run_storage_usage','run_daily_usage'):
+                self.assertEqual(db.execute('SELECT count(*) FROM '+table).fetchone()[0],0)
+            db.execute('DROP TRIGGER fail_run'); db.commit()
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        self.call('DELETE', '/api/me', {'password':'Strong-pass-123!', 'confirmation':'DELETE'}, token=account['token'], expected=204)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            for table in ('run_request_limits','run_storage_usage','run_daily_usage'):
+                self.assertEqual(db.execute('SELECT count(*) FROM '+table).fetchone()[0], 0)
+
+    def test_v2_upgrade_backfills_usage_and_preserves_records(self):
+        account = self.register(verified=False)
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        self.stop()
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            size = db.execute('SELECT length(CAST(gps_json AS BLOB)) FROM runs').fetchone()[0]
+            db.execute('DROP TRIGGER runs_usage_insert'); db.execute('DROP TRIGGER runs_usage_delete')
+            for table in ('run_request_limits','run_storage_usage','run_daily_usage'):
+                db.execute('DROP TABLE '+table)
+            db.execute('PRAGMA user_version=2'); db.commit()
+        self.start()
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 3)
+            self.assertEqual(db.execute('SELECT total_runs,total_bytes FROM run_storage_usage').fetchone(), (1,size))
+            self.assertEqual(db.execute('SELECT uploads,gps_bytes FROM run_daily_usage').fetchone(), (1,size))
+        self.call('POST', '/api/runs', self.run_body(), token=account['token'])
+        self.call('POST', '/api/runs', self.run_body('second',2000), token=account['token'], expected=201)
+        self.stop(); self.start()
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            self.assertEqual(db.execute('SELECT total_runs FROM run_storage_usage').fetchone()[0], 2)
+
+    def test_server_stats_include_all_records_beyond_old_frontend_cap(self):
+        account = self.register(verified=False)
+        first = self.call('POST', '/api/runs', self.run_body(), token=account['token'], expected=201)
+        with contextlib.closing(sqlite3.connect(self.db)) as db:
+            db.execute("WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<10002) "
+                "INSERT INTO runs(member_id,university_id,client_key,fingerprint,started_at,ended_at,distance_mm,"
+                "max_segment_mps,max_window_mps,average_mps,flags,gps_json,created_at) "
+                "SELECT member_id,university_id,'bulk-'||x,CAST('bulk-'||x AS BLOB),started_at+x*100,ended_at+x*100,"
+                "distance_mm,max_segment_mps,max_window_mps,average_mps,flags,gps_json,created_at FROM runs,n WHERE id=?", (first['id'],))
+            db.commit()
+        stats = self.call('GET', '/api/me/stats?from=0&to=4102444800', token=account['token'])
+        self.assertEqual(stats['accepted_runs'],10003)
+        self.assertAlmostEqual(stats['distance_m'],first['distance_m']*10003,places=3)
+        self.assertEqual(stats['duration_seconds'],60*10003)
+        self.assertAlmostEqual(stats['pace_seconds_per_km'],60*1000/first['distance_m'])
+        self.assertEqual(len(self.call('GET','/api/me/runs?limit=200&offset=10000',token=account['token'])),3)
 
 
 if __name__ == '__main__':

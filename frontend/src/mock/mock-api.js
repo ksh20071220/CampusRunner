@@ -248,6 +248,12 @@ export class MockApi {
       distance_m: runs.filter((r) => r.accepted).reduce((sum, r) => sum + r.distance_m, 0),
       accepted_runs: runs.filter((r) => r.accepted).length,
       flagged_runs: runs.filter((r) => !r.accepted).length,
+      duration_seconds: runs.filter(r => r.accepted && r.distance_m > 0).reduce((sum,r) => sum+r.duration_seconds,0),
+      pace_seconds_per_km: (() => {
+        const accepted = runs.filter(r => r.accepted && r.distance_m > 0);
+        const distance = accepted.reduce((sum,r) => sum+r.distance_m,0);
+        return distance ? accepted.reduce((sum,r) => sum+r.duration_seconds,0)*1000/distance : null;
+      })(),
     };
   }
 

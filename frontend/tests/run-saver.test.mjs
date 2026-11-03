@@ -161,3 +161,83 @@ test("logout stops GPS and each member recovers only their own tracker", async (
   assert.equal(mock.activateSession(A).tracker.getPoints().length, 0);
   a.dispose(); b.dispose(); mock.activateSession(null);
 });
+
+
+test("failed active deletion preserves GPS and pending key, and reports failure to the caller", async t => {
+  const { discardRun } = await import('../src/services/run-actions.js');
+  const { RunTracker } = await import('../run-tracker.js');
+  const { saver, api, local } = setup(t);
+  api.submitRun = async () => { throw error(400, 'invalid_run'); };
+  await saver.begin(points); const key = saver.getState().pending.key;
+  const activeKey = accountKey(saver.scope, A.id, 'active');
+  local.setItem(activeKey, JSON.stringify({version:1,points}));
+  const tracker = new RunTracker({ storage:local, storageKey:activeKey, geolocation:{watchPosition(){},clearWatch(){}} });
+  t.after(() => tracker.dispose());
+  const remove = local.removeItem.bind(local);
+  local.removeItem = k => { if(k===activeKey) throw new Error('denied'); remove(k); };
+  assert.equal(discardRun({tracker,saver}),false);
+  assert.deepEqual(tracker.getPoints(),points); assert.equal(saver.getState().pending.key,key);
+  assert.equal(saver.getState().error.code,'local_delete_failed');
+  local.removeItem=remove;
+  assert.equal(discardRun({tracker,saver}),true);
+  assert.equal(local.getItem(activeKey),null); assert.equal(saver.getState().pending,null);
+  assert.deepEqual(tracker.getPoints(),[]);
+});
+
+test("pending deletion failure after active deletion retains uploadable coordinates", async t => {
+  const { discardRun } = await import('../src/services/run-actions.js');
+  const { saver, api, local } = setup(t);
+  api.submitRun = async () => { throw error(400,'invalid_run'); }; await saver.begin(points);
+  const pendingKey = accountKey(saver.scope,A.id,'pending');
+  local.removeItem = k => { if(k===pendingKey) throw new Error('denied'); };
+  assert.equal(discardRun({tracker:{discardDraft:()=>true},saver}),false);
+  assert.deepEqual(saver.getState().pending.points,points);
+});
+
+test("saved active cleanup failure is visible even if pending cleanup succeeds", async t => {
+  const { saver }=setup(t,{onSaved:()=>false}); await saver.begin(points);
+  assert.equal(saver.getState().phase,'saved');
+  assert.equal(saver.getState().storageWarning.code,'pending_cleanup_failed');
+});
+
+test("quota retry-after delays retries and manual retry cannot bypass the delay", async t => {
+  const { saver, api }=setup(t); let calls=0;
+  api.submitRun=async()=>{++calls; throw Object.assign(error(429,'run_daily_quota'),{retryAfterSeconds:3600});};
+  await saver.begin(points); const key=saver.getState().pending.key;
+  assert.ok(saver.getState().nextRetryAt>Date.now()+3590_000);
+  await saver.retryNow(); assert.equal(calls,1); assert.equal(saver.getState().pending.key,key);
+});
+
+test("request timeout retries the same submission key after a stalled transport", async t => {
+  const {readFileSync}=await import('node:fs');
+  const source=readFileSync(new URL('../../backend/examples/api-client.js',import.meta.url));
+  const {CampusRunnerApi}=await import('data:text/javascript;base64,'+source.toString('base64'));
+  const api=new CampusRunnerApi('https://synthetic.test',{timeoutMs:5}); api.token=A.token;
+  let fail=true; const submitted=[];
+  t.mock.method(globalThis,'fetch',async(url,opts)=>{
+    if(url.endsWith('/api/me')) return {ok:true,status:200,json:async()=>({id:A.id})};
+    submitted.push(JSON.parse(opts.body));
+    if(fail) return new Promise(()=>{});
+    return {ok:true,status:201,json:async()=>({id:1})};
+  });
+  const {saver}=setup(t,{api}); await saver.begin(points);
+  assert.equal(saver.getState().phase,'retrying');
+  assert.equal(saver.getState().error.code,'request_timeout');
+  fail=false; await saver.retryNow();
+  assert.equal(saver.getState().phase,'saved'); assert.equal(submitted[0].key,submitted[1].key);
+});
+
+test("complete history compatibility query does not silently stop at 10000",async()=>{
+  const {fetchAllRuns}=await import('../src/services/records.js');
+  const count=10003;
+  const runs=await fetchAllRuns({myRuns:async(limit,offset)=>Array.from({length:Math.max(0,Math.min(limit,count-offset))},(_,i)=>({id:offset+i+1}))});
+  assert.equal(runs.length,count);
+});
+
+test("record overview uses server aggregates independently of loaded list pages",async()=>{
+  const {fetchRecordOverview}=await import('../src/services/records.js');
+  const calls=[];
+  const data=await fetchRecordOverview({myStats:async(from,to)=>{calls.push({from,to});return {distance_m:10003000,accepted_runs:10003,flagged_runs:1,duration_seconds:3000900,pace_seconds_per_km:300};},myRuns:()=>{throw new Error('must not fetch the entire history');}},'week',1700000000);
+  assert.equal(data.total.count,10003); assert.equal(data.total.pace,300);
+  assert.equal(data.series.length,8); assert.equal(calls.length,9);
+});

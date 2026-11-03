@@ -46,13 +46,13 @@ int cr_reply(CrRequest *r, int status, cJSON *body) {
     if (status != 204 && !json) { status = 500; reason = "Internal Server Error"; }
     mg_printf(r->conn, "HTTP/1.1 %d %s\r\nContent-Type: application/json; charset=utf-8\r\n"
         "Content-Length: %zu\r\nConnection: close\r\nCache-Control: no-store\r\n"
-        "X-Content-Type-Options: nosniff\r\nVary: Origin\r\n", status, reason, strlen(text));
+        "X-Content-Type-Options: nosniff\r\nVary: Origin\r\nAccess-Control-Expose-Headers: Retry-After\r\n", status, reason, strlen(text));
     if (origin && r->server->allowed_origin && !strcmp(origin, r->server->allowed_origin))
         mg_printf(r->conn, "Access-Control-Allow-Origin: %s\r\n"
             "Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Authorization, Content-Type, X-Document-Type, X-Verification-Consent\r\n", origin);
     if (status == 401) mg_printf(r->conn, "WWW-Authenticate: Bearer\r\n");
-    if (status == 429) mg_printf(r->conn, "Retry-After: 60\r\n");
+    if (status == 429) mg_printf(r->conn, "Retry-After: %d\r\n", r->retry_after_seconds > 0 ? r->retry_after_seconds : 60);
     mg_printf(r->conn, "\r\n");
     if (*text) mg_write(r->conn, text, strlen(text));
     free(json); cJSON_Delete(body); return status;
@@ -332,6 +332,10 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
                 goto done;
             }
         }
+    }
+    if (!strcmp(method, "POST") && !strcmp(path, "/api/runs")) {
+        status = cr_run_upload_admit(&r);
+        if (status) goto done;
     }
     if ((!strcmp(method, "POST") || !strcmp(method, "PATCH") || !strcmp(method, "DELETE")) && !cr_verification_upload_path(path)) {
         int error;

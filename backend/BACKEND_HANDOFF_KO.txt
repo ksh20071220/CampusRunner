@@ -1,5 +1,5 @@
 ﻿CampusRunner 백엔드 개발 인수인계
-기준: 2026-10-26 / C11 HTTP 서버 / SQLite 스키마 버전 2
+기준: 2026-10-26 / C11 HTTP 서버 / SQLite 스키마 버전 3
 인코딩: UTF-8. 아래 경로는 저장소 루트 기준입니다.
 
 [0] 처음 합류한 작업자가 알아둘 것
@@ -440,3 +440,51 @@ CMake:
   verification_member/verification_audit_member 인덱스로 본인 이력/탈퇴 삭제를 지원한다.
   프런트엔드 예제: api.deleteAccount(), changePassword(), logoutAll().
   회원 전용 가입/설정 화면과 이메일 비밀번호 분실 복구는 이 백엔드/API 예제에 포함되지 않는다.
+
+
+[2026-11-04 추가 보완: 프록시 로그인 제한 문제는 변경하지 않음]
+
+서버 DB 스키마 3: 기존 v1/v2 DB를 시작 시 한 트랜잭션으로 업그레이드한다.
+기존 회원·세션·러닝은 보존한다. run_storage_usage(회원별 누적 건수·GPS 바이트),
+run_daily_usage(한국 날짜별 새 저장 건수·GPS 바이트), run_request_limits(분당 시도)를 추가한다.
+기존 자료의 사용량을 한 번 집계하고, 이후 runs INSERT/DELETE 트리거로 누적 사용량을 유지한다.
+일일 사용량은 업로드 비용이므로 삭제 시 돌려주지 않으며 한국 시간 자정에 새 업로드부터 리셋된다.
+탈퇴 시 세 테이블의 해당 회원 행도 외래 키 ON DELETE CASCADE로 삭제된다.
+스키마 3 DB는 예전 서버로 바로 열 수 없으므로 업그레이드 전에 tools/backup.py로 백업한다.
+이번 검증은 임시 DB만 사용했고 실제 사용자 DB는 열거나 업그레이드하지 않았다.
+
+기본 회원별 한도 (src/run_limits.h):
+  POST /api/runs 요청 60회/분. 본문 읽기 전에 검사하며 형식 오류·재전송도 요청 비용에 포함한다.
+  새 러닝 저장 100건/일 및 정규화된 GPS JSON 50MiB/일. 한국 시간 00:00 기준이다.
+  누적 100,000건 및 GPS JSON 256MiB/회원. 이는 DB 전체 파일 크기 한도가 아니다.
+  의심·제자리 기록도 저장 자원을 쓰므로 모든 새 기록을 계산한다.
+  서버의 기존 인증 시도 IP 제한(auth_api.c)과 프록시 설정은 변경하지 않았다.
+  같은 key·같은 좌표의 이미 저장된 기록은 일일·누적 한도 검사 전에 200으로 반환한다.
+  분당 요청 한도는 재전송에도 적용되며, 실제 새 저장이 없는 재전송은 저장 사용량을 늘리지 않는다.
+  일일/분당 초과: 429 run_daily_quota / run_upload_rate_limited + Retry-After(초).
+  누적 초과: 409 run_storage_quota. 원본 GPS는 클라이언트의 계정별 임시본에 유지한다.
+  한도 검사·새 INSERT·사용량 갱신이 같은 BEGIN IMMEDIATE에 있어 동시 요청도 한도를 넘지 않는다.
+  같은 계정의 한도가 다른 회원을 막지 않는다. 서비스 전체 디스크 한도·IP별 일반 DDoS 방어를 대체하지 않는다.
+
+GET /api/me/stats?from&to에는 duration_seconds와 pace_seconds_per_km을 추가했다.
+정상 기록의 양수 거리 구간 시간만 합산하고, 페이스는 총 시간/총 거리이며 거리가 0이면 null이다.
+기존 distance_m/accepted_runs/flagged_runs도 유지한다. 모든 기간은 러닝 시작 시각 [from,to)다.
+프런트 개인 기록의 누적값·주간/월간 그래프는 이 집계 API를 사용한다.
+목록은 200개씩 요청하고 20개씩 표시하며 더 보기로 다음 페이지를 읽는다. 10,000개에서 멈추지 않는다.
+
+API 클라이언트:
+  JSON 기본 제한 시간 15초 / 사진 업로드 45초. 응답 본문 읽기까지 포함한다.
+  new CampusRunnerApi(baseUrl,{timeoutMs,uploadTimeoutMs})로 범위 안에서 조정 가능하다.
+  시간 초과는 request_timeout/408, 명시적 취소는 request_cancelled/0이다.
+  RunSaver는 시간 초과에도 같은 key/좌표로 재시도하고 Retry-After 동안 수동 재시도도 기다린다.
+  계정 변경·임시본 삭제는 진행 중인 요청을 취소하고 늦은 응답의 화면 반영을 무효화한다.
+  이미 서버에 전달된 요청은 원래 계정에서 완료될 수 있으므로 취소가 서버 롤백을 뜻하지 않는다.
+  logoutAll/deleteAccount/changePassword는 시작 세션 버전을 확인한다. 다른 세션으로 바뀐 경우
+  새 토큰을 덮어쓰지 않고 session_changed/409를 반환한다. 원래 계정 작업 자체는 완료됐을 수 있다.
+
+GPS 삭제:
+  discardDraft()는 로컬 active 키 삭제 성공 후 좌표를 비우고 boolean을 반환한다.
+  실패하면 원본 좌표와 저장 key를 유지하고 화면에 안내한다. pending 키 실패도 성공으로 이동하지 않는다.
+  markSaved()는 서버 저장 확인이므로 실패해도 원격 저장 사실을 취소하지 않으며, 로컬 정리 실패를 안내한다.
+
+이번에는 학교 인증/계정 설정의 미구현 회원 화면을 새로 만들지 않았다.

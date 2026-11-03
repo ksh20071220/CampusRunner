@@ -127,10 +127,10 @@ function SaveStatus({ state, onRetry, onDiscard }) {
   const { phase, error, attempt, nextRetryAt, retryable } = state;
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    if (phase !== "retrying") return undefined;
+    if (phase !== "retrying" && !(error?.status === 429 && nextRetryAt > Date.now())) return undefined;
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [phase, error, nextRetryAt]);
 
   if (phase === "saving" || phase === "idle") {
     return (
@@ -146,7 +146,7 @@ function SaveStatus({ state, onRetry, onDiscard }) {
         tone="warn"
         title={`저장에 실패해서 ${seconds}초 뒤 다시 보내요 (${attempt}/3)`}
         action={
-          <button type="button" className="btn btn--dark btn--small" onClick={onRetry}>
+          <button type="button" className="btn btn--dark btn--small" onClick={onRetry} disabled={error?.status === 429 && seconds > 0}>
             지금 재시도
           </button>
         }
@@ -162,8 +162,8 @@ function SaveStatus({ state, onRetry, onDiscard }) {
         {retryable && state.pendingPersisted ? " 기록은 이 기기에 보관돼 있어요. 연결되면 다시 시도해 주세요." : ""}
       </Notice>
       <div className="btn-row">
-        <button type="button" className="btn btn--primary" onClick={onRetry}>
-          다시 시도
+        <button type="button" className="btn btn--primary" onClick={onRetry} disabled={error?.status === 429 && nextRetryAt > now}>
+          {error?.status === 429 && nextRetryAt > now ? `${Math.ceil((nextRetryAt - now) / 1000)}초 뒤 재시도` : "다시 시도"}
         </button>
         <button type="button" className="btn btn--ghost" onClick={onDiscard}>
           삭제

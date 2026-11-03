@@ -63,7 +63,7 @@ int cr_db_init(const char *path) {
     if (!stmt) goto done;
     version = sqlite3_step(stmt) == SQLITE_ROW ? sqlite3_column_int(stmt, 0) : -1;
     sqlite3_finalize(stmt);
-    if (version < 0 || version > 2) goto done;
+    if (version < 0 || version > 3) goto done;
     ok = cr_db_exec(db,
         "CREATE TABLE IF NOT EXISTS universities(id INTEGER PRIMARY KEY CHECK(id>0),name TEXT NOT NULL UNIQUE);"
         "CREATE TABLE IF NOT EXISTS members(id INTEGER PRIMARY KEY AUTOINCREMENT, nickname TEXT NOT NULL UNIQUE,"
@@ -102,6 +102,25 @@ int cr_db_init(const char *path) {
             "CREATE TABLE verification_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,request_id INTEGER REFERENCES university_verifications(id),"
             "member_id INTEGER NOT NULL REFERENCES members(id),action TEXT NOT NULL,reviewer TEXT NOT NULL,reason TEXT NOT NULL,created_at INTEGER NOT NULL);"
             "PRAGMA user_version=2;");
+    }
+    if (ok && version < 3) {
+        ok = cr_db_exec(db,
+            "CREATE TABLE IF NOT EXISTS run_request_limits(member_id INTEGER PRIMARY KEY REFERENCES members(id) ON DELETE CASCADE,window_at INTEGER NOT NULL,attempts INTEGER NOT NULL);"
+            "CREATE TABLE IF NOT EXISTS run_storage_usage(member_id INTEGER PRIMARY KEY REFERENCES members(id) ON DELETE CASCADE,total_runs INTEGER NOT NULL,total_bytes INTEGER NOT NULL);"
+            "CREATE TABLE IF NOT EXISTS run_daily_usage(member_id INTEGER PRIMARY KEY REFERENCES members(id) ON DELETE CASCADE,day_kst INTEGER NOT NULL,uploads INTEGER NOT NULL,gps_bytes INTEGER NOT NULL);"
+            "CREATE INDEX IF NOT EXISTS runs_member_created ON runs(member_id,created_at);"
+            "INSERT OR REPLACE INTO run_storage_usage SELECT member_id,count(*),sum(length(CAST(gps_json AS BLOB))) FROM runs GROUP BY member_id;"
+            "INSERT OR REPLACE INTO run_daily_usage SELECT member_id,(CAST(strftime('%s','now') AS INTEGER)+32400)/86400,count(*),sum(length(CAST(gps_json AS BLOB))) FROM runs "
+            "WHERE (created_at+32400)/86400=(CAST(strftime('%s','now') AS INTEGER)+32400)/86400 GROUP BY member_id;"
+            "CREATE TRIGGER IF NOT EXISTS runs_usage_insert AFTER INSERT ON runs BEGIN "
+            "INSERT INTO run_storage_usage VALUES(NEW.member_id,1,length(CAST(NEW.gps_json AS BLOB))) "
+            "ON CONFLICT(member_id) DO UPDATE SET total_runs=total_runs+1,total_bytes=total_bytes+excluded.total_bytes;"
+            "INSERT INTO run_daily_usage VALUES(NEW.member_id,(NEW.created_at+32400)/86400,1,length(CAST(NEW.gps_json AS BLOB))) "
+            "ON CONFLICT(member_id) DO UPDATE SET uploads=CASE WHEN day_kst=excluded.day_kst THEN uploads+1 ELSE 1 END,"
+            "gps_bytes=CASE WHEN day_kst=excluded.day_kst THEN gps_bytes+excluded.gps_bytes ELSE excluded.gps_bytes END,day_kst=excluded.day_kst; END;"
+            "CREATE TRIGGER IF NOT EXISTS runs_usage_delete AFTER DELETE ON runs BEGIN "
+            "UPDATE run_storage_usage SET total_runs=max(0,total_runs-1),total_bytes=max(0,total_bytes-length(CAST(OLD.gps_json AS BLOB))) WHERE member_id=OLD.member_id; END;"
+            "PRAGMA user_version=3;");
     }
     if (ok) ok = cr_db_exec(db,
         "CREATE INDEX IF NOT EXISTS verification_member ON university_verifications(member_id,id);"
