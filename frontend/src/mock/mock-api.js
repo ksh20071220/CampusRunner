@@ -146,8 +146,8 @@ export class MockApi {
     return { ...rest, counts_for_university: run.accepted && run.distance_m > 0 && member?.verification_status === "approved" };
   }
 
-  _me() {
-    const memberId = this.db.sessions[this.token];
+  _me(token = this.token) {
+    const memberId = this.db.sessions[token];
     const member = this.db.members.find((m) => m.id === memberId);
     if (!member) throw apiError(401, "authentication_required");
     return member;
@@ -202,18 +202,18 @@ export class MockApi {
     this.token = null;
   }
 
-  async me() {
+  async me({ token = this.token } = {}) {
     await wait(120);
-    return this._profile(this._me());
+    return this._profile(this._me(token));
   }
 
-  async submitRun(key, points) {
+  async submitRun(key, points, { token = this.token } = {}) {
     await wait(700);
     if (this.failSubmissions > 0) {
       this.failSubmissions -= 1;
       throw new TypeError("Failed to fetch");
     }
-    const member = this._me();
+    const member = this._me(token);
     if (!Array.isArray(points) || points.length < 2) throw apiError(400, "invalid_point_count");
     const existing = this.db.runs.find((r) => r.member_id === member.id && r.key === key);
     if (existing) return this._public(existing);

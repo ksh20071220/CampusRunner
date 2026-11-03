@@ -1,15 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { CampusRunnerApi } from "@campus-api";
-import { RunTracker } from "../../run-tracker.js";
-import { RunSaver } from "../services/run-saver.js";
+import { AccountRuns } from "../services/account-runs.js";
+import { browserStorage } from "../services/run-saver.js";
 import { MockApi } from "../mock/mock-api.js";
 import { MockGeolocation } from "../mock/mock-geolocation.js";
 import { normalizeApiError } from "../lib/messages.js";
 
 // 앱 전체가 공유하는 상태: API 클라이언트, 로그인 회원, GPS 측정기, 저장 서비스.
-// 화면이 바뀌어도 RunTracker는 하나만 유지한다. 화면에서는 구독/구독 해제만 한다.
+// 같은 회원은 화면이 바뀌어도 RunTracker를 유지한다. 로그아웃하면 측정을 중단한다. 화면에서는 구독/구독 해제만 한다.
 
-const SESSION_KEY = "campusrunner.session.v1";
+const sessionKey = (scope) => `campusrunner.session.v2.${encodeURIComponent(scope)}`;
 const AppContext = createContext(null);
 
 function readConfig() {
@@ -23,6 +23,7 @@ function readConfig() {
   return {
     mock,
     apiBase,
+    scope: mock ? "mock" : new URL(apiBase).href.replace(/\/$/, ""),
     mockFail: Number(params.get("fail") || 0),
     mockReset: params.has("reset"),
     gpsFail: params.get("gpsfail"),
@@ -34,35 +35,27 @@ function createServices(config) {
     ? new MockApi({ failSubmissions: config.mockFail, reset: config.mockReset })
     : new CampusRunnerApi(config.apiBase);
 
-  let tracker = null;
-  let trackerError = null;
-  try {
-    const geolocation = config.mock ? new MockGeolocation({ failMode: config.gpsFail }) : undefined;
-    tracker = new RunTracker(geolocation ? { geolocation } : {});
-  } catch (error) {
-    trackerError = error;
-  }
-  if (!config.mock && !window.isSecureContext && !trackerError) {
-    // 위치 API는 HTTPS(또는 localhost)에서만 권한을 받을 수 있다.
-    trackerError = Object.assign(new Error("insecure"), { code: "insecure_context" });
-  }
-
-  const saver = new RunSaver({ api, onSaved: () => tracker?.markSaved() });
-  return { api, tracker, trackerError, saver };
+  const accounts = new AccountRuns({ api, scope: config.scope,
+    trackerOptions: () => config.mock ? { geolocation: new MockGeolocation({ failMode: config.gpsFail }) } : {},
+    insecureContext: !config.mock && !window.isSecureContext });
+  const saved = readSession(config.scope);
+  if (saved?.token) api.token = saved.token;
+  const binding = accounts.activateSession(saved);
+  return { api, accounts, saver: accounts.saver, initialSession: saved, initialBinding: binding };
 }
 
-function readSession() {
+function readSession(scope) {
   try {
-    return JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    return JSON.parse(browserStorage("sessionStorage")?.getItem(sessionKey(scope)) || "null");
   } catch {
     return null;
   }
 }
 
-function writeSession(session) {
+function writeSession(scope, session) {
   try {
-    if (session) sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    else sessionStorage.removeItem(SESSION_KEY);
+    if (session) browserStorage("sessionStorage")?.setItem(sessionKey(scope), JSON.stringify(session));
+    else browserStorage("sessionStorage")?.removeItem(sessionKey(scope));
   } catch {
     /* 저장 실패 시 이번 탭 메모리로만 유지 */
   }
@@ -71,14 +64,11 @@ function writeSession(session) {
 export function AppProvider({ children }) {
   const config = useMemo(readConfig, []);
   const services = useMemo(() => createServices(config), [config]);
-  const { api, tracker, saver } = services;
+  const { api, accounts, saver } = services;
+  const [binding, setBinding] = useState(services.initialBinding);
 
   // 토큰은 sessionStorage(탭을 닫으면 삭제)에 둔다. 러닝 중 실수로 새로고침해도 다시 로그인하지 않게 한다.
-  const [session, setSession] = useState(() => {
-    const saved = readSession();
-    if (saved?.token) api.token = saved.token;
-    return saved;
-  });
+  const [session, setSession] = useState(services.initialSession);
   const [authChecked, setAuthChecked] = useState(!session);
   const [dataVersion, setDataVersion] = useState(0);
 
@@ -86,29 +76,35 @@ export function AppProvider({ children }) {
     (user) => {
       const next = user ? { ...user, token: user.token ?? api.token } : null;
       api.token = next?.token ?? null;
-      writeSession(next);
+      setBinding(accounts.activateSession(next));
+      writeSession(config.scope, next);
       setSession(next);
+      setAuthChecked(true);
     },
-    [api],
+    [api, accounts, config.scope],
   );
 
   // 저장된 토큰이 아직 유효한지 확인하고 프로필을 최신으로 맞춘다.
   useEffect(() => {
     if (!session?.token) return;
     let alive = true;
+    const token = session.token;
+    const current = () => alive && api.token === token;
     api
-      .me()
-      .then((me) => alive && applySession({ ...me, token: session.token }))
+      .me({ token })
+      .then((me) => current() && applySession({ ...me, token }))
       .catch((error) => {
-        if (alive && normalizeApiError(error).status === 401) applySession(null);
+        if (current() && normalizeApiError(error).status === 401) applySession(null);
       })
-      .finally(() => alive && setAuthChecked(true));
+      .finally(() => current() && setAuthChecked(true));
     return () => {
       alive = false;
     };
     // 최초 1회만
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => { saver.connect(); return () => saver.disconnect(); }, [saver]);
 
   // 저장 완료되면 홈/기록 화면이 다시 불러오도록 버전을 올린다.
   useEffect(
@@ -143,21 +139,23 @@ export function AppProvider({ children }) {
   );
 
   const logout = useCallback(async () => {
+    const request = api.logout();
+    applySession(null);
     try {
-      await api.logout();
+      await request;
     } catch {
       /* 서버 세션이 이미 만료돼도 화면에서는 로그아웃 처리 */
     }
-    applySession(null);
   }, [api, applySession]);
 
   const refreshMe = useCallback(async () => {
+    const token = api.token;
     try {
-      const me = await api.me();
-      applySession({ ...me, token: api.token });
+      const me = await api.me({ token });
+      if (api.token === token) applySession({ ...me, token });
       return me;
     } catch (error) {
-      if (normalizeApiError(error).status === 401) applySession(null);
+      if (api.token === token && normalizeApiError(error).status === 401) applySession(null);
       throw error;
     }
   }, [api, applySession]);
@@ -173,7 +171,8 @@ export function AppProvider({ children }) {
   const value = useMemo(
     () => ({
       config,
-      ...services,
+      api, saver,
+      ...binding,
       user: session,
       authChecked,
       login,
@@ -183,7 +182,7 @@ export function AppProvider({ children }) {
       handleAuthError,
       dataVersion,
     }),
-    [config, services, session, authChecked, login, register, logout, refreshMe, handleAuthError, dataVersion],
+    [config, api, saver, binding, session, authChecked, login, register, logout, refreshMe, handleAuthError, dataVersion],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -210,7 +209,11 @@ export function useTrackerSnapshot() {
   const { tracker } = useApp();
   const [snapshot, setSnapshot] = useState(() => (tracker ? tracker.getSnapshot() : IDLE_SNAPSHOT));
   // subscribe는 등록 즉시 현재 값을 한 번 보내고, 이후 변경·1초마다 다시 보낸다.
-  useEffect(() => (tracker ? tracker.subscribe(setSnapshot) : undefined), [tracker]);
+  useEffect(() => {
+    if (tracker) return tracker.subscribe(setSnapshot);
+    setSnapshot(IDLE_SNAPSHOT);
+    return undefined;
+  }, [tracker]);
   return snapshot;
 }
 

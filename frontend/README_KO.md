@@ -6,7 +6,7 @@ Vite + React + Leaflet(OpenStreetMap). 디자인은 운영자 검토 화면(`bac
 
 ```powershell
 cd frontend
-npm install
+npm ci
 npm run dev          # http://localhost:5173
 ```
 
@@ -19,7 +19,8 @@ npm run dev          # http://localhost:5173
   - 서버의 `CR_ALLOWED_ORIGIN`이 프런트 주소와 **정확히** 같아야 한다 (기본값 `http://localhost:5173`).
   - API 주소는 `.env.example`을 `.env`로 복사해 `VITE_API_BASE_URL`로 바꿀 수 있다. 비우면 `현재 접속 호스트:8080`을 쓴다.
 - 빌드: `npm run build` → `dist/` 정적 파일
-- GPS 모듈 테스트: `npm run test:tracker`
+- GPS·계정별 임시 저장 테스트: `npm test`
+- 개발 서버는 기본적으로 PC 내부(localhost)에서만 접속한다. 같은 Wi-Fi에 공개하려면 `npm run dev -- --host 0.0.0.0`을 명시하고, 휴대폰 GPS에는 별도 HTTPS 구성이 필요하다.
 
 ## 화면과 주소 (해시 라우팅)
 
@@ -71,3 +72,13 @@ API 클라이언트는 복사하지 않고 `backend/examples/api-client.js`를 `
 - **실기기 GPS 점검표**: 권한 거부 → 안내 표시 / 실내에서 첫 위치 30초 초과 → 오류 표시 / 러닝 중 화면 끄기 10초 이상 → 돌아오면 안내 표시 / 비행기 모드에서 종료 → 재시도 → 연결 후 저장 / 러닝 중 새로고침 → 홈에서 "이어 달리기·종료하고 저장" 확인.
 - 지도 타일은 OpenStreetMap 공용 서버를 쓴다. 발표·소규모 테스트에는 충분하지만 사용자가 많아지면 타일 이용 정책에 따라 다른 공급자로 바꿔야 한다.
 - 이메일 비밀번호 찾기, 운영자별 계정, 학교 인증 서류 제출·내 정보 화면은 이 범위에 포함하지 않았다 (4번 담당).
+
+## 2026-11-04 계정별 러닝 보완
+
+`services/account-runs.js`가 로그인 회원마다 GPS 측정기를 관리한다. 로그아웃·다른 계정 로그인 시 이전 측정을 중지하고 임시 좌표를 해당 회원에게만 남긴다. `RunSaver.setSession(user)`로 서버가 발급한 `{id, token}`을 전달한 뒤 `begin/save`를 호출한다. 업로드 전 `/api/me`로 소유자를 확인하고 확인·전송에 동일한 토큰을 고정한다. 도중 계정이 바뀌면 늦은 응답이 새 화면의 기록을 변경하지 않는다. 이미 서버에 전달된 요청은 원래 계정으로 저장될 수 있다.
+
+localStorage 키는 `campusrunner.account.v2.<URL 인코딩된 API 주소 또는 mock>.<회원 ID>.pending/active`, 결과는 sessionStorage의 같은 접두사 `.result`에 둔다. 로그인 세션도 API 주소별 v2 키를 쓴다. 목업과 실제 서버의 회원 ID가 같아도 기록·세션을 공유하지 않는다. 기존 v1 로그인 세션은 가져오지 않으므로 업데이트 후 다시 로그인한다. 소유자가 없는 기존 v1 GPS 기록은 삭제하지 않고 격리하여 자동 전송하지 않는다. 필요하면 소유자 확인 후 별도로 복구해야 한다.
+
+기기 저장 실패는 `pendingPersisted=false`, `storageWarning`으로 화면에 표시한다. 이때 기록은 현재 탭 메모리에만 존재하므로 새로고침 전에 서버 저장을 완료해야 한다. 삭제 실패는 `discard()`가 false를 반환하며 삭제 완료 화면으로 이동하지 않는다.
+
+학교 인증 API와 운영자 수동 심사 화면은 구현되어 있다. 회원용 사진 제출·수집 동의·심사 상태/반려 사유·취소/재제출 화면은 아직 없다. 현재 홈에는 인증 상태 배지만 표시된다.

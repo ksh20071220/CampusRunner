@@ -1,6 +1,14 @@
 // 서버/GPS 오류 코드를 사용자에게 보여줄 한국어 문장으로 바꾼다.
 
 const API_MESSAGES = {
+  record_owner_mismatch: "러닝의 계정 정보가 맞지 않아 전송을 중단했어요. 원래 계정으로 다시 로그인해 주세요.",
+  pending_save: "저장 대기 중인 러닝부터 저장하거나 삭제해 주세요.",
+  pending_not_persisted: "기기에 임시 저장하지 못했어요. 기록은 현재 화면에만 있어 새로고침하거나 탭을 닫으면 사라져요. 연결 후 저장해 주세요.",
+  local_storage_unavailable: "기기 저장소를 사용할 수 없어 이전 임시 기록을 확인하지 못했어요.",
+  invalid_pending_record: "임시 기록의 계정 또는 형식이 맞지 않아 자동 전송하지 않았어요.",
+  pending_cleanup_failed: "임시 기록을 기기에서 지우지 못했어요. 새로고침하면 다시 나타날 수 있어요.",
+  result_not_persisted: "서버에는 저장됐지만 결과를 기기에 보관하지 못했어요. 개인 기록에서 확인해 주세요.",
+  local_delete_failed: "기기에서 기록을 삭제하지 못했어요. 저장소 설정을 확인한 뒤 다시 시도해 주세요.",
   authentication_required: "로그인이 만료됐어요. 다시 로그인해 주세요.",
   invalid_credentials: "닉네임 또는 비밀번호가 맞지 않아요.",
   invalid_credentials_format: "비밀번호는 8자 이상, 앞뒤 공백 없이 입력해 주세요.",

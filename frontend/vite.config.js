@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 
 const backendExamples = fileURLToPath(new URL("../backend/examples", import.meta.url));
+const frontendRoot = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
@@ -13,10 +14,10 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // 같은 Wi-Fi의 휴대폰에서 PC IP로 접속할 수 있게 한다.
+    host: "localhost",
     port: 5173,
     strictPort: true,
-    fs: { allow: [".."] },
+    fs: { allow: [frontendRoot, backendExamples] },
   },
-  preview: { host: true, port: 5173, strictPort: true },
+  preview: { host: "localhost", port: 5173, strictPort: true },
 });

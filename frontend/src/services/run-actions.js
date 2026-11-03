@@ -28,6 +28,7 @@ export function finishRun({ tracker, saver }) {
 
 /** 저장하지 않고 버리기 */
 export function discardRun({ tracker, saver }) {
+  if (!saver.discard()) return false;
   tracker?.discardDraft();
-  saver.discard();
+  return true;
 }

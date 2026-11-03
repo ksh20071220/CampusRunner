@@ -45,6 +45,10 @@ try {
                 & node --test ..\frontend\tests\run-tracker.test.cjs
                 if ($LASTEXITCODE -ne 0) { throw 'GPS tracker lifecycle tests failed.' }
             }
+            if (Test-Path -LiteralPath '..\frontend\tests\run-saver.test.mjs') {
+                & node --test ..\frontend\tests\run-saver.test.mjs
+                if ($LASTEXITCODE -ne 0) { throw 'Account-scoped run storage tests failed.' }
+            }
             & node --test tests\test_api_client.cjs
             if ($LASTEXITCODE -ne 0) { throw 'Member API client tests failed.' }
             & node --test tests\test_verification_admin.cjs

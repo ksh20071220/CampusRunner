@@ -259,6 +259,16 @@ export class RunTracker {
     this.markSaved();
   }
 
+  /** Stop this account's capture while keeping an unsaved run recoverable. */
+  suspend() {
+    const stopped = this.stop();
+    if (this.uploadPending && this.points.length) {
+      this.status = "recovered";
+      this._emit();
+    }
+    return stopped;
+  }
+
   dispose() {
     this.stop();
     this.listeners.clear();

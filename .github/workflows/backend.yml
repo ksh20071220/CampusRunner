@@ -1,9 +1,9 @@
 name: C backend
 on:
   push:
-    paths: ['backend/**', 'frontend/run-tracker.js', 'frontend/tests/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'frontend/**', '.github/workflows/backend.yml']
   pull_request:
-    paths: ['backend/**', 'frontend/run-tracker.js', 'frontend/tests/**', '.github/workflows/backend.yml']
+    paths: ['backend/**', 'frontend/**', '.github/workflows/backend.yml']
 permissions:
   contents: read
 jobs:
@@ -20,6 +20,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Frontend dependencies
+        working-directory: frontend
+        run: npm ci --ignore-scripts
+      - name: Frontend build
+        working-directory: frontend
+        run: npm run build
       - name: Configure
         run: cmake -S backend -B backend/build-cmake -DCMAKE_BUILD_TYPE=Debug
       - name: Build

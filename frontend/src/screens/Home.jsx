@@ -1,3 +1,4 @@
+import StorageNotice from "../components/StorageNotice.jsx";
 import { useState } from "react";
 import { useApp, useAuthErrorGuard, useSaverState, useTrackerSnapshot } from "../state/AppContext.jsx";
 import { useAsync } from "../lib/hooks.js";
@@ -62,6 +63,7 @@ export default function Home() {
         <Badge tone={verification.tone}>{verification.text}</Badge>
       </section>
 
+      <StorageNotice state={saverState} />
       <RecoveryBanner app={app} snapshot={snapshot} saverState={saverState} />
 
       {loading && !data && <Spinner />}
@@ -168,7 +170,7 @@ function RecoveryBanner({ app, snapshot, saverState }) {
           </button>
         }
       >
-        같은 기록으로 다시 보내서 중복 없이 저장해요.
+        {saverState.pendingPersisted ? "기기에 보관된 기록을 같은 요청으로 다시 보내요." : "기록이 현재 화면에만 남아 있어요. 새로고침하지 말고 저장해 주세요."}
       </Notice>
     );
   }

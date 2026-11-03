@@ -37,8 +37,9 @@ export class CampusRunnerApi {
     return user;
   }
   async logout() {
-    await this.request("/api/auth/logout", { method: "POST", body: {} });
-    this.token = null;
+    const token = this.token;
+    await this.request("/api/auth/logout", { method: "POST", body: {}, token });
+    if (this.token === token) this.token = null;
   }
   async logoutAll() {
     await this.request("/api/auth/logout-all", { method: "POST", body: {} });
@@ -56,11 +57,11 @@ export class CampusRunnerApi {
     await this.request("/api/me", { method: "DELETE", body: { password, confirmation: "DELETE" } });
     this.token = null;
   }
-  me() { return this.request("/api/me"); }
+  me({ token = this.token } = {}) { return this.request("/api/me", { token }); }
   updateProfile(profile) { return this.request("/api/me", { method: "PATCH", body: profile }); }
   /** Generate key ONCE at the end of a run and retain it for every network retry.
    * points: [{ timestamp: UTC integer seconds, latitude, longitude }, ...]. */
-  submitRun(key, points) { return this.request("/api/runs", { method: "POST", body: { key, points } }); }
+  submitRun(key, points, { token = this.token } = {}) { return this.request("/api/runs", { method: "POST", body: { key, points }, token }); }
   rankings(from, to, limit = 100, offset = 0) {
     const query = new URLSearchParams({ from, to, limit, offset });
     return this.request(`/api/rankings?${query}`, { token: null });

@@ -4,6 +4,32 @@ const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const clientModule = import('data:text/javascript;base64,' + readFileSync(join(__dirname, '../examples/api-client.js')).toString('base64'));
 
+test('run upload and identity check use the captured owner token', async t => {
+  const { api, requests } = await setup(t, 200, { id: 1 });
+  api.token = 'new-account';
+  await api.me({ token: 'original-account' });
+  await api.submitRun('stable-key', [], { token: 'original-account' });
+  assert.equal(requests[0].options.headers.Authorization, 'Bearer original-account');
+  assert.equal(requests[1].options.headers.Authorization, 'Bearer original-account');
+  assert.equal(api.token, 'new-account');
+});
+
+test('late logout does not clear a newly authenticated account token', async t => {
+  const { api, requests } = await setup(t, 204, null);
+  let finish;
+  const response = new Promise(resolve => { finish = resolve; });
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    requests.push({ url, options });
+    await response;
+    return { status: 204, ok: true };
+  });
+  const loggingOut = api.logout();
+  api.token = 'new-account';
+  finish(); await loggingOut;
+  assert.equal(requests[0].options.headers.Authorization, 'Bearer previous-session');
+  assert.equal(api.token, 'new-account');
+});
+
 async function setup(t, status, payload) {
   const { CampusRunnerApi } = await clientModule;
   const api = new CampusRunnerApi('https://api.example.test/');

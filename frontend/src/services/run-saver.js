@@ -1,19 +1,21 @@
 import { normalizeApiError } from "../lib/messages.js";
 
-// 러닝 종료 후 서버 저장을 담당한다. (역할 2번이 나중에 교체·확장하기 쉽도록 화면과 분리)
-//
-// 규칙 (BACKEND_HANDOFF [7], [12]):
-// - key는 러닝 종료 때 "한 번만" 만든다. 재시도마다 새로 만들지 않는다.
-// - 실패하면 같은 key와 같은 points로 다시 보낸다. 서버가 이미 저장했다면 200으로 기존 결과를 준다.
-// - 서버 성공을 확인한 뒤에만 RunTracker.markSaved()로 GPS 임시본을 지운다.
-// - 저장 대기 중인 {key, points}는 localStorage에 보관해 새로고침 뒤에도 같은 key로 재시도한다.
-
-const PENDING_KEY = "campusrunner.pending-run.v1";
-const RESULT_KEY = "campusrunner.last-result.v1";
 const RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
+const LEGACY_KEYS = ["campusrunner.pending-run.v1", "campusrunner.active-run.v1"];
+
+export function browserStorage(name = "localStorage") {
+  try { return globalThis[name] ?? null; } catch { return null; }
+}
+
+export function accountKey(scope, memberId, kind) {
+  return `campusrunner.account.v2.${encodeURIComponent(scope)}.${memberId}.${kind}`;
+}
+
+function problem(code, status = 400) {
+  return Object.assign(new Error(code), { code, status });
+}
 
 function makeKey() {
-  // crypto.randomUUID()는 HTTPS에서만 있다. 휴대폰 HTTP 테스트를 위해 getRandomValues로 대체한다.
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
   const bytes = new Uint8Array(16);
   globalThis.crypto.getRandomValues(bytes);
@@ -23,158 +25,197 @@ function makeKey() {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+function validPoints(points) {
+  return Array.isArray(points) && points.length >= 2 && points.length <= 20_000 && points.every((p, i) =>
+    p && Number.isInteger(p.timestamp) && p.timestamp >= 0 && p.timestamp <= 4102444800 &&
+    Number.isFinite(p.latitude) && Math.abs(p.latitude) <= 90 &&
+    Number.isFinite(p.longitude) && Math.abs(p.longitude) <= 180 && (!i || p.timestamp > points[i - 1].timestamp));
+}
+
 function samePoints(a, b) {
-  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
-  return a.every(
-    (p, i) => p.timestamp === b[i].timestamp && p.latitude === b[i].latitude && p.longitude === b[i].longitude,
-  );
+  return a.length === b.length && a.every((p, i) =>
+    p.timestamp === b[i].timestamp && p.latitude === b[i].latitude && p.longitude === b[i].longitude);
 }
 
-function isRetryable(error) {
-  if (error.code === "network_error") return true;
-  return error.status === 408 || error.status === 429 || error.status >= 500;
+function retryable(error) {
+  return error.code === "network_error" || error.status === 408 || error.status === 429 || error.status >= 500;
 }
 
+// Pending GPS, results and retries belong to an authenticated member AND API
+// environment. A mutable api.token must never determine a restored run's owner.
 export class RunSaver {
-  constructor({ api, storage = globalThis.localStorage, onSaved = () => {} }) {
+  constructor({ api, scope, storage = browserStorage(), resultStorage = browserStorage("sessionStorage"), onSaved = () => {} }) {
+    if (!scope || typeof scope !== "string") throw new TypeError("RunSaver requires an API environment scope");
     this.api = api;
+    this.scope = scope;
     this.storage = storage;
+    this.resultStorage = resultStorage;
     this.onSaved = onSaved;
     this.listeners = new Set();
+    this.cache = new Map();
+    this.identity = null;
+    this.generation = 0;
     this.timer = null;
     this.inflight = null;
-    this.state = {
-      phase: "idle", // idle | saving | retrying | saved | failed | needs_login
-      pending: this._read(PENDING_KEY),
-      result: this._read(RESULT_KEY, globalThis.sessionStorage),
-      error: null,
-      attempt: 0,
-      retryable: false,
-      nextRetryAt: null,
+    this.connected = false;
+    this.legacyUnowned = LEGACY_KEYS.some((key) => Boolean(this._read(key, storage).value));
+    this.state = this._empty();
+    this.online = () => {
+      if (this.identity && this.state.pending && this.state.retryable &&
+          (this.state.phase === "failed" || this.state.phase === "retrying")) this.save();
     };
-    if (typeof window !== "undefined") {
-      window.addEventListener("online", () => {
-        if (this.state.pending && (this.state.phase === "failed" || this.state.phase === "retrying")) this.save();
-      });
+  }
+
+  _empty() {
+    return { phase: "idle", pending: null, result: null, error: null, attempt: 0,
+      retryable: false, nextRetryAt: null, pendingPersisted: false,
+      storageWarning: null, legacyUnowned: this.legacyUnowned, ownerId: null };
+  }
+
+  connect() {
+    if (typeof window !== "undefined" && !this.connected) {
+      window.addEventListener("online", this.online);
+      this.connected = true;
     }
+  }
+
+  disconnect() {
+    if (typeof window !== "undefined" && this.connected) window.removeEventListener("online", this.online);
+    this.connected = false;
+    this._clearTimer();
+  }
+
+  setSession(user) {
+    const next = user && Number.isSafeInteger(user.id) && user.id > 0 && typeof user.token === "string" && user.token
+      ? { id: user.id, token: user.token } : null;
+    if (next?.id === this.identity?.id && next?.token === this.identity?.token) return;
+    this._clearTimer();
+    ++this.generation;
+    this.inflight = null;
+    this.identity = next;
+    if (!next) { this._set(this._empty()); return; }
+    const cached = this.cache.get(next.id);
+    if (cached) {
+      this._set({ ...cached, phase: cached.pending ? "idle" : cached.phase, error: null, attempt: 0, nextRetryAt: null });
+      return;
+    }
+    const stored = this._read(this._key("pending"), this.storage);
+    const candidate = stored.value;
+    const valid = candidate && candidate.ownerId === next.id && candidate.scope === this.scope &&
+      typeof candidate.key === "string" && candidate.key.length > 0 && candidate.key.length <= 63 && validPoints(candidate.points);
+    const last = this._read(this._key("result"), this.resultStorage);
+    const result = last.value?.ownerId === next.id && last.value?.scope === this.scope ? last.value.result : null;
+    this._set({ ...this._empty(), ownerId: next.id, pending: valid ? candidate : null, result,
+      pendingPersisted: Boolean(valid), storageWarning: stored.failed || last.failed
+        ? problem("local_storage_unavailable") : candidate && !valid ? problem("invalid_pending_record") : null });
   }
 
   subscribe(listener) {
-    this.listeners.add(listener);
-    listener(this.state);
+    this.listeners.add(listener); listener(this.state);
     return () => this.listeners.delete(listener);
   }
 
-  getState() {
-    return this.state;
-  }
+  getState() { return this.state; }
 
-  /** 러닝 종료 직후 호출. 같은 points로 다시 부르면 기존 key를 재사용한다. */
   begin(points) {
+    if (!this.identity) throw problem("authentication_required", 401);
+    if (!validPoints(points)) throw problem("invalid_run");
     const current = this.state.pending;
-    const pending =
-      current && samePoints(current.points, points)
-        ? current
-        : { key: makeKey(), points, createdAt: Date.now() };
-    this._write(PENDING_KEY, pending);
-    this._set({ pending, result: null, error: null, attempt: 0, phase: "idle" });
-    this._write(RESULT_KEY, null, globalThis.sessionStorage);
+    if (current && !samePoints(current.points, points)) throw problem("pending_save", 409);
+    const pending = current || { key: makeKey(), points: points.map(({ timestamp, latitude, longitude }) =>
+      ({ timestamp, latitude, longitude })), createdAt: Date.now(), ownerId: this.identity.id, scope: this.scope };
+    const persisted = this._write(this._key("pending"), pending, this.storage);
+    this._write(this._key("result"), null, this.resultStorage);
+    this._set({ pending, result: null, error: null, attempt: 0, phase: "idle", pendingPersisted: persisted,
+      storageWarning: persisted ? null : problem("pending_not_persisted") });
     return this.save();
   }
 
-  /** 대기 중인 저장을 (재)시도한다. 진행 중이면 같은 Promise를 돌려준다. */
   save() {
-    if (!this.state.pending) return Promise.resolve(this.state.result);
+    if (!this.identity || !this.state.pending) return Promise.resolve(this.state.result);
     if (this.inflight) return this.inflight;
+    const identity = { ...this.identity };
+    const pending = this.state.pending;
+    if (pending.ownerId !== identity.id || pending.scope !== this.scope) {
+      this._set({ phase: "failed", error: problem("record_owner_mismatch", 403), retryable: false });
+      return Promise.resolve(null);
+    }
     this._clearTimer();
-    const { key, points } = this.state.pending;
-    this._set({ phase: "saving", error: null, nextRetryAt: null });
-
-    this.inflight = this.api
-      .submitRun(key, points)
+    const generation = this.generation;
+    const active = () => generation === this.generation && this.state.pending?.key === pending.key;
+    const persisted = this._write(this._key("pending"), pending, this.storage);
+    this._set({ phase: "saving", error: null, nextRetryAt: null, pendingPersisted: persisted,
+      storageWarning: persisted ? null : problem("pending_not_persisted") });
+    const request = Promise.resolve()
+      .then(() => this.api.me({ token: identity.token }))
+      .then((me) => {
+        if (!active()) return null;
+        if (me.id !== identity.id) throw problem("record_owner_mismatch", 403);
+        return this.api.submitRun(pending.key, pending.points, { token: identity.token });
+      })
       .then((result) => {
-        // 임시 GPS 기록을 먼저 지우고 나서 대기 요청을 지운다. 중간에 앱이 꺼져도
-        // 대기 요청이 남아 같은 key로 재전송되므로 중복 저장되지 않는다.
-        this.onSaved(result);
-        this._write(PENDING_KEY, null);
-        this._write(RESULT_KEY, result, globalThis.sessionStorage);
-        this._set({ phase: "saved", pending: null, result, error: null, attempt: 0, retryable: false });
+        if (!active() || !result) return null;
+        this._complete(result, identity);
         return result;
       })
       .catch((raw) => {
+        if (!active()) return null;
         const error = normalizeApiError(raw);
         const attempt = this.state.attempt + 1;
-        if (error.status === 401) {
-          this._set({ phase: "needs_login", error, attempt, retryable: true });
-        } else if (error.message === "duplicate_run") {
-          // 같은 GPS가 이미 다른 key로 저장됨 = 저장은 끝난 상태. 임시본만 정리한다.
-          this.onSaved(null);
-          this._write(PENDING_KEY, null);
-          this._set({ phase: "saved", pending: null, result: null, error, attempt, retryable: false });
-        } else if (isRetryable(error) && attempt <= RETRY_DELAYS_MS.length) {
+        if (error.status === 401) this._set({ phase: "needs_login", error, attempt, retryable: true });
+        else if (error.message === "duplicate_run") this._complete(null, identity, error);
+        else if (retryable(error) && attempt <= RETRY_DELAYS_MS.length) {
           const delay = RETRY_DELAYS_MS[attempt - 1];
           this._set({ phase: "retrying", error, attempt, retryable: true, nextRetryAt: Date.now() + delay });
           this.timer = setTimeout(() => this.save(), delay);
-        } else {
-          this._set({ phase: "failed", error, attempt, retryable: isRetryable(error) });
-        }
+        } else this._set({ phase: "failed", error, attempt, retryable: retryable(error) });
         return null;
       })
-      .finally(() => {
-        this.inflight = null;
-      });
-    return this.inflight;
+      .finally(() => { if (this.inflight === request) this.inflight = null; });
+    this.inflight = request;
+    return request;
   }
 
-  /** 수동 재시도: 자동 재시도 횟수를 초기화하고 바로 보낸다. */
-  retryNow() {
-    this._set({ attempt: 0 });
-    return this.save();
+  _complete(result, identity, error = null) {
+    this.onSaved(result, identity);
+    const removed = this._write(this._key("pending"), null, this.storage);
+    const stored = this._write(this._key("result"), result ? { ownerId: identity.id, scope: this.scope, result } : null, this.resultStorage);
+    this._set({ phase: "saved", pending: null, result, error, attempt: 0, retryable: false,
+      pendingPersisted: false, storageWarning: !removed ? problem("pending_cleanup_failed") : !stored ? problem("result_not_persisted") : null });
   }
 
-  /** 저장하지 않고 버린다 (형식 오류 등 서버가 영구 거부한 경우). */
+  retryNow() { this._set({ attempt: 0 }); return this.save(); }
+
   discard() {
     this._clearTimer();
-    this._write(PENDING_KEY, null);
-    this._set({ phase: "idle", pending: null, error: null, attempt: 0, retryable: false });
+    if (this.identity && !this._write(this._key("pending"), null, this.storage)) {
+      this._set({ phase: "failed", error: problem("local_delete_failed"), retryable: false,
+        storageWarning: problem("pending_cleanup_failed") });
+      return false;
+    }
+    ++this.generation;
+    this.inflight = null;
+    this._set({ ...this._empty(), ownerId: this.identity?.id ?? null });
+    return true;
   }
 
-  /** 결과 화면을 떠날 때 저장 완료 상태를 정리한다. */
-  acknowledge() {
-    if (this.state.phase === "saved") this._set({ phase: "idle", error: null });
-  }
-
-  _clearTimer() {
-    if (this.timer) clearTimeout(this.timer);
-    this.timer = null;
-  }
-
+  acknowledge() { if (this.state.phase === "saved") this._set({ phase: "idle", error: null }); }
+  _key(kind) { return accountKey(this.scope, this.identity.id, kind); }
+  _clearTimer() { if (this.timer) clearTimeout(this.timer); this.timer = null; }
   _set(patch) {
     this.state = { ...this.state, ...patch };
-    for (const listener of this.listeners) {
-      try {
-        listener(this.state);
-      } catch {
-        /* 화면 오류가 저장 흐름을 멈추지 않게 한다 */
-      }
-    }
+    if (this.identity) this.cache.set(this.identity.id, this.state);
+    for (const listener of this.listeners) { try { listener(this.state); } catch { /* UI listeners do not own persistence. */ } }
   }
-
-  _read(key, storage = this.storage) {
-    try {
-      const raw = storage?.getItem(key);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+  _read(key, storage) {
+    try { const raw = storage?.getItem(key); return { value: raw ? JSON.parse(raw) : null, failed: !storage }; }
+    catch { return { value: null, failed: true }; }
   }
-
-  _write(key, value, storage = this.storage) {
+  _write(key, value, storage) {
     try {
-      if (value === null) storage?.removeItem(key);
-      else storage?.setItem(key, JSON.stringify(value));
-    } catch {
-      /* 저장소를 못 써도 메모리 상태로 계속 진행한다 */
-    }
+      if (!storage) return false;
+      if (value === null) storage.removeItem(key); else storage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch { return false; }
   }
 }

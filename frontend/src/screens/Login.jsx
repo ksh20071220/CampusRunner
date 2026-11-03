@@ -109,6 +109,9 @@ function UniversityPicker({ value, onChange }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let active = true;
+    setError("");
+    setResults([]);
     if (value || query.trim().length < 1) {
       setResults([]);
       return undefined;
@@ -117,12 +120,13 @@ function UniversityPicker({ value, onChange }) {
       api
         .universities({ q: query.trim() })
         .then((list) => {
+          if (!active) return;
           setResults(list.slice(0, 8));
           setError(list.length ? "" : "검색 결과가 없어요.");
         })
-        .catch((raw) => setError(apiMessage(normalizeApiError(raw))));
+        .catch((raw) => active && setError(apiMessage(normalizeApiError(raw))));
     }, 250);
-    return () => clearTimeout(timer);
+    return () => { active = false; clearTimeout(timer); };
   }, [api, query, value]);
 
   if (value) {
