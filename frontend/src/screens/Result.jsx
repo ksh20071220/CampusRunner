@@ -73,18 +73,18 @@ export default function Result() {
         <StorageNotice state={state} />
         {phase === "saved" && error?.message === "duplicate_run" ? (
           <Empty
-            title="이미 저장된 러닝이에요"
+            title="이미 저장된 러닝"
             action={
               <button type="button" className="btn btn--primary" onClick={() => navigate("/records")}>
                 기록 보러 가기
               </button>
             }
           >
-            같은 좌표의 기록이 이미 서버에 있어서 중복 저장하지 않았어요.
+            중복 저장 방지
           </Empty>
         ) : (
           <Empty
-            title="최근 러닝 결과가 없어요"
+            title="최근 러닝 결과 없음"
             action={
               <button type="button" className="btn btn--primary" onClick={() => navigate("/run")}>
                 러닝 하러 가기
@@ -99,7 +99,7 @@ export default function Result() {
   return (
     <div className="screen">
       <SubHeader title="러닝 결과" back="/home" backLabel="홈" right={<AcceptBadge run={result} />} />
-      <RouteMap points={routePoints || []} emptyText={routePoints ? "경로를 불러오지 못했어요" : "경로 불러오는 중…"} />
+      <RouteMap points={routePoints || []} emptyText={routePoints ? "경로 불러오기 실패" : "경로 불러오는 중…"} />
       <StorageNotice state={state} />
       <RunStats run={result} />
       <UniversityNote run={result} verified={user.university_verified} />
@@ -134,8 +134,7 @@ function SaveStatus({ state, onRetry, onDiscard }) {
 
   if (phase === "saving" || phase === "idle") {
     return (
-      <Notice tone="info" title="서버에 저장하고 있어요">
-        거리·시간·페이스는 서버가 다시 계산해서 최종 기록으로 저장해요.
+      <Notice tone="info" title="저장 중…">
       </Notice>
     );
   }
@@ -144,22 +143,22 @@ function SaveStatus({ state, onRetry, onDiscard }) {
     return (
       <Notice
         tone="warn"
-        title={`저장에 실패해서 ${seconds}초 뒤 다시 보내요 (${attempt}/3)`}
+        title={`저장 실패 · ${seconds}초 후 재시도 (${attempt}/3)`}
         action={
           <button type="button" className="btn btn--dark btn--small" onClick={onRetry} disabled={error?.status === 429 && seconds > 0}>
             지금 재시도
           </button>
         }
       >
-        {apiMessage(error)} 같은 기록으로 다시 보내므로 두 번 저장되지 않아요.
+        {apiMessage(error)}
       </Notice>
     );
   }
   return (
     <div className="stack">
-      <Notice tone="bad" title="저장하지 못했어요">
+      <Notice tone="bad" title="저장 실패">
         {apiMessage(error)}
-        {retryable && state.pendingPersisted ? " 기록은 이 기기에 보관돼 있어요. 연결되면 다시 시도해 주세요." : ""}
+        {retryable && state.pendingPersisted ? " · 기록은 휴대폰에 보관됨 · 연결 후 재시도" : ""}
       </Notice>
       <div className="btn-row">
         <button type="button" className="btn btn--primary" onClick={onRetry} disabled={error?.status === 429 && nextRetryAt > now}>

@@ -70,7 +70,7 @@ export default function Home() {
       {error && (
         <Notice
           tone="bad"
-          title="기록을 불러오지 못했어요"
+          title="기록 불러오기 실패"
           action={
             <button type="button" className="btn btn--ghost btn--small" onClick={reload}>
               다시 시도
@@ -97,7 +97,7 @@ export default function Home() {
                 이번 주 <b>{km(data.thisWeek.distance_m)}</b>km
               </span>
               {data.total.flagged_runs > 0 && (
-                <span className="muted">의심 기록 {data.total.flagged_runs}회 제외</span>
+                <span className="muted">비정상 기록 {data.total.flagged_runs}회 제외</span>
               )}
             </div>
           </section>
@@ -125,7 +125,7 @@ export default function Home() {
                 </div>
               </dl>
             </div>
-            {!verified && <p className="campus-card__note">학교 인증이 승인되면 내 기록도 학교 점수에 들어가요.</p>}
+            {!verified && <p className="campus-card__note">학교 인증 후 점수 반영</p>}
           </button>
         </>
       )}
@@ -163,14 +163,14 @@ function RecoveryBanner({ app, snapshot, saverState }) {
     return (
       <Notice
         tone="warn"
-        title="저장하지 못한 러닝이 있어요"
+        title="저장되지 않은 러닝 1건"
         action={
           <button type="button" className="btn btn--dark btn--small" onClick={() => navigate("/result")}>
-            저장하기
+            저장
           </button>
         }
       >
-        {saverState.pendingPersisted ? "기기에 보관된 기록을 같은 요청으로 다시 보내요." : "기록이 현재 화면에만 남아 있어요. 새로고침하지 말고 저장해 주세요."}
+        {saverState.pendingPersisted ? "인터넷 연결 후 저장 가능" : "화면을 닫으면 기록 삭제"}
       </Notice>
     );
   }
@@ -178,9 +178,9 @@ function RecoveryBanner({ app, snapshot, saverState }) {
     return (
       <div className="notice notice--warn notice--stack">
         <div>
-          <strong>측정이 중간에 끊긴 러닝이 있어요</strong>
+          <strong>중단된 러닝 1건</strong>
           <p>
-            {km(snapshot.distanceMeters)}km · 좌표 {snapshot.pointCount}개가 이 기기에 남아 있어요.
+            {km(snapshot.distanceMeters)}km까지 기록됨
           </p>
         </div>
         <div className="btn-row btn-row--tight">

@@ -63,7 +63,7 @@ export default function Run() {
     return (
       <div className="screen">
         <SubHeader title="러닝" />
-        <Notice tone="bad" title="GPS를 사용할 수 없어요">
+        <Notice tone="bad" title="GPS 사용 불가">
           {gpsMessage(trackerError)}
         </Notice>
       </div>
@@ -80,7 +80,7 @@ export default function Run() {
       />
 
       {trackerError?.code === "insecure_context" && (
-        <Notice tone="bad" title="HTTPS 주소가 필요해요">
+        <Notice tone="bad" title="HTTPS 주소 필요">
           {gpsMessage(trackerError)}
         </Notice>
       )}
@@ -90,7 +90,7 @@ export default function Run() {
         points={points}
         live={active}
         className="route-map--run"
-        emptyText={status === "starting" ? "GPS 위치를 찾고 있어요…" : "시작하면 지나간 길이 지도에 그려져요"}
+        emptyText={status === "starting" ? "위치 찾는 중…" : "시작 후 경로 표시"}
       />
 
       <div className="stat-grid">
@@ -99,7 +99,7 @@ export default function Run() {
         <Stat label="평균 속도" value={kmh(speed)} unit="km/h" />
         <Stat label="평균 페이스" value={pace(livePace)} unit="/km" />
       </div>
-      {active && <p className="hint center">러닝 중 숫자는 미리보기예요. 저장하면 서버가 다시 계산한 값이 최종 기록이 돼요.</p>}
+      {active && <p className="hint center">임시 값 · 저장 후 최종 기록 확정</p>}
 
       {snapshot.error && active && (
         <Notice tone="warn">{gpsMessage(snapshot.error)}</Notice>
@@ -107,28 +107,28 @@ export default function Run() {
       {hiddenFor > 0 && (
         <Notice
           tone="warn"
-          title={`화면이 ${hiddenFor}초 동안 꺼져 있었어요`}
+          title={`화면 꺼짐 ${hiddenFor}초`}
           action={
             <button type="button" className="btn btn--ghost btn--small" onClick={clearHidden}>
               확인
             </button>
           }
         >
-          브라우저는 화면이 꺼지면 위치 수신을 멈출 수 있어요. 2분 넘게 끊기면 의심 기록이 돼요.
+          화면이 꺼지면 위치 기록 중단 가능 · 2분 이상 끊기면 비정상 기록
         </Notice>
       )}
       {active && wake.supported && !wake.held && (
-        <p className="hint center">이 기기에서는 화면 꺼짐 방지를 켜지 못했어요. 화면을 켜 둔 채로 달려 주세요.</p>
+        <p className="hint center">화면 꺼짐 방지 미지원 · 화면을 켠 채 러닝 권장</p>
       )}
 
       {status === "error" && (
-        <Notice tone="bad" title="측정이 멈췄어요">
+        <Notice tone="bad" title="측정 중단">
           {gpsMessage(snapshot.error)}
         </Notice>
       )}
       {stopProblem && (
-        <Notice tone="warn" title="저장할 수 없는 러닝이에요">
-          GPS 좌표가 2개 미만이에요. 위치를 받은 뒤 조금 더 이동해야 기록이 만들어져요.
+        <Notice tone="warn" title="저장 불가">
+          이동 거리 부족
         </Notice>
       )}
       {startProblem && <p className="form-error">{startProblem}</p>}
@@ -154,8 +154,8 @@ export default function Run() {
 
         {status === "recovered" && (
           <div className="stack">
-            <Notice tone="warn" title="측정이 중간에 끊긴 러닝이에요">
-              이어서 달리거나, 지금까지의 기록을 저장할 수 있어요.
+            <Notice tone="warn" title="중단된 러닝">
+              이어 달리기 또는 저장 가능
             </Notice>
             <button type="button" className="btn btn--primary btn--xl" onClick={onStart}>
               이어 달리기
@@ -200,7 +200,7 @@ export default function Run() {
           <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="stop-title" onClick={(e) => e.stopPropagation()}>
             <h2 id="stop-title">러닝을 종료할까요?</h2>
             <p className="muted">
-              {km(snapshot.distanceMeters)}km · {duration(snapshot.elapsedSeconds)} 기록을 서버에 저장해요.
+              {km(snapshot.distanceMeters)}km · {duration(snapshot.elapsedSeconds)} 기록 저장
             </p>
             <div className="btn-row">
               <button type="button" className="btn btn--outline" onClick={() => setConfirming(false)}>

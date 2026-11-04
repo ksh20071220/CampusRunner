@@ -18,7 +18,7 @@ export default function RecordDetail({ id }) {
       {error && (
         <Notice
           tone="bad"
-          title="기록을 불러오지 못했어요"
+          title="기록 불러오기 실패"
           action={
             normalizeApiError(error).status !== 404 && (
               <button type="button" className="btn btn--ghost btn--small" onClick={reload}>

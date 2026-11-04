@@ -10,9 +10,9 @@ import { Notice, Spinner, SubHeader } from "../components/ui.jsx";
 
 // 탭별 문구. day는 최근 7일과 그 전 7일을 비교한다.
 const KINDS = {
-  day: { tab: "일간", title: "일간", caption: "최근 7일", current: "최근 7일", previous: "그 전 7일" },
-  week: { tab: "주간", title: "주간", caption: "최근 8주", current: "이번 주", previous: "지난주" },
-  month: { tab: "월간", title: "월간", caption: "최근 6개월", current: "이번 달", previous: "지난달" },
+  day: { tab: "일간", title: "일간", caption: "최근 7일", current: "최근 7일", previous: "그 전 7일", previousPace: "그 전 7일 페이스" },
+  week: { tab: "주간", title: "주간", caption: "최근 8주", current: "이번 주", previous: "지난주", previousPace: "지난주 페이스" },
+  month: { tab: "월간", title: "월간", caption: "최근 6개월", current: "이번 달", previous: "지난달", previousPace: "지난달 페이스" },
 };
 
 function barLabels(kind, s, i, last) {
@@ -24,9 +24,11 @@ function barLabels(kind, s, i, last) {
 export default function Records() {
   const { api, dataVersion } = useApp();
   const [kind, setKind] = useState("week");
-  const { data, error, loading, reload } = useAsync(() => fetchRecordOverview(api, kind), [api, dataVersion, kind]);
+  const { data: loaded, error, loading, reload } = useAsync(() => fetchRecordOverview(api, kind), [api, dataVersion, kind]);
+  // 탭을 바꾼 직후에는 이전 탭의 데이터가 남아 있다. 새 탭의 데이터가 올 때까지 보여주지 않는다.
+  const data = loaded?.kind === kind ? loaded : null;
+  const total = loaded?.total;
   useAuthErrorGuard(error);
-  const total = data?.total;
   const series = data?.series || [];
   const periods = data?.periods;
   const comparison = useMemo(() => (periods ? compareLast(periods) : null), [periods]);
@@ -35,11 +37,11 @@ export default function Records() {
   return (
     <div className="screen">
       <SubHeader title="내 러닝 기록" back="/home" backLabel="홈" />
-      {loading && !data && <Spinner />}
+      {loading && !loaded && <Spinner />}
       {error && (
         <Notice
           tone="bad"
-          title="기록을 불러오지 못했어요"
+          title="기록 불러오기 실패"
           action={
             <button type="button" className="btn btn--ghost btn--small" onClick={reload}>
               다시 시도
@@ -50,7 +52,7 @@ export default function Records() {
         </Notice>
       )}
 
-      {data && (
+      {loaded && (
         <>
           <p className="lead">
             누적 <b>{km(total.distance, 1)}km</b> · {total.count}회 · 평균 페이스 <b>{pace(total.pace)}</b>
@@ -67,6 +69,10 @@ export default function Records() {
                 ))}
               </div>
             </div>
+            {!data ? (
+              <div className="chart-loading"><Spinner /></div>
+            ) : (
+            <>
             <ChangeLine comparison={comparison} names={names} />
             <BarChart
               key={kind}
@@ -88,10 +94,12 @@ export default function Records() {
                 <dd>{pace(comparison.current.pace)}</dd>
               </div>
               <div>
-                <dt>{names.previous} 페이스</dt>
+                <dt>{names.previousPace}</dt>
                 <dd>{pace(comparison.previous?.pace ?? null)}</dd>
               </div>
             </dl>
+            </>
+            )}
           </section>
 
 

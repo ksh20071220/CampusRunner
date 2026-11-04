@@ -27,18 +27,34 @@ export function TopBar({ right = null }) {
   );
 }
 
-/** 뒤로 가기 + 제목 줄 */
+// 화면 곳곳에서 쓰는 선 아이콘 (24px 격자, 1.8px 선). 글자 대신 아이콘만 쓸 때는 버튼에 aria-label을 단다.
+const ICONS = {
+  back: "M15 5l-7 7 7 7",
+  logout: "M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9",
+  fit: "M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4",
+  locate: "M12 3v3M12 18v3M3 12h3M18 12h3M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z",
+  home: "M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8Z",
+};
+
+export function Icon({ name, size = 22 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true">
+      <path d={ICONS[name]} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** 홈 아이콘 + 가운데 제목. (back, backLabel은 기존 화면 호환용으로 남겨 둔다) */
 export function SubHeader({ title, back = "/home", backLabel, right = null }) {
   return (
     <header className="subheader">
-      <button type="button" className="back" onClick={() => navigate(back)}>
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M19 12H5m6-6-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span>{backLabel || "뒤로"}</span>
-      </button>
+      <div className="subheader__left">
+        <button type="button" className="icon-button" onClick={() => navigate("/home")} aria-label="홈으로">
+          <Icon name="home" size={22} />
+        </button>
+      </div>
       {title && <h1 className="subheader__title">{title}</h1>}
-      {right}
+      <div className="subheader__right">{right}</div>
     </header>
   );
 }

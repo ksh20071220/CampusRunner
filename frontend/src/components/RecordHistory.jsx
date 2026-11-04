@@ -49,12 +49,12 @@ export default function RecordHistory() {
   return <section>
     <h2 className="section-title">과거 기록</h2>
     {loading && !runs.length && <Spinner />}
-    {error && <Notice tone="bad" title="기록 목록을 불러오지 못했어요" action={
+    {error && <Notice tone="bad" title="기록 목록 불러오기 실패" action={
       <button type="button" className="btn btn--ghost btn--small" onClick={() => load()}>다시 시도</button>
     }>{apiMessage(error)}</Notice>}
-    {!loading && !error && !runs.length && <Empty title="아직 기록이 없어요" action={
+    {!loading && !error && !runs.length && <Empty title="기록 없음" action={
       <button type="button" className="btn btn--primary" onClick={() => navigate("/run")}>첫 러닝 시작하기</button>
-    }>달리고 저장하면 여기에 쌓여요.</Empty>}
+    }>러닝 저장 시 표시</Empty>}
     <ul className="run-list">{runs.slice(0, visible).map(run => <li key={run.id}>
       <a href={`#/records/${run.id}`} className="run-item">
         <div className="run-item__main">

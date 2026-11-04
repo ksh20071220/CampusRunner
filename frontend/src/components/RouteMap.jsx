@@ -1,3 +1,4 @@
+import { Icon } from "./ui.jsx";
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -16,7 +17,7 @@ const toLatLng = (p) => [p.latitude, p.longitude];
  * @param live    true면 마지막 좌표를 따라간다 (러닝 중). 사용자가 지도를 움직이면 따라가기를 멈춘다.
  * @param emptyText 좌표가 없을 때 안내 문구
  */
-export default function RouteMap({ points = [], live = false, emptyText = "경로가 없어요", className = "" }) {
+export default function RouteMap({ points = [], live = false, emptyText = "경로 없음", className = "" }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const layersRef = useRef(null);
@@ -105,12 +106,18 @@ export default function RouteMap({ points = [], live = false, emptyText = "경�
       {points.length === 0 && <div className="route-map__empty">{emptyText}</div>}
       {points.length > 0 && (
         <div className="route-map__controls">
-          <button type="button" className="map-chip" onClick={showAll}>
-            전체 경로
+          <button type="button" className="map-icon" onClick={showAll} aria-label="전체 경로 보기">
+            <Icon name="fit" />
           </button>
-          {live && !following && (
-            <button type="button" className="map-chip map-chip--dark" onClick={followMe}>
-              내 위치
+          {live && (
+            <button
+              type="button"
+              className={`map-icon ${following ? "map-icon--active" : ""}`}
+              onClick={followMe}
+              aria-label="내 위치 따라가기"
+              aria-pressed={following}
+            >
+              <Icon name="locate" />
             </button>
           )}
         </div>

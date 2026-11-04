@@ -26,35 +26,35 @@ export function UniversityNote({ run, verified }) {
   if (!run.accepted) {
     return (
       <div className="note note--bad">
-        <strong>대학 점수에서 제외돼요</strong>
+        <strong>대학 점수 제외</strong>
         <ul>
           {(run.reasons || []).map((code) => (
             <li key={code}>{reasonText(code)}</li>
           ))}
         </ul>
-        <p>개인 기록에는 남지만 누적 거리와 학교 점수에는 들어가지 않아요.</p>
+        <p>개인 기록에만 저장</p>
       </div>
     );
   }
   if (run.counts_for_university) {
     return (
       <div className="note note--ok">
-        <strong>우리 학교 점수에 반영됐어요</strong>
-        <p>이 기간 1인당 평균 거리와 순위에 들어가요.</p>
+        <strong>학교 점수 반영 완료</strong>
+        <p>1인당 평균 거리·순위에 포함</p>
       </div>
     );
   }
   if (run.distance_m === 0) {
     return (
       <div className="note">
-        <strong>이동 거리가 0m라 점수에는 반영되지 않아요</strong>
+        <strong>이동 거리 0m · 점수 미반영</strong>
       </div>
     );
   }
   return (
     <div className="note">
-      <strong>{verified ? "대학 점수 반영 대기" : "학교 인증 후 대학 점수에 반영돼요"}</strong>
-      <p>정상 기록이라 개인 기록에는 저장됐어요. 학생증 인증이 승인되면 이 기록도 학교 점수에 들어가요.</p>
+      <strong>{verified ? "대학 점수 반영 대기" : "학교 인증 후 점수 반영"}</strong>
+      <p>개인 기록 저장 완료</p>
     </div>
   );
 }

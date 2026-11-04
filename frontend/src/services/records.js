@@ -117,5 +117,5 @@ export async function fetchRecordOverview(api, kind, now) {
   const [total, all] = await Promise.all([api.myStats(0, MAX_SERVER_TIME), fetchBuckets(api, buckets, kind)]);
   const series = all.slice(-show);
   const periods = kind === "day" ? [combineBuckets(all.slice(0, show)), combineBuckets(series)] : series;
-  return { total: statsSummary(total), series, periods };
+  return { kind, total: statsSummary(total), series, periods };
 }

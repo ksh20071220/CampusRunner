@@ -36,7 +36,7 @@ export default function Rankings() {
   return (
     <div className="screen">
       <SubHeader title="대학 챌린지" back="/home" backLabel="홈" />
-      <p className="lead">1인당 평균 거리로 순위를 매겨요. 학교 규모와 상관없이 공정하게.</p>
+      <p className="lead">1인당 평균 거리 기준 순위</p>
 
       <div className="segmented" role="tablist">
         {PERIODS.map((p) => (
@@ -59,7 +59,7 @@ export default function Rankings() {
       {error && (
         <Notice
           tone="bad"
-          title="순위를 불러오지 못했어요"
+          title="순위 불러오기 실패"
           action={
             <button type="button" className="btn btn--ghost btn--small" onClick={reload}>
               다시 시도
@@ -103,7 +103,7 @@ export default function Rankings() {
           </section>
 
           {active.length === 0 ? (
-            <Empty title={`${period.label} 참가한 학교가 아직 없어요`}>먼저 달려서 우리 학교를 1위로 만들어 보세요.</Empty>
+            <Empty title={`${period.label} 참가 학교 없음`} />
           ) : (
             <ol className="rank-list">
               {active.map((row) => (
@@ -129,7 +129,7 @@ export default function Rankings() {
             </button>
           )}
           {data.rows.length > active.length && (
-            <p className="hint center">참가 기록이 없는 학교는 목록에서 숨겼어요.</p>
+            <p className="hint center">참가 기록 없는 학교 제외</p>
           )}
         </>
       )}

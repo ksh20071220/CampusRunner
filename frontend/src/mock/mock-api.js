@@ -263,8 +263,10 @@ export class MockApi {
     if (!size) throw apiError(400, "invalid_bucket");
     if (!(to > from) || (to - from) % size !== 0 || (to - from) / size > 366) throw apiError(400, "invalid_period");
     const rows = [];
-    for (let start = from; start < to; start += size) rows.push({ from: start, to: start + size, ...(await this.myStats(start, start + size)) });
-    return rows;
+    const stats = [];
+    for (let start = from; start < to; start += size) stats.push(this.myStats(start, start + size));
+    const results = await Promise.all(stats);
+    return results.map((row, i) => ({ from: from + i * size, to: from + (i + 1) * size, ...row }));
   }
 
   _rankings(from, to) {

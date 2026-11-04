@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useApp } from "../state/AppContext.jsx";
 import { apiMessage, normalizeApiError } from "../lib/messages.js";
-import { ModeBadge, Notice, TopBar } from "../components/ui.jsx";
+import { BrandMark, ModeBadge, Notice } from "../components/ui.jsx";
 
 // 로그인·회원가입. (회원 기능의 세부 화면은 4번 담당 범위이며 여기서는 앱 진입에 필요한 최소만 둔다.)
 
@@ -20,7 +20,7 @@ export default function Login() {
     if (busy) return;
     setError("");
     if (mode === "register" && !university) {
-      setError("소속 대학을 선택해 주세요.");
+      setError("소속 대학 선택");
       return;
     }
     setBusy(true);
@@ -37,22 +37,21 @@ export default function Login() {
 
   return (
     <div className="screen screen--login">
-      <TopBar right={<ModeBadge />} />
-      <section className="hero hero--login">
-        <div className="kicker">
-          <span className="kicker__dot" /> YOUR CAMPUS, YOUR TEAM
-        </div>
-        <h1>
-          혼자 달린 거리가
-          <br />
-          우리 학교 점수로.
-        </h1>
-        <p className="muted">개인 러닝 기록이 모여 대학의 점수가 돼요.</p>
-      </section>
+      <div className="login-mode">
+        <ModeBadge />
+      </div>
+      {/* 로고를 화면 가운데보다 조금 위에 크게 두고, 그 아래에 로그인 칸을 둔다 */}
+      <h1 className="login-brand" aria-label="CampusRunner">
+        <BrandMark />
+        <span className="login-brand__name" aria-hidden="true">
+          campus<span className="brand-light">runner</span>
+          <span className="brand-dot">.</span>
+        </span>
+      </h1>
 
       {pending && (
-        <Notice tone="warn" title="아직 저장하지 않은 러닝이 있어요">
-          로그인하면 바로 이어서 저장해요.
+        <Notice tone="warn" title="저장되지 않은 러닝 1건">
+          로그인 후 자동 저장
         </Notice>
       )}
 
@@ -61,7 +60,7 @@ export default function Login() {
           로그인
         </button>
         <button type="button" role="tab" aria-selected={mode === "register"} onClick={() => setMode("register")}>
-          처음이에요
+          회원가입
         </button>
       </div>
 
@@ -87,9 +86,9 @@ export default function Login() {
         />
         {mode === "register" && (
           <>
-            <p className="hint">8자 이상. 비밀번호 찾기 기능이 아직 없으니 꼭 기억해 주세요.</p>
+            <p className="hint">8자 이상 · 비밀번호 찾기 미지원</p>
             <UniversityPicker value={university} onChange={setUniversity} />
-            <p className="hint">학교를 고른 뒤 학생증 인증이 승인돼야 내 기록이 대학 점수에 반영돼요.</p>
+            <p className="hint">학생증 인증 승인 후 대학 점수 반영</p>
           </>
         )}
         {error && <p className="form-error" role="alert">{error}</p>}
@@ -122,7 +121,7 @@ function UniversityPicker({ value, onChange }) {
         .then((list) => {
           if (!active) return;
           setResults(list.slice(0, 8));
-          setError(list.length ? "" : "검색 결과가 없어요.");
+          setError(list.length ? "" : "검색 결과 없음");
         })
         .catch((raw) => active && setError(apiMessage(normalizeApiError(raw))));
     }, 250);
