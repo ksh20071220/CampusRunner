@@ -257,6 +257,16 @@ export class MockApi {
     };
   }
 
+  // 실제 C 서버의 /api/me/stats/series와 같은 규칙: [from,to)를 일/주 단위로 나누고 빈 구간도 포함한다.
+  async myStatsSeries(from, to, bucket) {
+    const size = bucket === "day" ? 86400 : bucket === "week" ? 604800 : 0;
+    if (!size) throw apiError(400, "invalid_bucket");
+    if (!(to > from) || (to - from) % size !== 0 || (to - from) / size > 366) throw apiError(400, "invalid_period");
+    const rows = [];
+    for (let start = from; start < to; start += size) rows.push({ from: start, to: start + size, ...(await this.myStats(start, start + size)) });
+    return rows;
+  }
+
   _rankings(from, to) {
     const rows = UNIVERSITIES.map((u) => {
       const runs = this.db.runs.filter((r) => {

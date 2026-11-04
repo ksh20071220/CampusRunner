@@ -65,3 +65,8 @@ export function monthLabel(unixSeconds) {
     new Date(unixSeconds * 1000),
   );
 }
+
+/** Unix 초 -> 한국 날짜의 요일 한 글자 ("월") */
+export function weekdayLabel(unixSeconds) {
+  return new Intl.DateTimeFormat("ko-KR", { timeZone: SEOUL, weekday: "narrow" }).format(new Date(unixSeconds * 1000));
+}
