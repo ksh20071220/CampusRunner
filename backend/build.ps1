@@ -49,6 +49,10 @@ try {
                 & node --test ..\frontend\tests\run-saver.test.mjs
                 if ($LASTEXITCODE -ne 0) { throw 'Account-scoped run storage tests failed.' }
             }
+            if (Test-Path -LiteralPath '..\frontend\tests\university-verification.test.mjs') {
+                & node --test ..\frontend\tests\university-verification.test.mjs
+                if ($LASTEXITCODE -ne 0) { throw 'Member university verification tests failed.' }
+            }
             & node --test tests\test_api_client.cjs
             if ($LASTEXITCODE -ne 0) { throw 'Member API client tests failed.' }
             & node --test tests\test_verification_admin.cjs

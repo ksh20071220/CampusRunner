@@ -9,6 +9,7 @@ import Run from "./screens/Run.jsx";
 import Result from "./screens/Result.jsx";
 import Records from "./screens/Records.jsx";
 import RecordDetail from "./screens/RecordDetail.jsx";
+import Verification from "./screens/Verification.jsx";
 import Rankings from "./screens/Rankings.jsx";
 
 export default function App() {
@@ -60,6 +61,8 @@ function Screen({ route }) {
       return <Records />;
     case "record":
       return <RecordDetail id={route.params.id} />;
+    case "verification":
+      return <Verification />;
     case "rankings":
       return <Rankings />;
     default:

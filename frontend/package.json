@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:tracker": "node --test tests/run-tracker.test.cjs",
-    "test": "node --test tests/run-tracker.test.cjs tests/run-saver.test.mjs"
+    "test": "node --test tests/run-tracker.test.cjs tests/run-saver.test.mjs tests/university-verification.test.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

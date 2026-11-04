@@ -160,3 +160,20 @@ test('server retry-after is exposed on the API error', async t => {
     headers: { get: () => '3600' }, json: async () => ({ error: 'run_daily_quota' }) }));
   await assert.rejects(api.submitRun('key', []), { message: 'run_daily_quota', retryAfterSeconds: 3600 });
 });
+
+
+test('verification methods pin the member token and upload the binary with explicit consent',async t=>{
+  const {api,requests}=await setup(t,200,{id:1}); api.token='other-account';
+  const options={token:'original-account'};
+  await api.universityVerifications(21,20,options);
+  await api.universityVerification(1,options);
+  await api.cancelUniversityVerification(1,options);
+  const file=new Blob([new Uint8Array([137,80,78,71])],{type:'image/png'});
+  await api.submitUniversityProof(file,'student_card',{...options,consent:true});
+  assert.equal(requests.length,4);
+  for(const request of requests)assert.equal(request.options.headers.Authorization,'Bearer original-account');
+  assert.equal(requests[0].url,'https://api.example.test/api/me/university-verifications?limit=21&offset=20');
+  assert.equal(requests[3].options.body,file);
+  assert.equal(requests[3].options.headers['X-Verification-Consent'],'1');
+  assert.equal(api.token,'other-account');
+});

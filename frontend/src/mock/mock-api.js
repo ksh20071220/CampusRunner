@@ -1,3 +1,4 @@
+import { DOCUMENT_TYPES, inspectProof } from "../services/verification-files.js";
 import { pointAlongLoop } from "./route-shape.js";
 
 /**
@@ -76,6 +77,8 @@ export class MockApi {
     this.failSubmissions = failSubmissions;
     if (reset) localStorage.removeItem(DB_KEY);
     this.db = this._load() || this._seed();
+    this.db.verifications ||= [];
+    this.db.nextVerificationId ||= 1;
   }
 
   // ---- 저장소 ----
@@ -204,7 +207,61 @@ export class MockApi {
 
   async me({ token = this.token } = {}) {
     await wait(120);
-    return this._profile(this._me(token));
+    const member = this._me(token); this._expireProofs();
+    return this._profile(member);
+  }
+
+  _expireProofs() {
+    const now = Math.floor(Date.now() / 1000);
+    for (const row of this.db.verifications) {
+      if (row.status === "pending" && row.expires_at <= now) {
+        row.status = "expired"; row.reason = "review_window_expired"; row.image_available = false;
+        const member = this.db.members.find(item => item.id === row.member_id);
+        if (member) member.verification_status = "expired";
+        this._persist();
+      }
+    }
+  }
+
+  async universityVerifications(limit = 20, offset = 0, { token = this.token } = {}) {
+    await wait(120); const member = this._me(token); this._expireProofs();
+    return this.db.verifications.filter(row => row.member_id === member.id)
+      .sort((a,b) => b.id-a.id).slice(offset,offset+limit).map(row => ({...row}));
+  }
+
+  async universityVerification(id, { token = this.token } = {}) {
+    await wait(120); const member = this._me(token); this._expireProofs();
+    const row = this.db.verifications.find(item => item.id === Number(id) && item.member_id === member.id);
+    if (!row) throw apiError(404,"not_found");
+    return {...row};
+  }
+
+  async submitUniversityProof(file, documentType, { consent = false, token = this.token } = {}) {
+    if (!consent) throw apiError(400,"verification_consent_required");
+    if (!DOCUMENT_TYPES.some(type => type.value === documentType)) throw apiError(400,"invalid_document_type");
+    await inspectProof(file); await wait(350);
+    const member = this._me(token); this._expireProofs();
+    if (member.verification_status === "approved") throw apiError(409,"already_verified");
+    const rows = this.db.verifications.filter(row => row.member_id === member.id);
+    if (rows.some(row => row.status === "pending")) throw apiError(409,"verification_already_pending");
+    const now = Math.floor(Date.now()/1000);
+    if (rows.filter(row => row.submitted_at > now-86400).length >= 5) throw apiError(429,"verification_upload_limit");
+    // Mock mode persists metadata only: never filenames, image bytes or data URLs.
+    const row = { id:this.db.nextVerificationId++, member_id:member.id, university_id:member.university_id,
+      university_name:this._profile(member).university_name, nickname:member.nickname,
+      document_type:documentType, status:"pending", submitted_at:now, expires_at:now+604800,
+      reviewed_at:null, reason:"", image_available:false };
+    this.db.verifications.push(row); member.verification_status="pending"; this._persist();
+    return {...row};
+  }
+
+  async cancelUniversityVerification(id, { token = this.token } = {}) {
+    await wait(250); const member = this._me(token); this._expireProofs();
+    const row = this.db.verifications.find(item => item.id === Number(id) && item.member_id === member.id);
+    if (!row) throw apiError(404,"not_found");
+    if (row.status !== "pending") throw apiError(409,"verification_not_pending");
+    Object.assign(row,{status:"cancelled",reason:"withdrawn_by_member",reviewed_at:Math.floor(Date.now()/1000),image_available:false});
+    member.verification_status="cancelled"; this._persist(); return {...row};
   }
 
   async submitRun(key, points, { token = this.token } = {}) {

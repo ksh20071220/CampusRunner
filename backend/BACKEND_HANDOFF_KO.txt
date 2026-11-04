@@ -488,3 +488,17 @@ GPS 삭제:
   markSaved()는 서버 저장 확인이므로 실패해도 원격 저장 사실을 취소하지 않으며, 로컬 정리 실패를 안내한다.
 
 이번에는 학교 인증/계정 설정의 미구현 회원 화면을 새로 만들지 않았다.
+
+
+[2026-11-04 학교 인증 프런트 연결]
+  회원 진입 주소는 #/verification. 홈 인증 배지와 인증 안내 카드에서 이동한다.
+  screens/Verification.jsx: 상태별 안내, 사진 선택/미리보기/동의, 취소 확인, 신청 이력.
+  services/verification-files.js: JPG/PNG MIME·시그니처·크기·치수 검사, 서류 종류 상수.
+  services/university-verification.js: token에 고정된 조회/제출/취소, 중복·늦은 응답 차단,
+    결과가 불확실한 업로드/취소는 서버 재조회로 확인하며 확인 실패 시 재제출을 막는다.
+  AppContext.syncProfile은 여전히 같은 회원/토큰인 응답만 홈 프로필·집계 갱신에 반영한다.
+  검토 중 화면이 보일 때 15초 간격으로 조회한다. 서버는 현재 사진 API와 상태 전이를 그대로 쓴다.
+  C 서버 소스·DB 스키마·수동 승인 정책은 이번 프런트 구현에서 바꾸지 않았다.
+  프런트 이미지 미리보기는 메모리 Blob URL이며 선택 변경·화면 종료 시 해제한다.
+  MockApi는 사진·파일명·data URL 없이 신청 메타데이터만 저장한다. 자동 승인 메서드는 없다.
+  Node 회귀 테스트: frontend/tests/university-verification.test.mjs.

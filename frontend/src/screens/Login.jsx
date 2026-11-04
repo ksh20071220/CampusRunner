@@ -89,7 +89,7 @@ export default function Login() {
           <>
             <p className="hint">8자 이상. 비밀번호 찾기 기능이 아직 없으니 꼭 기억해 주세요.</p>
             <UniversityPicker value={university} onChange={setUniversity} />
-            <p className="hint">학교를 고른 뒤 학생증 인증이 승인돼야 내 기록이 대학 점수에 반영돼요.</p>
+            <p className="hint">가입 후 홈의 학교 인증에서 학생증·합격증을 제출해 주세요. 승인돼야 내 기록이 대학 점수에 반영돼요.</p>
           </>
         )}
         {error && <p className="form-error" role="alert">{error}</p>}

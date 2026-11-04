@@ -1,6 +1,20 @@
 // 서버/GPS 오류 코드를 사용자에게 보여줄 한국어 문장으로 바꾼다.
 
 const API_MESSAGES = {
+  proof_file_required: "제출할 사진을 선택해 주세요.",
+  proof_read_failed: "사진 파일을 읽지 못했어요. 파일을 다시 선택해 주세요.",
+  proof_dimensions_exceeded: "사진은 가로·세로 각각 12,000px 이하, 전체 4천만 픽셀 이하로 줄여 주세요.",
+  image_too_large: "사진은 최대 5MiB까지 제출할 수 있어요. 크기를 줄인 뒤 다시 선택해 주세요.",
+  jpeg_or_png_required: "JPG 또는 PNG 사진을 선택해 주세요. HEIC·PDF는 변환 후 제출해 주세요.",
+  jpeg_or_png_up_to_5mb_required: "5MiB 이하의 JPG·PNG 사진을 선택해 주세요.",
+  invalid_image: "사진을 열 수 없어요. 정상적인 JPG·PNG 파일을 다시 선택해 주세요.",
+  incomplete_image: "사진이 끝까지 전송되지 않았어요. 접수 상태를 확인하고 다시 시도해 주세요.",
+  invalid_document_type: "서류 종류를 다시 선택해 주세요.",
+  verification_consent_required: "사진 제출과 운영진 열람에 동의해 주세요.",
+  verification_already_pending: "이미 검토 중인 신청이 있어요. 상태 확인 후 기존 신청을 확인해 주세요.",
+  already_verified: "이미 학교 인증이 완료됐어요. 최신 상태를 확인해 주세요.",
+  verification_not_pending: "이미 처리되었거나 만료된 신청이에요. 최신 상태를 확인해 주세요.",
+  verification_upload_limit: "최근 24시간 동안 제출할 수 있는 5회 한도에 도달했어요. 시간이 지난 뒤 다시 시도해 주세요.",
   request_timeout: "서버 응답이 늦어 요청을 중단했어요. 연결을 확인하고 다시 시도해 주세요.",
   request_cancelled: "요청을 취소했어요.",
   session_changed: "로그인 계정이 변경되어 이전 요청의 화면 반영을 중단했어요.",

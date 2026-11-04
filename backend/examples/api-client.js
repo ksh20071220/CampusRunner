@@ -117,22 +117,22 @@ export class CampusRunnerApi {
   }
   myRun(id) { return this.request(`/api/me/runs/${encodeURIComponent(id)}`); }
   myStats(from, to) { return this.request(`/api/me/stats?${new URLSearchParams({ from, to })}`); }
-  universityVerifications(limit = 20, offset = 0) {
-    return this.request(`/api/me/university-verifications?${new URLSearchParams({ limit, offset })}`);
+  universityVerifications(limit = 20, offset = 0, { token = this.token, signal } = {}) {
+    return this.request(`/api/me/university-verifications?${new URLSearchParams({ limit, offset })}`, { token, signal });
   }
-  universityVerification(id) {
-    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}`);
+  universityVerification(id, { token = this.token, signal } = {}) {
+    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}`, { token, signal });
   }
-  cancelUniversityVerification(id) {
-    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: {} });
+  cancelUniversityVerification(id, { token = this.token, signal } = {}) {
+    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: {}, token, signal });
   }
   /** Show the consent/masking notice to the user before passing consent:true. */
-  async submitUniversityProof(file, documentType, { consent = false, signal } = {}) {
+  async submitUniversityProof(file, documentType, { consent = false, signal, token = this.token } = {}) {
     if (!consent) throw new Error('verification_consent_required');
     if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) throw new Error('jpeg_or_png_up_to_5mb_required');
     return this._fetchJson('/api/me/university-verifications', {
       method: 'POST', credentials: 'omit', body: file,
-      headers: { Authorization: `Bearer ${this.token}`, 'Content-Type': file.type,
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': file.type,
         'X-Document-Type': documentType, 'X-Verification-Consent': '1' },
     }, { signal, timeoutMs: this.uploadTimeoutMs });
   }

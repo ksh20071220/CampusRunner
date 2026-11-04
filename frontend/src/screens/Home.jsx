@@ -60,9 +60,17 @@ export default function Home() {
           <strong>{user.nickname}</strong>
           <span>{user.university_name}</span>
         </div>
-        <Badge tone={verification.tone}>{verification.text}</Badge>
+        <button type="button" className="profile__verification" onClick={() => navigate("/verification")} aria-label={`학교 인증 내역: ${verification.text}`}>
+          <Badge tone={verification.tone}>{verification.text}</Badge><span aria-hidden="true">›</span>
+        </button>
       </section>
 
+      {!verified && <button type="button" className="card verification-entry" onClick={() => navigate("/verification")}>
+        <span className="verification-entry__icon" aria-hidden="true">✓</span>
+        <span><strong>{user.verification_status === "pending" ? "학교 인증 검토 현황" : user.verification_status === "rejected" ? "인증 서류 보완하기" : "우리 학교 러너로 인증하기"}</strong>
+          <small>{user.verification_status === "pending" ? "제출한 서류의 심사 상태를 확인해요" : "사진 인증을 마치고 학교 챌린지에 참여해요"}</small></span>
+        <span className="chevron" aria-hidden="true">›</span>
+      </button>}
       <StorageNotice state={saverState} />
       <RecoveryBanner app={app} snapshot={snapshot} saverState={saverState} />
 
