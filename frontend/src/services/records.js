@@ -66,11 +66,56 @@ function statsSummary(stats) {
     flagged: stats.flagged_runs, pace: stats.pace_seconds_per_km };
 }
 
+/** 여러 구간 통계를 하나로 합친다. 페이스는 합친 시간 / 합친 거리 (구간 페이스의 평균 아님). */
+export function combineBuckets(buckets) {
+  const distance = buckets.reduce((sum, b) => sum + b.distance, 0);
+  const seconds = buckets.reduce((sum, b) => sum + b.seconds, 0);
+  return {
+    from: buckets[0]?.from,
+    to: buckets[buckets.length - 1]?.to,
+    distance,
+    seconds,
+    count: buckets.reduce((sum, b) => sum + b.count, 0),
+    flagged: buckets.reduce((sum, b) => sum + b.flagged, 0),
+    pace: paceFrom(distance, seconds),
+  };
+}
+
+// 화면별 기간 설정. day는 최근 7일을 그리고, 비교용으로 그 전 7일까지 14일을 받는다.
+export const OVERVIEW = {
+  day: { fetch: 14, show: 7 },
+  week: { fetch: 8, show: 8 },
+  month: { fetch: 6, show: 6 },
+};
+
+/**
+ * 구간별 통계. 일·주는 서버 /api/me/stats/series 한 번으로 받는다 (C 서버가 GROUP BY로 집계).
+ * 월은 달마다 길이가 달라 /api/me/stats를 달마다 부른다.
+ * series API가 없는 예전 서버(404)면 구간마다 /api/me/stats를 부르는 방식으로 대신한다.
+ */
+export async function fetchBuckets(api, buckets, kind) {
+  if (kind !== "month" && typeof api.myStatsSeries === "function") {
+    try {
+      const rows = await api.myStatsSeries(buckets[0].from, buckets[buckets.length - 1].to, kind);
+      if (rows.length !== buckets.length) throw Object.assign(new Error("series_length_mismatch"), { status: 500 });
+      return rows.map((row, i) => ({ ...buckets[i], ...statsSummary(row) }));
+    } catch (error) {
+      if (error?.status !== 404) throw error;
+    }
+  }
+  const rows = await Promise.all(buckets.map(({ from, to }) => api.myStats(from, Math.min(to, MAX_SERVER_TIME))));
+  return rows.map((row, i) => ({ ...buckets[i], ...statsSummary(row) }));
+}
+
+/**
+ * 기록 화면 데이터.
+ * total: 전체 누적, series: 그래프 막대, periods: [직전 기간, 이번 기간] 비교용 (compareLast에 넘긴다).
+ */
 export async function fetchRecordOverview(api, kind, now) {
-  const buckets = recentBuckets(kind, kind === "week" ? 8 : 6, now);
-  const [total, ...periods] = await Promise.all([
-    api.myStats(0, MAX_SERVER_TIME),
-    ...buckets.map(({ from, to }) => api.myStats(from, Math.min(to, MAX_SERVER_TIME))),
-  ]);
-  return { total: statsSummary(total), series: periods.map((stats, i) => ({ ...buckets[i], ...statsSummary(stats) })) };
+  const { fetch, show } = OVERVIEW[kind];
+  const buckets = recentBuckets(kind, fetch, now);
+  const [total, all] = await Promise.all([api.myStats(0, MAX_SERVER_TIME), fetchBuckets(api, buckets, kind)]);
+  const series = all.slice(-show);
+  const periods = kind === "day" ? [combineBuckets(all.slice(0, show)), combineBuckets(series)] : series;
+  return { total: statsSummary(total), series, periods };
 }

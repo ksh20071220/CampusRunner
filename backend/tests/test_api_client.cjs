@@ -30,6 +30,13 @@ test('late logout does not clear a newly authenticated account token', async t =
   assert.equal(api.token, 'new-account');
 });
 
+test('stats series requests one bucketed period with the member token', async t => {
+  const { api, requests } = await setup(t, 200, []);
+  await api.myStatsSeries(1793545200, 1794150000, 'day');
+  assert.equal(requests[0].url, 'https://api.example.test/api/me/stats/series?from=1793545200&to=1794150000&bucket=day');
+  assert.equal(requests[0].options.headers.Authorization, 'Bearer previous-session');
+});
+
 async function setup(t, status, payload) {
   const { CampusRunnerApi } = await clientModule;
   const api = new CampusRunnerApi('https://api.example.test/');

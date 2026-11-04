@@ -117,6 +117,10 @@ export class CampusRunnerApi {
   }
   myRun(id) { return this.request(`/api/me/runs/${encodeURIComponent(id)}`); }
   myStats(from, to) { return this.request(`/api/me/stats?${new URLSearchParams({ from, to })}`); }
+  /** bucket: 'day' | 'week'. [from,to) must be whole buckets (max 366); returns one entry per bucket. */
+  myStatsSeries(from, to, bucket) {
+    return this.request(`/api/me/stats/series?${new URLSearchParams({ from, to, bucket })}`);
+  }
   universityVerifications(limit = 20, offset = 0) {
     return this.request(`/api/me/university-verifications?${new URLSearchParams({ limit, offset })}`);
   }
