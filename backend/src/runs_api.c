@@ -237,31 +237,93 @@ static int own_runs(CrRequest *r) {
     if (step != SQLITE_DONE) { cJSON_Delete(array); return cr_error(r, 500, "database_error"); }
     return cr_reply(r, 200, array);
 }
+/* Adds the period totals shared by /api/me/stats and /api/me/stats/series.
+ * Only accepted runs (flags=0) count toward distance and time; the pace is
+ * total time / total distance, so it is null when the distance is zero. */
+static void add_period_totals(cJSON *obj, int64_t distance_mm, int64_t accepted_runs,
+                              int64_t flagged_runs, int64_t seconds) {
+    double distance_m = (double)distance_mm/1000.0;
+    cJSON_AddNumberToObject(obj, "distance_m", distance_m);
+    cJSON_AddNumberToObject(obj, "accepted_runs", (double)accepted_runs);
+    cJSON_AddNumberToObject(obj, "flagged_runs", (double)flagged_runs);
+    cJSON_AddNumberToObject(obj, "duration_seconds", (double)seconds);
+    if (distance_m > 0) cJSON_AddNumberToObject(obj, "pace_seconds_per_km", (double)seconds*1000.0/distance_m);
+    else cJSON_AddNullToObject(obj, "pace_seconds_per_km");
+}
+#define PERIOD_TOTALS_SQL "coalesce(sum(CASE WHEN flags=0 THEN distance_mm ELSE 0 END),0)," \
+    "coalesce(sum(CASE WHEN flags=0 THEN 1 ELSE 0 END),0),coalesce(sum(CASE WHEN flags<>0 THEN 1 ELSE 0 END),0)," \
+    "coalesce(sum(CASE WHEN flags=0 AND distance_mm>0 THEN ended_at-started_at ELSE 0 END),0)"
 static int own_stats(CrRequest *r) {
     int64_t from, to;
     int step;
     sqlite3_stmt *stmt;
     cJSON *obj;
     if (!cr_query_range(r, &from, &to)) return cr_error(r, 400, "invalid_period");
-    stmt = cr_db_prepare(r->db, "SELECT coalesce(sum(CASE WHEN flags=0 THEN distance_mm ELSE 0 END),0),"
-        "sum(CASE WHEN flags=0 THEN 1 ELSE 0 END),sum(CASE WHEN flags<>0 THEN 1 ELSE 0 END),"
-        "coalesce(sum(CASE WHEN flags=0 AND distance_mm>0 THEN ended_at-started_at ELSE 0 END),0) "
-        "FROM runs WHERE member_id=? AND started_at>=? AND started_at<?");
+    stmt = cr_db_prepare(r->db, "SELECT " PERIOD_TOTALS_SQL " FROM runs WHERE member_id=? AND started_at>=? AND started_at<?");
     if (!stmt) return cr_error(r, 500, "database_error");
     sqlite3_bind_int64(stmt, 1, r->member_id); sqlite3_bind_int64(stmt, 2, from); sqlite3_bind_int64(stmt, 3, to);
     step = sqlite3_step(stmt);
     if (step != SQLITE_ROW) { sqlite3_finalize(stmt); return cr_error(r, 500, "database_error"); }
     obj = cJSON_CreateObject();
-    cJSON_AddNumberToObject(obj, "distance_m", (double)sqlite3_column_int64(stmt, 0)/1000.0);
-    cJSON_AddNumberToObject(obj, "accepted_runs", (double)sqlite3_column_int64(stmt, 1));
-    cJSON_AddNumberToObject(obj, "flagged_runs", (double)sqlite3_column_int64(stmt, 2));
-    {
-        double seconds=(double)sqlite3_column_int64(stmt,3), distance=(double)sqlite3_column_int64(stmt,0)/1000.0;
-        cJSON_AddNumberToObject(obj,"duration_seconds",seconds);
-        if (distance>0) cJSON_AddNumberToObject(obj,"pace_seconds_per_km",seconds*1000/distance);
-        else cJSON_AddNullToObject(obj,"pace_seconds_per_km");
-    }
+    add_period_totals(obj, sqlite3_column_int64(stmt, 0), sqlite3_column_int64(stmt, 1),
+                      sqlite3_column_int64(stmt, 2), sqlite3_column_int64(stmt, 3));
     sqlite3_finalize(stmt); return cr_reply(r, 200, obj);
+}
+
+/* One graph bucket: {from,to,distance_m,accepted_runs,flagged_runs,duration_seconds,pace_seconds_per_km}. */
+static void add_series_bucket(cJSON *array, int64_t from, int64_t to, int64_t distance_mm,
+                              int64_t accepted_runs, int64_t flagged_runs, int64_t seconds) {
+    cJSON *item = cJSON_CreateObject();
+    cJSON_AddNumberToObject(item, "from", (double)from);
+    cJSON_AddNumberToObject(item, "to", (double)to);
+    add_period_totals(item, distance_mm, accepted_runs, flagged_runs, seconds);
+    cJSON_AddItemToArray(array, item);
+}
+
+/* GET /api/me/stats/series?from&to&bucket=day|week
+ * Splits [from,to) into equal day or week buckets that start at `from` and
+ * returns the same totals as /api/me/stats for every bucket, in order and
+ * including empty buckets, in one request. The client chooses `from`
+ * (for example Monday 00:00 in Korea), so the server needs no time zone rules.
+ * A run belongs to the bucket that contains its start time. */
+static int own_stats_series(CrRequest *r) {
+    int64_t from, to, bucket_seconds, bucket_count, next = 0;
+    char bucket[8];
+    int step;
+    const char *query = r->info->query_string ? r->info->query_string : "";
+    sqlite3_stmt *stmt;
+    cJSON *array;
+    if (!cr_query_range(r, &from, &to)) return cr_error(r, 400, "invalid_period");
+    if (mg_get_var(query, strlen(query), "bucket", bucket, sizeof(bucket)) < 1) return cr_error(r, 400, "invalid_bucket");
+    if (!strcmp(bucket, "day")) bucket_seconds = 86400;
+    else if (!strcmp(bucket, "week")) bucket_seconds = 7*86400;
+    else return cr_error(r, 400, "invalid_bucket");
+    /* The period must be whole buckets, at most CR_SERIES_MAX_BUCKETS of them. */
+    if ((to-from) % bucket_seconds != 0) return cr_error(r, 400, "invalid_period");
+    bucket_count = (to-from) / bucket_seconds;
+    if (bucket_count > CR_SERIES_MAX_BUCKETS) return cr_error(r, 400, "invalid_period");
+
+    stmt = cr_db_prepare(r->db, "SELECT (started_at-?1)/?2 AS bucket," PERIOD_TOTALS_SQL
+        " FROM runs WHERE member_id=?3 AND started_at>=?1 AND started_at<?4 GROUP BY bucket ORDER BY bucket");
+    if (!stmt) return cr_error(r, 500, "database_error");
+    sqlite3_bind_int64(stmt, 1, from); sqlite3_bind_int64(stmt, 2, bucket_seconds);
+    sqlite3_bind_int64(stmt, 3, r->member_id); sqlite3_bind_int64(stmt, 4, to);
+    array = cJSON_CreateArray();
+    while ((step = sqlite3_step(stmt)) == SQLITE_ROW) {
+        int64_t index = sqlite3_column_int64(stmt, 0);
+        /* Buckets without runs have no SQL row; fill them with zeros. */
+        for (; next < index; ++next)
+            add_series_bucket(array, from+next*bucket_seconds, from+(next+1)*bucket_seconds, 0, 0, 0, 0);
+        add_series_bucket(array, from+index*bucket_seconds, from+(index+1)*bucket_seconds,
+                          sqlite3_column_int64(stmt, 1), sqlite3_column_int64(stmt, 2),
+                          sqlite3_column_int64(stmt, 3), sqlite3_column_int64(stmt, 4));
+        next = index+1;
+    }
+    sqlite3_finalize(stmt);
+    if (step != SQLITE_DONE) { cJSON_Delete(array); return cr_error(r, 500, "database_error"); }
+    for (; next < bucket_count; ++next)
+        add_series_bucket(array, from+next*bucket_seconds, from+(next+1)*bucket_seconds, 0, 0, 0, 0);
+    return cr_reply(r, 200, array);
 }
 int cr_run_route(CrRequest *r, const char *path, const char *method) {
     int auth;
@@ -275,7 +337,7 @@ int cr_run_route(CrRequest *r, const char *path, const char *method) {
             return cr_error(r, 404, "not_found");
         return !strcmp(method, "GET") ? rankings(r, (int64_t)university_id) : cr_error(r, 405, "method_not_allowed");
     }
-    if (strcmp(path, "/api/runs") && strcmp(path, "/api/me/runs") && strcmp(path, "/api/me/stats") && strncmp(path, "/api/me/runs/", 13))
+    if (strcmp(path, "/api/runs") && strcmp(path, "/api/me/runs") && strcmp(path, "/api/me/stats") && strcmp(path, "/api/me/stats/series") && strncmp(path, "/api/me/runs/", 13))
         return cr_error(r, 404, "not_found");
     auth = cr_authenticate(r);
     if (auth != 1) return cr_error(r, auth < 0 ? 500 : 401, auth < 0 ? "database_error" : "authentication_required");
@@ -283,6 +345,7 @@ int cr_run_route(CrRequest *r, const char *path, const char *method) {
     if (strcmp(method, "GET")) return cr_error(r, 405, "method_not_allowed");
     if (!strcmp(path, "/api/me/runs")) return own_runs(r);
     if (!strcmp(path, "/api/me/stats")) return own_stats(r);
+    if (!strcmp(path, "/api/me/stats/series")) return own_stats_series(r);
     {
         char *end;
         long long id;

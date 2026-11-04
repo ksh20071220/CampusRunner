@@ -21,6 +21,7 @@
 | GET | /api/me/runs?limit=50&offset=0 | 회원 | 200 본인 러닝 요약 배열 |
 | GET | /api/me/runs/{id} | 본인 | 200 원본 좌표 포함 러닝 |
 | GET | /api/me/stats?from=0&to=2000000000 | 회원 | 200 정상 거리·정상/의심 기록 건수 |
+| GET | /api/me/stats/series?from=...&to=...&bucket=day | 회원 | 200 일·주 단위 기간 통계 배열 |
 | GET | /api/rankings?from=0&to=2000000000&limit=100&offset=0 | 공개 | 200 대학 순위 배열 |
 | GET | /api/universities/{id}/stats?from=0&to=2000000000 | 공개 | 200 해당 대학의 기간 성적·전체 순위 객체 |
 
@@ -129,6 +130,20 @@ rankings: 기본 limit 100, 최대 500. me/runs: 기본 limit 50, 최대 200. �
 `GET /api/universities/{id}/stats?from=...&to=...`는 위 순위 배열 중 해당 대학의 항목 하나를 **객체**로 반환합니다. 같은 기간의 전체 순위와 완전히 같은 집계·공동 순위를 사용합니다. 활동이 없으면 거리·참가자·러닝 수가 0인 항목을 반환하며, 없는 대학 ID는 404입니다. from·to는 필수이고 이 경로에는 페이지 인자를 적용하지 않습니다. 프런트엔드에서는 `api.universityStats(me.university_id, from, to)`로 소속 대학 성적을 조회할 수 있습니다.
 
 `GET /api/me/stats` 응답: `{ "distance_m": 3000, "accepted_runs": 3, "flagged_runs": 1 }`. accepted_runs에는 0m 정상 기록도 포함되지만 대학 참여자에는 포함되지 않습니다.
+
+`GET /api/me/stats/series?from=...&to=...&bucket=day|week`는 [from,to)를 `from`부터 하루(86400초) 또는 일주일(604800초) 단위로 나누고, 각 구간마다 `/api/me/stats`와 같은 값을 **배열**로 한 번에 반환합니다. 그래프를 그리려고 구간마다 `/api/me/stats`를 여러 번 부를 필요가 없습니다.
+
+```json
+[{ "from": 1793545200, "to": 1793631600, "distance_m": 3200, "accepted_runs": 1, "flagged_runs": 0,
+   "duration_seconds": 1080, "pace_seconds_per_km": 337.5 }, ...]
+```
+
+- 기록이 없는 구간도 0과 `pace_seconds_per_km: null`로 포함하며, 배열은 시간 순서입니다.
+- 러닝은 시작 시각이 들어간 구간 하나에만 들어갑니다. 정상·의심 판정 규칙과 합산 방식은 `/api/me/stats`와 같습니다.
+- 서버는 시간대를 계산하지 않습니다. 한국 날짜·월요일 기준 그래프는 클라이언트가 `from`을 한국 시간 00:00(주간은 월요일 00:00)으로 정해서 보냅니다.
+- `to-from`은 구간 길이의 정수배여야 하고 구간은 최대 366개입니다. 어기면 400 `invalid_period`, bucket이 없거나 `day`·`week`가 아니면 400 `invalid_bucket`입니다.
+- 월 단위는 달마다 길이가 달라 지원하지 않습니다. 월간 값은 `/api/me/stats`를 달마다 호출합니다.
+- 프런트엔드: `api.myStatsSeries(from, to, 'day')`.
 
 ## 오류
 

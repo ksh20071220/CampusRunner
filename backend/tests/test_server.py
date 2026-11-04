@@ -1063,6 +1063,49 @@ class ServerTests(unittest.TestCase):
         self.assertAlmostEqual(stats['pace_seconds_per_km'],60*1000/first['distance_m'])
         self.assertEqual(len(self.call('GET','/api/me/runs?limit=200&offset=10000',token=account['token'])),3)
 
+    def test_stats_series_buckets_match_period_stats(self):
+        DAY, WEEK = 86400, 7 * 86400
+        start = 1_700_000_000
+        me, other = self.register('me', verified=False), self.register('other', verified=False)
+        normal = self.call('POST', '/api/runs', self.run_body('d0-a', start + 100), token=me['token'], expected=201)
+        self.call('POST', '/api/runs', self.run_body('d0-b', start + 1000), token=me['token'], expected=201)
+        flagged = self.call('POST', '/api/runs', self.run_body('d2-fast', start + 2 * DAY, degrees=.01), token=me['token'], expected=201)
+        self.assertFalse(flagged['accepted'])
+        # Outside [from,to) or owned by someone else: never counted.
+        self.call('POST', '/api/runs', self.run_body('before', start - 100), token=me['token'], expected=201)
+        self.call('POST', '/api/runs', self.run_body('at-to', start + 3 * DAY), token=me['token'], expected=201)
+        self.call('POST', '/api/runs', self.run_body('other', start + 100), token=other['token'], expected=201)
+
+        days = self.call('GET', f'/api/me/stats/series?from={start}&to={start + 3 * DAY}&bucket=day', token=me['token'])
+        self.assertEqual([(d['from'], d['to']) for d in days], [(start + i * DAY, start + (i + 1) * DAY) for i in range(3)])
+        self.assertEqual(days[0]['accepted_runs'], 2)
+        self.assertAlmostEqual(days[0]['distance_m'], normal['distance_m'] * 2, places=3)
+        self.assertEqual(days[0]['duration_seconds'], 120)
+        self.assertEqual(days[1], {'from': start + DAY, 'to': start + 2 * DAY, 'distance_m': 0, 'accepted_runs': 0,
+                                   'flagged_runs': 0, 'duration_seconds': 0, 'pace_seconds_per_km': None})
+        self.assertEqual((days[2]['accepted_runs'], days[2]['flagged_runs'], days[2]['distance_m']), (0, 1, 0))
+        self.assertIsNone(days[2]['pace_seconds_per_km'])
+        for bucket in days:  # Same numbers as asking /api/me/stats once per bucket.
+            single = self.call('GET', f"/api/me/stats?from={bucket['from']}&to={bucket['to']}", token=me['token'])
+            self.assertEqual({k: v for k, v in bucket.items() if k not in ('from', 'to')}, single)
+
+        weeks = self.call('GET', f'/api/me/stats/series?from={start}&to={start + 2 * WEEK}&bucket=week', token=me['token'])
+        self.assertEqual(len(weeks), 2)
+        self.assertEqual((weeks[0]['accepted_runs'], weeks[0]['flagged_runs']), (3, 1))  # includes 'at-to'
+        self.assertEqual(weeks[1]['accepted_runs'], 0)
+
+        base = f'/api/me/stats/series?from={start}'
+        for path, error in [(f'{base}&to={start + DAY}', 'invalid_bucket'),
+                            (f'{base}&to={start + DAY}&bucket=month', 'invalid_bucket'),
+                            (f'{base}&to={start + DAY + 1}&bucket=day', 'invalid_period'),
+                            (f'{base}&to={start + 367 * DAY}&bucket=day', 'invalid_period'),
+                            (f'/api/me/stats/series?from={start}&to={start}&bucket=day', 'invalid_period')]:
+            self.assertEqual(self.call('GET', path, token=me['token'], expected=400), {'error': error})
+        self.assertEqual(len(self.call('GET', f'{base}&to={start + 366 * DAY}&bucket=day', token=me['token'])), 366)
+        self.call('GET', f'{base}&to={start + DAY}&bucket=day&bucket=day', token=me['token'], expected=400)
+        self.call('GET', f'{base}&to={start + DAY}&bucket=day', expected=401)
+        self.call('POST', f'{base}&to={start + DAY}&bucket=day', {}, token=me['token'], expected=405)
+
 
 if __name__ == '__main__':
     unittest.main()

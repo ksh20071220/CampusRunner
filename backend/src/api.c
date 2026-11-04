@@ -207,7 +207,8 @@ static int valid_query(const char *query) {
         bit = n == 4 && !memcmp(p, "from", 4) ? 1u : n == 2 && !memcmp(p, "to", 2) ? 2u :
               n == 5 && !memcmp(p, "limit", 5) ? 4u : n == 6 && !memcmp(p, "offset", 6) ? 8u :
               n == 1 && !memcmp(p, "q", 1) ? 16u : n == 6 && !memcmp(p, "region", 6) ? 32u :
-              n == 4 && !memcmp(p, "kind", 4) ? 64u : n == 6 && !memcmp(p, "status", 6) ? 128u : 0u;
+              n == 4 && !memcmp(p, "kind", 4) ? 64u : n == 6 && !memcmp(p, "status", 6) ? 128u :
+              n == 6 && !memcmp(p, "bucket", 6) ? 256u : 0u;
         if (!bit || (seen & bit)) return 0;
         seen |= bit;
         {
