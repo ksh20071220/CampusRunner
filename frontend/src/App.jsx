@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useApp, useTrackerSnapshot } from "./state/AppContext.jsx";
 import { navigate, useRoute } from "./lib/router.js";
 import { duration, km } from "./lib/format.js";
 import { BottomNav, Spinner } from "./components/ui.jsx";
 import Login from "./screens/Login.jsx";
+import AdminReview from "./screens/AdminReview.jsx";
 import Home from "./screens/Home.jsx";
 import Run from "./screens/Run.jsx";
 import Result from "./screens/Result.jsx";
@@ -14,6 +15,7 @@ import Rankings from "./screens/Rankings.jsx";
 
 export default function App() {
   const { user, authChecked, saver } = useApp();
+  const [adminSession, setAdminSession] = useState(null);
   const route = useRoute();
   const snapshot = useTrackerSnapshot();
   const running = snapshot.status === "running" || snapshot.status === "starting";
@@ -32,10 +34,12 @@ export default function App() {
       </div>
     );
   }
+  if (adminSession) return <AdminReview session={adminSession} onLogout={() => setAdminSession(null)} />;
+
   if (!user) {
     return (
       <div className="app">
-        <Login />
+        <Login onAdminLogin={setAdminSession} />
       </div>
     );
   }

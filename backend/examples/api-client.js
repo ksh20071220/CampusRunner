@@ -72,6 +72,25 @@ export class CampusRunnerApi {
     this.token = user.token;
     return user;
   }
+  async adminLogin(username, password) {
+    const url = new URL(this.baseUrl);
+    const local = url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if ((!local && url.protocol !== "https:") || url.username || url.password || url.href !== url.origin + "/") {
+      const error = new Error("admin_secure_api_required");
+      error.status = 400;
+      throw error;
+    }
+    const session = await this._fetchJson("/api/admin/auth/login", {
+      method: "POST", redirect: "error", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    if (typeof session?.token !== "string" || !/^[a-f0-9]{64}$/.test(session.token) || session.username !== username) {
+      const error = new Error("invalid_admin_session");
+      error.status = 502;
+      throw error;
+    }
+    return { base: url.origin, token: session.token, username: session.username };
+  }
   async logout() {
     const token = this.token, version = this.sessionVersion;
     await this.request("/api/auth/logout", { method: "POST", body: {}, token });

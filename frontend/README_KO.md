@@ -18,6 +18,7 @@ npm run dev          # http://localhost:5173
 - **실제 서버 연결**: 백엔드를 띄운 뒤(`backend/start-server.ps1`) 그냥 `http://localhost:5173` 접속.
   - 서버의 `CR_ALLOWED_ORIGIN`이 프런트 주소와 **정확히** 같아야 한다 (기본값 `http://localhost:5173`).
   - API 주소는 `.env.example`을 `.env`로 복사해 `VITE_API_BASE_URL`로 바꿀 수 있다. 비우면 `현재 접속 호스트:8080`을 쓴다.
+- **관리자 모드**: 실제 서버에 연결된 일반 로그인 화면에서 기본 운영자 아이디 `admin`으로 로그인하면 학교 인증 심사 화면이 열립니다. 로그아웃하면 일반 로그인으로 돌아옵니다. [관리자 계정 준비](../backend/UNIVERSITY_VERIFICATION.md#운영진-검토-화면).
 - 빌드: `npm run build` → `dist/` 정적 파일
 - GPS·계정별 임시 저장 테스트: `npm test`
 - 개발 서버는 기본적으로 PC 내부(localhost)에서만 접속한다. 같은 Wi-Fi에 공개하려면 `npm run dev -- --host 0.0.0.0`을 명시하고, 휴대폰 GPS에는 별도 HTTPS 구성이 필요하다.

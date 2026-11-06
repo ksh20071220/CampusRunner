@@ -5,8 +5,8 @@ import { ModeBadge, Notice, TopBar } from "../components/ui.jsx";
 
 // 로그인·회원가입. (회원 기능의 세부 화면은 4번 담당 범위이며 여기서는 앱 진입에 필요한 최소만 둔다.)
 
-export default function Login() {
-  const { login, register, config, saver } = useApp();
+export default function Login({ onAdminLogin }) {
+  const { login, register, api, config, saver } = useApp();
   const [mode, setMode] = useState("login");
   const [nickname, setNickname] = useState(config.mock ? "새벽러너" : "");
   const [password, setPassword] = useState(config.mock ? "password123" : "");
@@ -25,8 +25,26 @@ export default function Login() {
     }
     setBusy(true);
     try {
-      if (mode === "login") await login(nickname.trim(), password);
-      else await register(nickname.trim(), password, university.id);
+      const name = nickname.trim();
+      if (mode === "register") {
+        await register(name, password, university.id);
+        return;
+      }
+      if (!config.mock && name === "admin") {
+        let adminError;
+        try {
+          onAdminLogin(await api.adminLogin(name, password));
+          return;
+        } catch (error) {
+          if (![401, 429].includes(error.status)) throw error;
+          adminError = error;
+        }
+        // Older member accounts can also have this nickname.
+        try { await login(name, password); }
+        catch (error) { throw adminError.status === 429 && error.status === 401 ? adminError : error; }
+      } else {
+        await login(name, password);
+      }
       // 이동은 App이 로그인 상태를 보고 처리한다 (저장 대기 러닝이 있으면 결과 화면으로).
     } catch (raw) {
       setError(apiMessage(normalizeApiError(raw)));
@@ -66,7 +84,7 @@ export default function Login() {
       </div>
 
       <form className="card form" onSubmit={submit}>
-        <label htmlFor="nickname">닉네임</label>
+        <label htmlFor="nickname">{mode === "login" ? "닉네임 또는 관리자 아이디" : "닉네임"}</label>
         <input
           id="nickname"
           value={nickname}

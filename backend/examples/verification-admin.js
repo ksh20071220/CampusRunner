@@ -234,14 +234,16 @@
     $('token').value = '';
     $('admin-password').value = '';
     invalidate();
-    if (session) {
-      const scope = generation;
-      try { await call(session, '/api/admin/auth/logout', {}); }
-      catch (error) {
-        if (scope === generation && !error.message.startsWith('403:'))
-          message('화면에서 연결을 해제했지만 서버 로그아웃을 확인하지 못했어요.', 'error');
+    if (!session) return;
+    const scope = generation;
+    try { await call(session, '/api/admin/auth/logout', {}); }
+    catch (error) {
+      if (!error.message.startsWith('403:')) {
+        if (scope === generation) message('화면에서 연결을 해제했지만 서버 로그아웃을 확인하지 못했어요.', 'error');
+        return;
       }
     }
+    if (scope === generation) notifyParentLogout();
   }
 
   $('admin-login').onsubmit = async event => {
@@ -315,6 +317,24 @@
   }
   $('base').oninput = () => { if (adminSession) void disconnect(); else invalidate(); };
   $('token').oninput = $('status').onchange = invalidate;
+  const embedded = window.parent && window.parent !== window && new URLSearchParams(window.location.search).has('embedded');
+  function notifyParentLogout() {
+    if (embedded) window.parent.postMessage({ type: 'campusrunner:admin-logout' }, window.location.origin);
+  }
+  if (embedded) {
+    $('review-home').onclick = event => { event.preventDefault(); void refresh(); };
+    const receive = event => {
+      if (event.source !== window.parent || event.origin !== window.location.origin ||
+          event.data?.type !== 'campusrunner:admin-session') return;
+      const { base, token, username } = event.data.session ?? {};
+      if (typeof base !== 'string' || typeof token !== 'string' || !/^[a-f0-9]{64}$/.test(token) || username !== 'admin') return;
+      window.removeEventListener('message', receive);
+      $('base').value = base;
+      adminSession = { base, token, username };
+      void refresh();
+    };
+    window.addEventListener('message', receive);
+  }
   window.addEventListener('pagehide', () => { adminSession = null; invalidate(); });
   syncControls();
 })();

@@ -40,7 +40,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\backend\create-admin.p
 `%LOCALAPPDATA%\CampusRunner\admin-account.txt`에 보관합니다. 생성 스크립트는 계정과 자격 증명 파일을 덮어쓰지 않습니다.
 자격 증명 파일과 실제 SQLite DB는 제출하거나 Git에 추가하지 마세요.
 
-서버와 Vite 프런트엔드를 실행한 뒤 **http://localhost:5173/verification-admin.html**의 관리자 연결 설정에서 로그인합니다.
+서버와 Vite 프런트엔드를 실행한 뒤 **http://localhost:5173/** 일반 로그인 화면에서 `admin`으로 로그인하면 관리자 심사 화면으로 이동합니다. 관리자 로그아웃 후에는 일반 로그인으로 돌아갑니다. 새로고침하면 다시 로그인해야 합니다.
+
+**http://localhost:5173/verification-admin.html**로 직접 접속해 관리자 연결 설정에서 로그인할 수도 있습니다.
 Vite를 사용하지 않을 경우 `backend`에서 `python -m http.server 5173 --bind 127.0.0.1 --directory examples`로도 화면을 열 수 있습니다.
 관리자 세션은 8시간 동안 유효하며 로그아웃하면 서버에서 폐기됩니다. 계정 심사는 인증된 아이디를 처리 이력에 남깁니다.
 기존 공동 토큰으로 접속하는 환경은 연결 설정의 토큰 입력을 계속 사용할 수 있습니다.

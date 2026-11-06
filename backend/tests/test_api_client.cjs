@@ -177,3 +177,21 @@ test('verification methods pin the member token and upload the binary with expli
   assert.equal(requests[3].options.headers['X-Verification-Consent'],'1');
   assert.equal(api.token,'other-account');
 });
+
+test('administrator login returns a separate session and rejects redirects', async t => {
+  const token = 'a'.repeat(64);
+  const { api, requests } = await setup(t, 200, { token, username: 'admin' });
+  assert.deepEqual(await api.adminLogin('admin', 'fixture-password'),
+    { base: 'https://api.example.test', token, username: 'admin' });
+  assert.equal(api.token, 'previous-session');
+  assert.equal(requests[0].url, 'https://api.example.test/api/admin/auth/login');
+  assert.equal(requests[0].options.redirect, 'error');
+  assert.equal(requests[0].options.headers.Authorization, undefined);
+});
+
+test('administrator credentials are never sent to a non-local HTTP address', async t => {
+  const { api, requests } = await setup(t, 200, {});
+  api.baseUrl = 'http://api.example.test';
+  await assert.rejects(api.adminLogin('admin', 'fixture-password'), /admin_secure_api_required/);
+  assert.equal(requests.length, 0);
+});
