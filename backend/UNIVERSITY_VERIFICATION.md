@@ -29,14 +29,21 @@
 
 ## 운영진 검토 화면
 
-서버 실행 후 별도 터미널에서:
+기본 로컬 DB에 관리자 계정 1개를 생성합니다. 저장소 루트에서 최신 서버를 빌드한 뒤 한 번 실행합니다.
 
 ```powershell
-cd backend
-python -m http.server 5173 --bind 127.0.0.1 --directory examples
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\backend\build.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\backend\create-admin.ps1
 ```
 
-브라우저에서 **http://localhost:5173/verification-admin.html**을 엽니다. 상단의 관리자 연결 설정을 펼쳐 API 주소, 관리자 토큰, 담당자 이름을 입력하고 **연결하고 목록 불러오기**를 누릅니다. 담당자 이름은 공동 관리자 토큰을 사용하는 팀의 감사 기록용 표시이며 별도 운영자 계정 인증은 아닙니다.
+아이디는 `admin`입니다. 무작위 초기 비밀번호는 Windows 사용자와 SYSTEM만 열 수 있는
+`%LOCALAPPDATA%\CampusRunner\admin-account.txt`에 보관합니다. 생성 스크립트는 계정과 자격 증명 파일을 덮어쓰지 않습니다.
+자격 증명 파일과 실제 SQLite DB는 제출하거나 Git에 추가하지 마세요.
+
+서버와 Vite 프런트엔드를 실행한 뒤 **http://localhost:5173/verification-admin.html**의 관리자 연결 설정에서 로그인합니다.
+Vite를 사용하지 않을 경우 `backend`에서 `python -m http.server 5173 --bind 127.0.0.1 --directory examples`로도 화면을 열 수 있습니다.
+관리자 세션은 8시간 동안 유효하며 로그아웃하면 서버에서 폐기됩니다. 계정 심사는 인증된 아이디를 처리 이력에 남깁니다.
+기존 공동 토큰으로 접속하는 환경은 연결 설정의 토큰 입력을 계속 사용할 수 있습니다.
 
 신청을 클릭하면 닉네임·선택 대학·서류 종류·사진을 확인할 수 있습니다. 사진이 실제 표시되기 전에는 승인 버튼이 활성화되지 않습니다. 학교명·소속 근거를 사람이 확인한 뒤 승인하거나 구체적 사유를 적어 반려합니다. 반려 사유는 이용자에게 공개됩니다. 승인된 항목을 잘못 처리했다면 상태를 승인으로 바꾸어 조회하고 승인 철회할 수 있습니다.
 
@@ -87,7 +94,7 @@ X-Verification-Consent: 1
 {"id":1,"member_id":1,"university_id":123456,"document_type":"student_card","status":"pending","submitted_at":1792623600,"expires_at":1793228400,"reviewed_at":null,"reason":"","image_available":true,"nickname":"러너","university_name":"서울대학교"}
 ```
 
-사진이 없는 과거 신청의 image 경로는 410 image_deleted입니다. 다른 회원은 404, 관리자 토큰이 없으면 관리자 경로는 403입니다. 신청 목록에는 이미지 bytes·개인 서류 내용·해시를 포함하지 않습니다. 사진 응답은 no-store·nosniff이며 공개 정적 경로를 만들지 않습니다.
+사진이 없는 과거 신청의 image 경로는 410 image_deleted입니다. 다른 회원은 404, 유효한 관리자 인증이 없으면 관리자 경로는 403입니다. 신청 목록에는 이미지 bytes·개인 서류 내용·해시를 포함하지 않습니다. 사진 응답은 no-store·nosniff이며 공개 정적 경로를 만들지 않습니다.
 
 신청 목록의 limit은 본인 기본 20, 관리자 기본 100이며 둘 다 1~100입니다. offset은 기본 0, 최대 1000000입니다. 잘못된 값은 400 invalid_pagination입니다. 응답은 기존과 같은 배열이며 배열 길이가 limit보다 작으면 마지막 페이지입니다. 본인 목록은 신청 id 내림차순, 관리자 목록은 제출 시간·id 오름차순입니다. 관리자 화면은 다음 페이지 유무를 확인하기 위해 51건을 조회하고 50건을 표시합니다.
 
@@ -99,7 +106,7 @@ X-Verification-Consent: 1
 [{"id":1,"request_id":7,"member_id":3,"action":"approved","reviewer":"검토 담당자","reason":"학교명 및 서류 확인","created_at":1792623600}]
 ```
 
-승인 뒤 철회해도 기존 승인 이벤트는 남고 revoked 이벤트가 추가됩니다. 반려·회원 취소는 rejected·cancelled, 대학 변경은 cancelled/member/university_changed, 자동 만료는 expired/system/review_window_expired로 남습니다. 이력 저장이 실패하면 상태 변경·사진 삭제·회원 대학 변경을 함께 롤백합니다. 만료 정리 실패는 API에서 503이며 다음 접근·정기 정리 시 다시 시도합니다. reviewer의 담당자 이름은 공동 토큰 사용자가 입력한 표시이며 독립적으로 인증한 운영자 신원은 아닙니다.
+승인 뒤 철회해도 기존 승인 이벤트는 남고 revoked 이벤트가 추가됩니다. 반려·회원 취소는 rejected·cancelled, 대학 변경은 cancelled/member/university_changed, 자동 만료는 expired/system/review_window_expired로 남습니다. 이력 저장이 실패하면 상태 변경·사진 삭제·회원 대학 변경을 함께 롤백합니다. 만료 정리 실패는 API에서 503이며 다음 접근·정기 정리 시 다시 시도합니다. 계정으로 로그인한 심사는 인증된 아이디를 reviewer에 저장합니다. 공동 토큰으로 접속한 경우에는 요청에서 입력한 담당자 이름을 저장합니다.
 
 이력 조회 API는 기존 verification_audit 데이터도 읽지만, 이 보완 이전에 자동 만료·대학 변경으로 처리된 사건의 누락 이력을 추정해서 생성하지 않습니다. 제출 자체는 이력 이벤트가 아니며 신청의 submitted_at으로 확인합니다. 백업본의 사진 제거·재제출 상태 변경은 복원용 데이터 정리로, 운영 서버 검토 이벤트를 추가하지 않습니다.
 

@@ -9,6 +9,7 @@
   let pageOffset = 0, hasNext = false, listBusy = false, mutating = false, photoReady = false;
   let listController = null, imageController = null;
   let queueScroll = 0;
+  let adminSession = null, loggingIn = false;
   function message(text, tone = 'info') {
     $('message').textContent = text; $('message').hidden = !text;
     $('message').dataset.tone = tone;
@@ -54,6 +55,10 @@
     for (const id of ['base', 'token', 'status', 'reviewer', 'reason']) $(id).disabled = mutating;
     $('refresh').disabled = mutating;
     $('connect-load').disabled = locked;
+    $('admin-login-button').disabled = locked || loggingIn;
+    $('admin-login').hidden = !!adminSession;
+    $('admin-logout').hidden = !adminSession;
+    $('admin-logout').disabled = mutating;
     $('back').disabled = mutating;
     $('reason-approved').disabled = $('reason-unclear').disabled = locked || current?.status !== 'pending';
     $('quick-reasons').hidden = current?.status !== 'pending';
@@ -98,15 +103,16 @@
     message(''); syncControls();
   }
   function config() {
+    if (adminSession) return { ...adminSession, status: $('status').value };
     const token = $('token').value.trim();
-    if (!token) throw new Error('관리자 토큰을 입력하세요.');
+    if (!token) throw new Error('관리자 계정으로 로그인하거나 토큰을 입력하세요.');
     return { base: $('base').value.trim().replace(/\/$/, ''), token, status: $('status').value };
   }
   async function call(context, path, body, signal) {
     const headers = { Authorization: 'Bearer ' + context.token };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     const r = await fetch(context.base + path, { method: body === undefined ? 'GET' : 'POST',
-      headers, credentials: 'omit', signal, body: body === undefined ? undefined : JSON.stringify(body) });
+      headers, credentials: 'omit', redirect: 'error', signal, body: body === undefined ? undefined : JSON.stringify(body) });
     if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(`${r.status}: ${e.error || '요청 실패'}`); }
     return r;
   }
@@ -184,7 +190,18 @@
       $('pagination').hidden = !count;
       emptyState(count ? 'populated' : 'empty'); connected(true);
       $('connection').open = false; message('');
-    } catch (e) { if (generation === listGeneration) { connected(false); emptyState('error'); message(e.message, 'error'); } }
+    } catch (error) {
+      if (generation !== listGeneration) return;
+      connected(false);
+      emptyState('error');
+      if (adminSession && error.message.startsWith('403: admin_required')) {
+        adminSession = null;
+        $('connection').open = true;
+        message('관리자 세션이 만료됐어요. 다시 로그인하세요.', 'error');
+      } else {
+        message(error.message, 'error');
+      }
+    }
     finally { if (generation === listGeneration) { listBusy = false; syncControls(); } }
   }
   async function decide(decision) {
@@ -192,7 +209,7 @@
     if (decision === 'approved' && (!photoReady || current.status !== 'pending')) return;
     if (decision === 'rejected' && current.status !== 'pending') return;
     if (decision === 'revoked' && current.status !== 'approved') return;
-    const reviewer = $('reviewer').value.trim(), reason = $('reason').value.trim();
+    const reviewer = adminSession?.username || $('reviewer').value.trim(), reason = $('reason').value.trim();
     if (!reviewer) { openConnection(); $('reviewer').focus(); message('검토 담당자 이름을 먼저 입력해 주세요.', 'error'); return; }
     if (!reason) { $('reason-error').hidden = false; $('reason').setAttribute('aria-invalid', 'true'); message('검토 사유를 입력해 주세요.', 'error'); $('reason').focus(); return; }
     const id = current.id, scope = generation, offset = pageOffset, context = config();
@@ -211,6 +228,67 @@
     }
   }
   $('refresh').onclick = () => refresh();
+  async function disconnect() {
+    const session = adminSession;
+    adminSession = null;
+    $('token').value = '';
+    $('admin-password').value = '';
+    invalidate();
+    if (session) {
+      const scope = generation;
+      try { await call(session, '/api/admin/auth/logout', {}); }
+      catch (error) {
+        if (scope === generation && !error.message.startsWith('403:'))
+          message('화면에서 연결을 해제했지만 서버 로그아웃을 확인하지 못했어요.', 'error');
+      }
+    }
+  }
+
+  $('admin-login').onsubmit = async event => {
+    event.preventDefault();
+    if (loggingIn || mutating || adminSession) return;
+    const username = $('admin-username').value.trim(), password = $('admin-password').value;
+    let base;
+    try {
+      const url = new URL($('base').value.trim());
+      const secure = url.protocol === 'https:' ||
+        (url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname));
+      if (!secure || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error();
+      base = url.origin;
+    } catch {
+      message('API 주소에는 HTTPS 또는 로컬 서버의 주소를 입력하세요.', 'error');
+      return;
+    }
+    invalidate();
+    const scope = generation;
+    $('admin-password').value = '';
+    loggingIn = true;
+    syncControls();
+    try {
+      const response = await fetch(base + '/api/admin/auth/login', {
+        method: 'POST', credentials: 'omit', redirect: 'error',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }),
+      });
+      if (!response.ok) throw new Error(response.status === 429 ? '로그인 시도가 많아요. 잠시 후 다시 시도하세요.' :
+        [400, 401].includes(response.status) ? '관리자 아이디와 비밀번호를 확인하세요.' : '관리자 로그인 서버에 연결하지 못했어요.');
+      const result = await response.json();
+      if (!/^[a-f0-9]{64}$/.test(result.token) || result.username !== username) throw new Error('로그인 응답을 확인하지 못했어요.');
+      const session = { base, token: result.token, username: result.username };
+      if (scope !== generation) {
+        await call(session, '/api/admin/auth/logout', {}).catch(() => {});
+        return;
+      }
+      $('token').value = '';
+      adminSession = session;
+      await refresh();
+    } catch (error) {
+      if (scope === generation) message(error.message, 'error');
+    } finally {
+      loggingIn = false;
+      syncControls();
+    }
+  };
+  $('admin-logout').onclick = disconnect;
   $('connect-load').onclick = () => refresh();
   function openConnection() {
     if (mutating) return;
@@ -235,7 +313,8 @@
     const id = { approved: 'approve', rejected: 'reject', revoked: 'revoke' }[decision];
     $(id).onclick = () => decide(decision);
   }
-  $('base').oninput = $('token').oninput = $('status').onchange = invalidate;
-  window.addEventListener('pagehide', invalidate);
+  $('base').oninput = () => { if (adminSession) void disconnect(); else invalidate(); };
+  $('token').oninput = $('status').onchange = invalidate;
+  window.addEventListener('pagehide', () => { adminSession = null; invalidate(); });
   syncControls();
 })();

@@ -103,6 +103,36 @@ class ServerTests(unittest.TestCase):
                          {'decision': decision, 'reviewer': '담당자', 'reason': '학교와 제출 서류 확인' if decision == 'approved' else '학교명이 다릅니다'},
                          token=ADMIN, expected=expected)
 
+    def test_admin_account_lifecycle(self):
+        password = 'fixture-admin-password-2026'
+        command = [str(EXE), '--create-admin', str(self.db), 'admin']
+        for exit_code in (0, 3):
+            result = subprocess.run(command, input=password+'\n', text=True, capture_output=True)
+            self.assertEqual(result.returncode, exit_code)
+            self.assertNotIn(password, result.stdout + result.stderr)
+
+        root = '/api/admin/university-verifications'
+        login = '/api/admin/auth/login'
+        self.call('POST', login, {'username': 'admin', 'password': 'wrong'}, expected=401)
+        self.call('POST', login, {'username': 'unknown', 'password': password}, expected=401)
+        token = self.call('POST', login, {'username': 'admin', 'password': password})['token']
+        account = self.register(verified=False)
+        self.call('GET', root, token=account['token'], expected=403)
+        self.call('GET', '/api/me', token=token, expected=401)
+        proof = self.upload(account['token'])
+        self.call('GET', root, token=token)
+        self.call('POST', f"{root}/{proof['id']}/decision",
+                  {'decision': 'approved', 'reviewer': 'spoof', 'reason': 'confirmed'}, token=token)
+        with contextlib.closing(sqlite3.connect(self.db)) as conn:
+            self.assertEqual(conn.execute('SELECT reviewer FROM verification_audit WHERE action=?',
+                                          ('approved',)).fetchone(), ('admin',))
+        self.call('POST', '/api/admin/auth/logout', {}, token=token, expected=204)
+        self.call('GET', root, token=token, expected=403)
+        self.call('GET', root, token=ADMIN)
+        for _ in range(9):
+            self.call('POST', login, {'username': 'admin', 'password': 'wrong'}, expected=401)
+        self.call('POST', login, {'username': 'admin', 'password': password}, expected=429)
+
     def proof_image(self, request_id, token, admin=False, expected=200):
         root = '/api/admin/university-verifications' if admin else '/api/me/university-verifications'
         connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=15)

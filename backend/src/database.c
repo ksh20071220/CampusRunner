@@ -127,6 +127,13 @@ int cr_db_init(const char *path) {
         "CREATE INDEX IF NOT EXISTS verification_audit_member ON verification_audit(member_id,id);"
         "CREATE INDEX IF NOT EXISTS verification_audit_request ON verification_audit(request_id,id);"
         "CREATE INDEX IF NOT EXISTS verification_pending_expiry ON university_verifications(expires_at) WHERE status='pending';"
+        "CREATE TABLE IF NOT EXISTS administrators(id INTEGER PRIMARY KEY CHECK(id=1),"
+        "username TEXT NOT NULL UNIQUE CHECK(length(username) BETWEEN 1 AND 32),"
+        "salt BLOB NOT NULL CHECK(length(salt)=16),password_hash BLOB NOT NULL CHECK(length(password_hash)=32));"
+        "CREATE TABLE IF NOT EXISTS admin_sessions(token_hash BLOB PRIMARY KEY CHECK(length(token_hash)=32),"
+        "admin_id INTEGER NOT NULL REFERENCES administrators(id) ON DELETE CASCADE,expires_at INTEGER NOT NULL);"
+        "CREATE TABLE IF NOT EXISTS admin_login_limit(id INTEGER PRIMARY KEY CHECK(id=1),"
+        "window_at INTEGER NOT NULL,attempts INTEGER NOT NULL);"
         "COMMIT;");
     if (ok) {
         const char *seed = getenv("CR_SEED_UNIVERSITIES");
