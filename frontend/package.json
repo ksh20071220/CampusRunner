@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test:tracker": "node --test tests/run-tracker.test.cjs"
+    "test:tracker": "node --test tests/run-tracker.test.cjs",
+    "test": "node --test tests/run-tracker.test.cjs tests/run-saver.test.mjs tests/university-verification.test.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -15,7 +16,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^5.4.11"
+    "@vitejs/plugin-react": "4.7.0",
+    "vite": "6.4.5"
   }
 }

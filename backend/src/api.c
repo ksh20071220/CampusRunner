@@ -46,13 +46,13 @@ int cr_reply(CrRequest *r, int status, cJSON *body) {
     if (status != 204 && !json) { status = 500; reason = "Internal Server Error"; }
     mg_printf(r->conn, "HTTP/1.1 %d %s\r\nContent-Type: application/json; charset=utf-8\r\n"
         "Content-Length: %zu\r\nConnection: close\r\nCache-Control: no-store\r\n"
-        "X-Content-Type-Options: nosniff\r\nVary: Origin\r\n", status, reason, strlen(text));
+        "X-Content-Type-Options: nosniff\r\nVary: Origin\r\nAccess-Control-Expose-Headers: Retry-After\r\n", status, reason, strlen(text));
     if (origin && r->server->allowed_origin && !strcmp(origin, r->server->allowed_origin))
         mg_printf(r->conn, "Access-Control-Allow-Origin: %s\r\n"
             "Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Authorization, Content-Type, X-Document-Type, X-Verification-Consent\r\n", origin);
     if (status == 401) mg_printf(r->conn, "WWW-Authenticate: Bearer\r\n");
-    if (status == 429) mg_printf(r->conn, "Retry-After: 60\r\n");
+    if (status == 429) mg_printf(r->conn, "Retry-After: %d\r\n", r->retry_after_seconds > 0 ? r->retry_after_seconds : 60);
     mg_printf(r->conn, "\r\n");
     if (*text) mg_write(r->conn, text, strlen(text));
     free(json); cJSON_Delete(body); return status;
@@ -61,11 +61,6 @@ int cr_error(CrRequest *r, int status, const char *code) {
     cJSON *body = cJSON_CreateObject();
     cJSON_AddStringToObject(body, "error", code);
     return cr_reply(r, status, body);
-}
-int cr_is_admin(CrRequest *r) {
-    const char *auth = mg_get_header(r->conn, "Authorization");
-    return r->server->admin_token && auth && !strncmp(auth, "Bearer ", 7) &&
-        strlen(auth+7) == strlen(r->server->admin_token) && cr_equal(auth+7, r->server->admin_token, strlen(auth+7));
 }
 static int hex_digit(unsigned char c) {
     if (c >= '0' && c <= '9') return c-'0';
@@ -295,15 +290,22 @@ static int universities(CrRequest *r, const char *method) {
     if (!strcmp(method, "POST")) {
         const char *name;
         int64_t id;
-        if (!cr_is_admin(r)) return cr_error(r, 403, "admin_required");
+        int authorized;
         name = cr_json_text(r->body, "name", CR_NAME_SIZE);
         if (!name || cJSON_GetArraySize(r->body) != 2 || !cr_json_integer(cJSON_GetObjectItemCaseSensitive(r->body, "id"), 1, 2147483647, &id))
             return cr_error(r, 400, "invalid_university");
+        authorized = cr_begin_admin_write(r);
+        if (authorized) return cr_error(r, authorized, authorized == 403 ? "admin_required" : "database_busy");
         stmt = cr_db_prepare(r->db, "INSERT INTO universities(id,name) VALUES(?,?)");
-        if (!stmt) return cr_error(r, 500, "database_error");
-        sqlite3_bind_int64(stmt, 1, id); sqlite3_bind_text(stmt, 2, name, -1, SQLITE_TRANSIENT);
-        step = sqlite3_step(stmt); response = step == SQLITE_DONE ? 201 : (step & 255) == SQLITE_CONSTRAINT ? 409 : 500;
+        if (stmt) {
+            sqlite3_bind_int64(stmt, 1, id);
+            sqlite3_bind_text(stmt, 2, name, -1, SQLITE_TRANSIENT);
+        }
+        step = stmt ? sqlite3_step(stmt) : SQLITE_ERROR;
         sqlite3_finalize(stmt);
+        response = step == SQLITE_DONE && cr_db_exec(r->db, "COMMIT") ? 201 :
+            (step & 255) == SQLITE_CONSTRAINT ? 409 : 500;
+        if (response != 201) cr_db_exec(r->db, "ROLLBACK");
         if (response != 201) return cr_error(r, response, response == 409 ? "duplicate_university" : "database_error");
         return cr_reply(r, 201, cJSON_Duplicate(r->body, 1));
     }
@@ -323,7 +325,9 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
     if (!cr_db_open(r.server->db_path, &r.db)) { status = cr_error(&r, 503, "database_unavailable"); goto done; }
     /* Reject protected mutations before reading or allocating a request body. */
     if (!strcmp(method, "POST") || !strcmp(method, "PATCH") || !strcmp(method, "DELETE")) {
-        if (!strncmp(path, "/api/admin/", 11) || !strcmp(path, "/api/universities")) {
+        if (!strcmp(path, "/api/admin/auth/login") && !strcmp(method, "POST")) {
+            /* Administrator login is the only public mutation under /api/admin/. */
+        } else if (!strncmp(path, "/api/admin/", 11) || !strcmp(path, "/api/universities")) {
             if (!cr_is_admin(&r)) { status = cr_error(&r, 403, "admin_required"); goto done; }
         } else if (!strncmp(path, "/api/me", 7) || !strcmp(path, "/api/runs") || !strcmp(path, "/api/auth/logout") || !strcmp(path, "/api/auth/logout-all")) {
             int authenticated = cr_authenticate(&r);
@@ -332,6 +336,10 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
                 goto done;
             }
         }
+    }
+    if (!strcmp(method, "POST") && !strcmp(path, "/api/runs")) {
+        status = cr_run_upload_admit(&r);
+        if (status) goto done;
     }
     if ((!strcmp(method, "POST") || !strcmp(method, "PATCH") || !strcmp(method, "DELETE")) && !cr_verification_upload_path(path)) {
         int error;
@@ -352,6 +360,7 @@ int cr_api_handler(struct mg_connection *conn, void *data) {
             status = cr_reply(&r, 200, body);
         }
     } else if (!strcmp(path, "/api/universities")) status = universities(&r, method);
+    else if (!strncmp(path, "/api/admin/auth/", 16)) status = cr_admin_auth_route(&r, path, method);
     else if (!strncmp(path, "/api/admin/", 11) || !strncmp(path, "/api/me/university-verifications", 32)) status = cr_verification_route(&r, path, method);
     else if (!strncmp(path, "/api/auth/", 10) || !strcmp(path, "/api/me") || !strcmp(path, "/api/me/password")) status = cr_auth_route(&r, path, method);
     else status = cr_run_route(&r, path, method);

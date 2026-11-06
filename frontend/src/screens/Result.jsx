@@ -5,6 +5,7 @@ import { duration, km } from "../lib/format.js";
 import { previewOf } from "../lib/geo.js";
 import { navigate } from "../lib/router.js";
 import { discardRun } from "../services/run-actions.js";
+import StorageNotice from "../components/StorageNotice.jsx";
 import RouteMap from "../components/RouteMap.jsx";
 import { AcceptBadge, RunStats, UniversityNote } from "../components/RunSummary.jsx";
 import { Badge, Empty, Notice, Stat, SubHeader } from "../components/ui.jsx";
@@ -50,6 +51,7 @@ export default function Result() {
     return (
       <div className="screen">
         <SubHeader title="러닝 결과" back="/home" backLabel="홈" right={<SaveBadge state={state} />} />
+        <StorageNotice state={state} />
         <RouteMap points={pending.points} />
         <div className="stat-grid">
           <Stat label="거리 (미리보기)" value={km(preview.distance)} unit="km" big />
@@ -57,8 +59,7 @@ export default function Result() {
         </div>
         <SaveStatus state={state} onRetry={() => saver.retryNow()} onDiscard={() => {
           if (window.confirm("이 러닝을 저장하지 않고 삭제할까요? 되돌릴 수 없어요.")) {
-            discardRun(app);
-            navigate("/home");
+            if (discardRun(app)) navigate("/home");
           }
         }} />
       </div>
@@ -69,6 +70,7 @@ export default function Result() {
     return (
       <div className="screen">
         <SubHeader title="러닝 결과" back="/home" backLabel="홈" />
+        <StorageNotice state={state} />
         {phase === "saved" && error?.message === "duplicate_run" ? (
           <Empty
             title="이미 저장된 러닝이에요"
@@ -98,6 +100,7 @@ export default function Result() {
     <div className="screen">
       <SubHeader title="러닝 결과" back="/home" backLabel="홈" right={<AcceptBadge run={result} />} />
       <RouteMap points={routePoints || []} emptyText={routePoints ? "경로를 불러오지 못했어요" : "경로 불러오는 중…"} />
+      <StorageNotice state={state} />
       <RunStats run={result} />
       <UniversityNote run={result} verified={user.university_verified} />
       <div className="run-actions">
@@ -124,10 +127,10 @@ function SaveStatus({ state, onRetry, onDiscard }) {
   const { phase, error, attempt, nextRetryAt, retryable } = state;
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    if (phase !== "retrying") return undefined;
+    if (phase !== "retrying" && !(error?.status === 429 && nextRetryAt > Date.now())) return undefined;
     const id = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(id);
-  }, [phase]);
+  }, [phase, error, nextRetryAt]);
 
   if (phase === "saving" || phase === "idle") {
     return (
@@ -143,7 +146,7 @@ function SaveStatus({ state, onRetry, onDiscard }) {
         tone="warn"
         title={`저장에 실패해서 ${seconds}초 뒤 다시 보내요 (${attempt}/3)`}
         action={
-          <button type="button" className="btn btn--dark btn--small" onClick={onRetry}>
+          <button type="button" className="btn btn--dark btn--small" onClick={onRetry} disabled={error?.status === 429 && seconds > 0}>
             지금 재시도
           </button>
         }
@@ -156,11 +159,11 @@ function SaveStatus({ state, onRetry, onDiscard }) {
     <div className="stack">
       <Notice tone="bad" title="저장하지 못했어요">
         {apiMessage(error)}
-        {retryable ? " 기록은 이 기기에 보관돼 있어요. 연결되면 다시 시도해 주세요." : ""}
+        {retryable && state.pendingPersisted ? " 기록은 이 기기에 보관돼 있어요. 연결되면 다시 시도해 주세요." : ""}
       </Notice>
       <div className="btn-row">
-        <button type="button" className="btn btn--primary" onClick={onRetry}>
-          다시 시도
+        <button type="button" className="btn btn--primary" onClick={onRetry} disabled={error?.status === 429 && nextRetryAt > now}>
+          {error?.status === 429 && nextRetryAt > now ? `${Math.ceil((nextRetryAt - now) / 1000)}초 뒤 재시도` : "다시 시도"}
         </button>
         <button type="button" className="btn btn--ghost" onClick={onDiscard}>
           삭제

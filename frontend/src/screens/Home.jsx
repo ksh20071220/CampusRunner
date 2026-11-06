@@ -1,3 +1,4 @@
+import StorageNotice from "../components/StorageNotice.jsx";
 import { useState } from "react";
 import { useApp, useAuthErrorGuard, useSaverState, useTrackerSnapshot } from "../state/AppContext.jsx";
 import { useAsync } from "../lib/hooks.js";
@@ -59,9 +60,18 @@ export default function Home() {
           <strong>{user.nickname}</strong>
           <span>{user.university_name}</span>
         </div>
-        <Badge tone={verification.tone}>{verification.text}</Badge>
+        <button type="button" className="profile__verification" onClick={() => navigate("/verification")} aria-label={`학교 인증 내역: ${verification.text}`}>
+          <Badge tone={verification.tone}>{verification.text}</Badge><span aria-hidden="true">›</span>
+        </button>
       </section>
 
+      {!verified && <button type="button" className="card verification-entry" onClick={() => navigate("/verification")}>
+        <span className="verification-entry__icon" aria-hidden="true">✓</span>
+        <span><strong>{user.verification_status === "pending" ? "학교 인증 검토 현황" : user.verification_status === "rejected" ? "인증 서류 보완하기" : "우리 학교 러너로 인증하기"}</strong>
+          <small>{user.verification_status === "pending" ? "제출한 서류의 심사 상태를 확인해요" : "사진 인증을 마치고 학교 챌린지에 참여해요"}</small></span>
+        <span className="chevron" aria-hidden="true">›</span>
+      </button>}
+      <StorageNotice state={saverState} />
       <RecoveryBanner app={app} snapshot={snapshot} saverState={saverState} />
 
       {loading && !data && <Spinner />}
@@ -168,7 +178,7 @@ function RecoveryBanner({ app, snapshot, saverState }) {
           </button>
         }
       >
-        같은 기록으로 다시 보내서 중복 없이 저장해요.
+        {saverState.pendingPersisted ? "기기에 보관된 기록을 같은 요청으로 다시 보내요." : "기록이 현재 화면에만 남아 있어요. 새로고침하지 말고 저장해 주세요."}
       </Notice>
     );
   }

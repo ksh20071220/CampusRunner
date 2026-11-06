@@ -1,5 +1,5 @@
 CampusRunner 담당 기능 구현 점검표
-기준: 2026-11-02 / C11 HTTP 백엔드 / 스키마 버전 2
+기준: 2026-11-02 / C11 HTTP 백엔드 / 스키마 버전 3
 
 사용자 담당 범위: 회원/소속 대학 등록, 대학별 합산, 1인당 평균 거리,
 대학별 순위, 비정상 기록 탐지. 아래 완료는 백엔드 API 기준이다.
@@ -53,7 +53,7 @@ CampusRunner 담당 기능 구현 점검표
   현재 닉네임이 로그인 식별자다. 닉네임 변경 뒤 로그인에는 새 닉네임을 사용한다.
   이메일/전화번호 기반 비밀번호 분실 복구: 미구현. 현재 회원 모델에 이메일이 없으며,
     실제 복구 수단/소유 확인/발송 채널을 정한 후 구현해야 한다. 비밀번호 변경과 구별한다.
-  독립된 운영자 계정/권한 분리: 미구현. 현재 관리자 검토는 공동 비밀 토큰을 사용한다.
+  독립된 운영자 계정: 기본 DB에 1개를 생성할 수 있고 심사 화면에서 로그인/로그아웃한다.
   실제 도메인 HTTPS/프록시/IP 제한/OS 파일 권한/백업 보관은 배포 환경에서 설정해야 한다.
   탈퇴는 운영 DB 기준이다. 기존 백업 복원 시 회원이 되살아날 수 있으므로 과거 사본도 관리한다.
   Linux/Docker 실행과 실제 휴대폰 GPS 수집은 이 PC에서 검증하지 않았다.
@@ -84,3 +84,31 @@ CampusRunner 담당 기능 구현 점검표
   실제 C 서버에 가상 GPS 결과를 전송해 저장/조회/중복 방지/대학 점수 반영을 검증했다.
   미구현 항목과 프런트 구성 제안은 frontend/FRONTEND_PLAN_KO.txt를 참고한다.
   새 회원 화면/기록 서비스/지도/그래프 코드나 Vite 프로젝트 틀 자체는 이번에 만들지 않았다.
+
+
+2026-11-04 학교 인증 회원 화면 연결 완료
+  홈 → #/verification: 사진 미리보기/검사, 개인정보 가림·열람 동의, 바이너리 제출,
+  신청 이력·반려 사유·상태 갱신, 취소 확인, 반려/만료/철회/취소 후 재제출을 제공한다.
+  backend/examples/api-client.js의 해당 API는 token/signal 선택 인자로 회원·요청을 고정한다.
+  사진과 미리보기 URL은 회원 브라우저 저장소에 보관하지 않는다.
+  내 정보/비밀번호 변경/탈퇴/전체 기기 로그아웃 등의 별도 계정 설정 화면은 여전히 남아 있다.
+
+2026-11-06 중간 제출 기준
+  담당 범위 예상 진행률 95%. 동일 비중의 5개 역할 중 대학별 거리 합산, 1인당 평균 거리,
+  기간별 대학 순위, 비정상 기록 탐지 4개는 완료다. 회원/대학 등록은 가입·로그인,
+  대학 목록·선택, 증빙 제출·관리자 심사가 동작한다. 프로필 변경·비밀번호 변경·탈퇴
+  API가 있으며 회원 화면의 계정 설정 메뉴가 남아 있어 이 항목은 75%로 산정했다.
+
+  주요 파일
+    회원/대학: src/auth_api.c, src/auth.c, src/api.c, src/database.c,
+      src/catalog.c, src/catalog_data.h, catalog/universities.json
+    소속 인증/관리자: src/verification.c, src/admin_auth.c, create-admin.ps1,
+      examples/verification-admin.html, examples/verification-admin.css, examples/verification-admin.js
+    회원 인증 화면: ../frontend/src/screens/Verification.jsx,
+      ../frontend/src/services/university-verification.js, ../frontend/src/services/verification-files.js
+    집계/평균/순위/판정: src/runs_api.c, src/campus_runner.c, src/run_limits.h,
+      include/campus_runner.h
+    연결/검증: examples/api-client.js, tests/test_server.py, tests/test_verification_admin.cjs,
+      API.md, UNIVERSITY_VERIFICATION.md, BACKEND_HANDOFF_KO.txt
+  실행 가능한 제출물은 저장소 소스와 위 문서로 구성한다. 실행 DB, 사용자 사진,
+  관리자 자격 증명, build와 node_modules는 제출에서 제외한다.

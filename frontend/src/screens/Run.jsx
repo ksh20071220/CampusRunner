@@ -5,6 +5,7 @@ import { duration, kmh, km, pace, paceFrom } from "../lib/format.js";
 import { gpsMessage } from "../lib/messages.js";
 import { navigate } from "../lib/router.js";
 import { discardRun, finishRun, startRun } from "../services/run-actions.js";
+import StorageNotice from "../components/StorageNotice.jsx";
 import RouteMap from "../components/RouteMap.jsx";
 import { Badge, Notice, Stat, SubHeader } from "../components/ui.jsx";
 
@@ -84,6 +85,7 @@ export default function Run() {
         </Notice>
       )}
 
+      <StorageNotice state={saverState} />
       <RouteMap
         points={points}
         live={active}
