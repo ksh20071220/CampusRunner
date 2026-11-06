@@ -84,7 +84,7 @@ export default function Login({ onAdminLogin }) {
       </div>
 
       <form className="card form" onSubmit={submit}>
-        <label htmlFor="nickname">{mode === "login" ? "닉네임 또는 관리자 아이디" : "닉네임"}</label>
+        <label htmlFor="nickname">{mode === "login" ? "아이디" : "닉네임"}</label>
         <input
           id="nickname"
           value={nickname}
