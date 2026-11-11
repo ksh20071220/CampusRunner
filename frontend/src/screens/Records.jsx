@@ -2,29 +2,25 @@ import { useMemo, useState } from "react";
 import { useApp, useAuthErrorGuard } from "../state/AppContext.jsx";
 import { useAsync } from "../lib/hooks.js";
 import { apiMessage, normalizeApiError } from "../lib/messages.js";
-import { dateTime, duration, km, monthLabel, pace, shortDate } from "../lib/format.js";
-import { navigate } from "../lib/router.js";
-import { compareLast, fetchAllRuns, periodSeries, summarize } from "../services/records.js";
+import { km, monthLabel, pace, shortDate } from "../lib/format.js";
+import { compareLast, fetchRecordOverview } from "../services/records.js";
+import RecordHistory from "../components/RecordHistory.jsx";
 import BarChart from "../components/BarChart.jsx";
-import { Badge, Empty, Notice, Spinner, SubHeader } from "../components/ui.jsx";
-
-const VISIBLE_STEP = 20;
+import { Notice, Spinner, SubHeader } from "../components/ui.jsx";
 
 export default function Records() {
   const { api, dataVersion } = useApp();
   const [kind, setKind] = useState("week");
-  const [visible, setVisible] = useState(VISIBLE_STEP);
-  const { data: runs, error, loading, reload } = useAsync(() => fetchAllRuns(api), [api, dataVersion]);
+  const { data, error, loading, reload } = useAsync(() => fetchRecordOverview(api, kind), [api, dataVersion, kind]);
   useAuthErrorGuard(error);
-
-  const total = useMemo(() => (runs ? summarize(runs) : null), [runs]);
-  const series = useMemo(() => (runs ? periodSeries(runs, kind, kind === "week" ? 8 : 6) : []), [runs, kind]);
+  const total = data?.total;
+  const series = data?.series || [];
   const comparison = useMemo(() => compareLast(series), [series]);
 
   return (
     <div className="screen">
       <SubHeader title="내 러닝 기록" back="/home" backLabel="홈" />
-      {loading && !runs && <Spinner />}
+      {loading && !data && <Spinner />}
       {error && (
         <Notice
           tone="bad"
@@ -39,20 +35,7 @@ export default function Records() {
         </Notice>
       )}
 
-      {runs && runs.length === 0 && (
-        <Empty
-          title="아직 기록이 없어요"
-          action={
-            <button type="button" className="btn btn--primary" onClick={() => navigate("/run")}>
-              첫 러닝 시작하기
-            </button>
-          }
-        >
-          달리고 저장하면 여기에 쌓여요.
-        </Empty>
-      )}
-
-      {runs && runs.length > 0 && (
+      {data && (
         <>
           <p className="lead">
             누적 <b>{km(total.distance, 1)}km</b> · {total.count}회 · 평균 페이스 <b>{pace(total.pace)}</b>
@@ -98,36 +81,10 @@ export default function Records() {
             </dl>
           </section>
 
-          <section>
-            <h2 className="section-title">과거 기록 {runs.length}개</h2>
-            <ul className="run-list">
-              {runs.slice(0, visible).map((run) => (
-                <li key={run.id}>
-                  <a href={`#/records/${run.id}`} className="run-item">
-                    <div className="run-item__main">
-                      <span className="run-item__date">{dateTime(run.started_at)}</span>
-                      <span className="run-item__meta">
-                        {duration(run.duration_seconds)} · {pace(run.pace_seconds_per_km)}/km
-                        {!run.accepted && <Badge tone="bad">의심</Badge>}
-                      </span>
-                    </div>
-                    <span className={`run-item__distance ${run.accepted ? "" : "is-flagged"}`}>
-                      {km(run.distance_m)}
-                      <small>km</small>
-                    </span>
-                    <span className="chevron" aria-hidden="true">›</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {visible < runs.length && (
-              <button type="button" className="btn btn--outline btn--block" onClick={() => setVisible((v) => v + VISIBLE_STEP)}>
-                더 보기 ({runs.length - visible}개 남음)
-              </button>
-            )}
-          </section>
+
         </>
       )}
+      <RecordHistory />
     </div>
   );
 }

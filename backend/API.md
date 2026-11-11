@@ -2,13 +2,19 @@
 
 기본 URL: `http://127.0.0.1:8080`. 일반 본문은 `application/json` UTF-8 객체이며, 사진 업로드·조회는 이미지 바이너리입니다. 개인 API는 `Authorization: Bearer <token>`이 필요합니다. 쿠키 인증은 사용하지 않습니다. 사진 인증 API·상태·오류는 [소속 인증 안내](UNIVERSITY_VERIFICATION.md)를 참고하세요.
 
+관리자 로그인은 `{"username":"admin","password":"…"}`을 받아 `{"token":"…","username":"admin"}`을 반환합니다.
+발급 토큰은 관리자 API에서만 사용하며 8시간 뒤 만료됩니다. 로그인 시도는 관리자 로그인 전체 기준 분당 12회로 제한합니다.
+로그아웃 본문은 `{}`입니다. 기존 `CR_ADMIN_TOKEN`을 설정한 서버는 관리자 API에서 해당 토큰도 받습니다.
+
 ## 엔드포인트
 
 | Method | URL | 권한 | 결과 |
 | --- | --- | --- | --- |
 | GET | /health | 공개 | 200 상태 |
 | GET | /api/universities?q=서울&region=서울특별시&kind=대학교 | 공개 | 200 대학 배열, 검색 조건 선택 |
-| POST | /api/universities | 관리자 토큰 | 201 대학 등록 |
+| POST | /api/universities | 관리자 | 201 대학 등록 |
+| POST | /api/admin/auth/login | 관리자 아이디·비밀번호 | 200 관리자 세션 토큰 |
+| POST | /api/admin/auth/logout | 관리자 계정 세션 | 204 현재 세션 폐기 |
 | POST | /api/auth/register | 공개 | 201 회원·토큰 |
 | POST | /api/auth/login | 공개 | 200 회원·토큰 |
 | POST | /api/auth/logout | 회원 | 204 현재 세션 폐기 |
@@ -154,3 +160,35 @@ rankings: 기본 limit 100, 최대 500. me/runs: 기본 limit 50, 최대 200. �
 | 503 | database_busy, database_unavailable | 잠시 뒤 동일 key로 재시도 |
 
 서버가 응답하기 전에 연결이 끊어져도 러닝을 저장했을 수 있습니다. **동일 key와 동일 points로 재시도**하면 기존 결과를 받습니다. 프록시·HTTP 라이브러리가 API 핸들러 이전에 거부한 요청은 위 JSON 형식과 다를 수 있습니다.
+
+
+## 2026-11-04 저장 한도·개인 통계 확장
+
+기본 회원별 한도 (src/run_limits.h):
+  POST /api/runs 요청 60회/분. 본문 읽기 전에 검사하며 형식 오류·재전송도 요청 비용에 포함한다.
+  새 러닝 저장 100건/일 및 정규화된 GPS JSON 50MiB/일. 한국 시간 00:00 기준이다.
+  누적 100,000건 및 GPS JSON 256MiB/회원. 이는 DB 전체 파일 크기 한도가 아니다.
+  의심·제자리 기록도 저장 자원을 쓰므로 모든 새 기록을 계산한다.
+  서버의 기존 인증 시도 IP 제한(auth_api.c)과 프록시 설정은 변경하지 않았다.
+  같은 key·같은 좌표의 이미 저장된 기록은 일일·누적 한도 검사 전에 200으로 반환한다.
+  분당 요청 한도는 재전송에도 적용되며, 실제 새 저장이 없는 재전송은 저장 사용량을 늘리지 않는다.
+  일일/분당 초과: 429 run_daily_quota / run_upload_rate_limited + Retry-After(초).
+  누적 초과: 409 run_storage_quota. 원본 GPS는 클라이언트의 계정별 임시본에 유지한다.
+  한도 검사·새 INSERT·사용량 갱신이 같은 BEGIN IMMEDIATE에 있어 동시 요청도 한도를 넘지 않는다.
+  같은 계정의 한도가 다른 회원을 막지 않는다. 서비스 전체 디스크 한도·IP별 일반 DDoS 방어를 대체하지 않는다.
+
+GET /api/me/stats?from&to에는 duration_seconds와 pace_seconds_per_km을 추가했다.
+정상 기록의 양수 거리 구간 시간만 합산하고, 페이스는 총 시간/총 거리이며 거리가 0이면 null이다.
+기존 distance_m/accepted_runs/flagged_runs도 유지한다. 모든 기간은 러닝 시작 시각 [from,to)다.
+프런트 개인 기록의 누적값·주간/월간 그래프는 이 집계 API를 사용한다.
+목록은 200개씩 요청하고 20개씩 표시하며 더 보기로 다음 페이지를 읽는다. 10,000개에서 멈추지 않는다.
+
+API 클라이언트:
+  JSON 기본 제한 시간 15초 / 사진 업로드 45초. 응답 본문 읽기까지 포함한다.
+  new CampusRunnerApi(baseUrl,{timeoutMs,uploadTimeoutMs})로 범위 안에서 조정 가능하다.
+  시간 초과는 request_timeout/408, 명시적 취소는 request_cancelled/0이다.
+  RunSaver는 시간 초과에도 같은 key/좌표로 재시도하고 Retry-After 동안 수동 재시도도 기다린다.
+  계정 변경·임시본 삭제는 진행 중인 요청을 취소하고 늦은 응답의 화면 반영을 무효화한다.
+  이미 서버에 전달된 요청은 원래 계정에서 완료될 수 있으므로 취소가 서버 롤백을 뜻하지 않는다.
+  logoutAll/deleteAccount/changePassword는 시작 세션 버전을 확인한다. 다른 세션으로 바뀐 경우
+  새 토큰을 덮어쓰지 않고 session_changed/409를 반환한다. 원래 계정 작업 자체는 완료됐을 수 있다.

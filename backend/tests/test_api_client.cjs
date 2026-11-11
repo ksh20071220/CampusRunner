@@ -4,6 +4,32 @@ const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const clientModule = import('data:text/javascript;base64,' + readFileSync(join(__dirname, '../examples/api-client.js')).toString('base64'));
 
+test('run upload and identity check use the captured owner token', async t => {
+  const { api, requests } = await setup(t, 200, { id: 1 });
+  api.token = 'new-account';
+  await api.me({ token: 'original-account' });
+  await api.submitRun('stable-key', [], { token: 'original-account' });
+  assert.equal(requests[0].options.headers.Authorization, 'Bearer original-account');
+  assert.equal(requests[1].options.headers.Authorization, 'Bearer original-account');
+  assert.equal(api.token, 'new-account');
+});
+
+test('late logout does not clear a newly authenticated account token', async t => {
+  const { api, requests } = await setup(t, 204, null);
+  let finish;
+  const response = new Promise(resolve => { finish = resolve; });
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    requests.push({ url, options });
+    await response;
+    return { status: 204, ok: true };
+  });
+  const loggingOut = api.logout();
+  api.token = 'new-account';
+  finish(); await loggingOut;
+  assert.equal(requests[0].options.headers.Authorization, 'Bearer previous-session');
+  assert.equal(api.token, 'new-account');
+});
+
 async function setup(t, status, payload) {
   const { CampusRunnerApi } = await clientModule;
   const api = new CampusRunnerApi('https://api.example.test/');
@@ -57,4 +83,115 @@ test('logoutAll clears the token only after success', async t => {
   assert.equal(requests[0].url, 'https://api.example.test/api/auth/logout-all');
   assert.equal(requests[0].options.method, 'POST');
   assert.deepEqual(JSON.parse(requests[0].options.body), {});
+});
+
+for (const action of ['logoutAll', 'deleteAccount', 'changePassword']) {
+  test(`late ${action} rejects stale completion without modifying another session`, async t => {
+    const { api } = await setup(t, 204, null);
+    let finish;
+    t.mock.method(globalThis, 'fetch', async () => {
+      await new Promise(resolve => { finish = resolve; });
+      return { status: action === 'changePassword' ? 200 : 204, ok: true,
+        json: async () => ({ id: 1, token: 'replacement-A' }) };
+    });
+    const request = action === 'changePassword' ? api.changePassword('old-password!', 'new-password!')
+      : action === 'deleteAccount' ? api.deleteAccount('old-password!') : api.logoutAll();
+    const rejected = assert.rejects(request, { message: 'session_changed', status: 409 });
+    api.token = 'other-account';
+    finish(); await rejected;
+    assert.equal(api.token, 'other-account');
+  });
+}
+
+test('same token value after an intervening session still invalidates old account actions', async t => {
+  const { api } = await setup(t, 204, null);
+  let finish;
+  api.request = () => new Promise(resolve => { finish = resolve; });
+  const pending = api.logoutAll();
+  const rejected = assert.rejects(pending, { message: 'session_changed' });
+  api.token = null; api.token = 'previous-session'; finish(null); await rejected;
+  assert.equal(api.token, 'previous-session');
+});
+
+test('timeout aborts fetch and rejects even when transport never settles', async t => {
+  const { api } = await setup(t, 200, {}); api.timeoutMs = 5;
+  let signal;
+  t.mock.method(globalThis, 'fetch', (_url, options) => { signal = options.signal; return new Promise(() => {}); });
+  await assert.rejects(api.me(), { message: 'request_timeout', status: 408 });
+  assert.equal(signal.aborted, true);
+});
+
+test('timeout covers a stalled response body as well as response headers', async t => {
+  const { api } = await setup(t, 200, {}); api.timeoutMs = 5;
+  t.mock.method(globalThis, 'fetch', async () => ({ ok: true, status: 200, json: () => new Promise(() => {}) }));
+  await assert.rejects(api.me(), { message: 'request_timeout', status: 408 });
+});
+
+test('caller cancellation releases a hanging request and preserves the token', async t => {
+  const { api } = await setup(t, 200, {});
+  t.mock.method(globalThis, 'fetch', () => new Promise(() => {}));
+  const controller = new AbortController();
+  const request = api.me({ signal: controller.signal });
+  const rejected = assert.rejects(request, { message: 'request_cancelled', status: 0 });
+  controller.abort(); await rejected;
+  assert.equal(api.token, 'previous-session');
+});
+
+test('already aborted requests never call fetch', async t => {
+  const { api, requests } = await setup(t, 200, {});
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(api.me({ signal: controller.signal }), { message: 'request_cancelled' });
+  assert.equal(requests.length, 0);
+});
+
+test('proof upload has its own timeout and keeps the binary body', async t => {
+  const { api } = await setup(t, 201, {}); api.uploadTimeoutMs = 5;
+  const file = new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' });
+  let options;
+  t.mock.method(globalThis, 'fetch', (_url, opts) => { options = opts; return new Promise(() => {}); });
+  await assert.rejects(api.submitUniversityProof(file, 'student_card', { consent: true }), { message: 'request_timeout' });
+  assert.equal(options.body, file); assert.equal(options.signal.aborted, true);
+  assert.equal(options.headers.Authorization, 'Bearer previous-session');
+});
+
+test('server retry-after is exposed on the API error', async t => {
+  const { api } = await setup(t, 429, { error: 'run_daily_quota' });
+  t.mock.method(globalThis, 'fetch', async () => ({ ok: false, status: 429,
+    headers: { get: () => '3600' }, json: async () => ({ error: 'run_daily_quota' }) }));
+  await assert.rejects(api.submitRun('key', []), { message: 'run_daily_quota', retryAfterSeconds: 3600 });
+});
+
+
+test('verification methods pin the member token and upload the binary with explicit consent',async t=>{
+  const {api,requests}=await setup(t,200,{id:1}); api.token='other-account';
+  const options={token:'original-account'};
+  await api.universityVerifications(21,20,options);
+  await api.universityVerification(1,options);
+  await api.cancelUniversityVerification(1,options);
+  const file=new Blob([new Uint8Array([137,80,78,71])],{type:'image/png'});
+  await api.submitUniversityProof(file,'student_card',{...options,consent:true});
+  assert.equal(requests.length,4);
+  for(const request of requests)assert.equal(request.options.headers.Authorization,'Bearer original-account');
+  assert.equal(requests[0].url,'https://api.example.test/api/me/university-verifications?limit=21&offset=20');
+  assert.equal(requests[3].options.body,file);
+  assert.equal(requests[3].options.headers['X-Verification-Consent'],'1');
+  assert.equal(api.token,'other-account');
+});
+
+test('administrator login returns a separate session and rejects redirects', async t => {
+  const token = 'a'.repeat(64);
+  const { api, requests } = await setup(t, 200, { token, username: 'admin' });
+  assert.deepEqual(await api.adminLogin('admin', 'fixture-password'),
+    { base: 'https://api.example.test', token, username: 'admin' });
+  assert.equal(api.token, 'previous-session');
+  assert.equal(requests[0].url, 'https://api.example.test/api/admin/auth/login');
+  assert.equal(requests[0].options.redirect, 'error');
+  assert.equal(requests[0].options.headers.Authorization, undefined);
+});
+
+test('administrator credentials are never sent to a non-local HTTP address', async t => {
+  const { api, requests } = await setup(t, 200, {});
+  api.baseUrl = 'http://api.example.test';
+  await assert.rejects(api.adminLogin('admin', 'fixture-password'), /admin_secure_api_required/);
+  assert.equal(requests.length, 0);
 });

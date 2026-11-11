@@ -1,15 +1,17 @@
-import { recentBuckets } from "../lib/periods.js";
+import { recentBuckets, MAX_SERVER_TIME } from "../lib/periods.js";
 import { paceFrom } from "../lib/format.js";
 
-// 개인 기록 조회와 화면용 기간 통계. 전용 집계 API가 없으므로 목록을 끝까지 읽어
-// 브라우저에서 한국 날짜 기준으로 묶는다 (FRONTEND_PLAN: 데이터가 적은 1차 버전).
+// 화면의 총계·기간 통계는 서버 집계를 사용한다. 전체 목록 조회와 순수 합산
+// 함수는 도구/목업 호환을 위해 남기고 실제 화면은 목록을 페이지별로 읽는다.
 
 const PAGE = 200;
-const MAX_PAGES = 50; // 최대 10,000개. 넘으면 서버 집계 API를 백엔드와 협의한다.
+// Compatibility export for tools that need every record. Screens use server
+// aggregates plus lazy pages instead of downloading the whole history.
 
 export async function fetchAllRuns(api) {
   const runs = [];
-  for (let page = 0; page < MAX_PAGES; page += 1) {
+  for (let page = 0; ; page += 1) {
+    if (page * PAGE > 1000000) throw Object.assign(new Error("record_list_limit"), { status: 400 });
     const batch = await api.myRuns(PAGE, page * PAGE);
     runs.push(...batch);
     if (batch.length < PAGE) break;
@@ -57,4 +59,18 @@ export function compareLast(series) {
   }
   const diff = current.distance - previous.distance;
   return { current, previous, diff, ratio: diff / previous.distance };
+}
+
+function statsSummary(stats) {
+  return { distance: stats.distance_m, seconds: stats.duration_seconds, count: stats.accepted_runs,
+    flagged: stats.flagged_runs, pace: stats.pace_seconds_per_km };
+}
+
+export async function fetchRecordOverview(api, kind, now) {
+  const buckets = recentBuckets(kind, kind === "week" ? 8 : 6, now);
+  const [total, ...periods] = await Promise.all([
+    api.myStats(0, MAX_SERVER_TIME),
+    ...buckets.map(({ from, to }) => api.myStats(from, Math.min(to, MAX_SERVER_TIME))),
+  ]);
+  return { total: statsSummary(total), series: periods.map((stats, i) => ({ ...buckets[i], ...statsSummary(stats) })) };
 }

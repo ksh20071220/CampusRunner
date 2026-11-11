@@ -5,8 +5,8 @@ import { ModeBadge, Notice, TopBar } from "../components/ui.jsx";
 
 // 로그인·회원가입. (회원 기능의 세부 화면은 4번 담당 범위이며 여기서는 앱 진입에 필요한 최소만 둔다.)
 
-export default function Login() {
-  const { login, register, config, saver } = useApp();
+export default function Login({ onAdminLogin }) {
+  const { login, register, api, config, saver } = useApp();
   const [mode, setMode] = useState("login");
   const [nickname, setNickname] = useState(config.mock ? "새벽러너" : "");
   const [password, setPassword] = useState(config.mock ? "password123" : "");
@@ -25,8 +25,26 @@ export default function Login() {
     }
     setBusy(true);
     try {
-      if (mode === "login") await login(nickname.trim(), password);
-      else await register(nickname.trim(), password, university.id);
+      const name = nickname.trim();
+      if (mode === "register") {
+        await register(name, password, university.id);
+        return;
+      }
+      if (!config.mock && name === "admin") {
+        let adminError;
+        try {
+          onAdminLogin(await api.adminLogin(name, password));
+          return;
+        } catch (error) {
+          if (![401, 429].includes(error.status)) throw error;
+          adminError = error;
+        }
+        // Older member accounts can also have this nickname.
+        try { await login(name, password); }
+        catch (error) { throw adminError.status === 429 && error.status === 401 ? adminError : error; }
+      } else {
+        await login(name, password);
+      }
       // 이동은 App이 로그인 상태를 보고 처리한다 (저장 대기 러닝이 있으면 결과 화면으로).
     } catch (raw) {
       setError(apiMessage(normalizeApiError(raw)));
@@ -66,7 +84,7 @@ export default function Login() {
       </div>
 
       <form className="card form" onSubmit={submit}>
-        <label htmlFor="nickname">닉네임</label>
+        <label htmlFor="nickname">{mode === "login" ? "아이디" : "닉네임"}</label>
         <input
           id="nickname"
           value={nickname}
@@ -89,7 +107,7 @@ export default function Login() {
           <>
             <p className="hint">8자 이상. 비밀번호 찾기 기능이 아직 없으니 꼭 기억해 주세요.</p>
             <UniversityPicker value={university} onChange={setUniversity} />
-            <p className="hint">학교를 고른 뒤 학생증 인증이 승인돼야 내 기록이 대학 점수에 반영돼요.</p>
+            <p className="hint">가입 후 홈의 학교 인증에서 학생증·합격증을 제출해 주세요. 승인돼야 내 기록이 대학 점수에 반영돼요.</p>
           </>
         )}
         {error && <p className="form-error" role="alert">{error}</p>}
@@ -109,6 +127,9 @@ function UniversityPicker({ value, onChange }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    let active = true;
+    setError("");
+    setResults([]);
     if (value || query.trim().length < 1) {
       setResults([]);
       return undefined;
@@ -117,12 +138,13 @@ function UniversityPicker({ value, onChange }) {
       api
         .universities({ q: query.trim() })
         .then((list) => {
+          if (!active) return;
           setResults(list.slice(0, 8));
           setError(list.length ? "" : "검색 결과가 없어요.");
         })
-        .catch((raw) => setError(apiMessage(normalizeApiError(raw))));
+        .catch((raw) => active && setError(apiMessage(normalizeApiError(raw))));
     }, 250);
-    return () => clearTimeout(timer);
+    return () => { active = false; clearTimeout(timer); };
   }, [api, query, value]);
 
   if (value) {
