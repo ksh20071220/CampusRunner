@@ -2,13 +2,19 @@
 
 기본 URL: `http://127.0.0.1:8080`. 일반 본문은 `application/json` UTF-8 객체이며, 사진 업로드·조회는 이미지 바이너리입니다. 개인 API는 `Authorization: Bearer <token>`이 필요합니다. 쿠키 인증은 사용하지 않습니다. 사진 인증 API·상태·오류는 [소속 인증 안내](UNIVERSITY_VERIFICATION.md)를 참고하세요.
 
+관리자 로그인은 `{"username":"admin","password":"…"}`을 받아 `{"token":"…","username":"admin"}`을 반환합니다.
+발급 토큰은 관리자 API에서만 사용하며 8시간 뒤 만료됩니다. 로그인 시도는 관리자 로그인 전체 기준 분당 12회로 제한합니다.
+로그아웃 본문은 `{}`입니다. 기존 `CR_ADMIN_TOKEN`을 설정한 서버는 관리자 API에서 해당 토큰도 받습니다.
+
 ## 엔드포인트
 
 | Method | URL | 권한 | 결과 |
 | --- | --- | --- | --- |
 | GET | /health | 공개 | 200 상태 |
 | GET | /api/universities?q=서울&region=서울특별시&kind=대학교 | 공개 | 200 대학 배열, 검색 조건 선택 |
-| POST | /api/universities | 관리자 토큰 | 201 대학 등록 |
+| POST | /api/universities | 관리자 | 201 대학 등록 |
+| POST | /api/admin/auth/login | 관리자 아이디·비밀번호 | 200 관리자 세션 토큰 |
+| POST | /api/admin/auth/logout | 관리자 계정 세션 | 204 현재 세션 폐기 |
 | POST | /api/auth/register | 공개 | 201 회원·토큰 |
 | POST | /api/auth/login | 공개 | 200 회원·토큰 |
 | POST | /api/auth/logout | 회원 | 204 현재 세션 폐기 |

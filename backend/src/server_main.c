@@ -74,6 +74,12 @@ static int serve(int argc, char **argv) {
     struct mg_callbacks callbacks;
     size_t i;
     unsigned maintenance_ticks=0;
+    if (argc == 4 && !strcmp(argv[1], "--create-admin")) {
+#ifndef _WIN32
+        umask(0077);
+#endif
+        return cr_create_admin(argv[2], argv[3]);
+    }
     if (argc > 3 || !*db || !*listen) { fprintf(stderr, "Usage: campus_server [database.sqlite3] [IPv4:port]\n"); return 2; }
     if (!valid_listen(listen)) {
         fprintf(stderr, "Listen address must be an IPv4 address and port.\n"); return 2;

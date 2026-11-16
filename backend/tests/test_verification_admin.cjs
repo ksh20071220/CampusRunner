@@ -33,6 +33,7 @@ function setup({ mobile = false } = {}) {
   }
   for (const id of ['base','token','reviewer','status','reason','refresh','previous','next',
     'approve','reject','revoke','queue','photo','heading','details','message','page-info',
+    'admin-login','admin-login-button','admin-username','admin-password','admin-logout',
     'app','connection','connection-dot','connection-label','connect-load','connect-button','back',
     'queue-empty','empty-title','empty-description','pagination','queue-count','photo-placeholder','photo-note',
     'review-content','review-empty','review-actions','university-name','request-id','request-status','document-type',
@@ -241,4 +242,30 @@ test('mobile review validates the memo inline and quick reasons clear its error'
   respond(3, []); await review;
   assert.equal($('app').dataset.view, 'queue');
   assert.match($('message').textContent, /처리 완료/);
+});
+
+
+test('account login keeps its bearer out of inputs and logout clears the queue', async () => {
+  const { $, requests, respond } = setup();
+  const token = 'b'.repeat(64);
+  $('base').value = 'http://127.0.0.1:8080';
+  $('admin-username').value = 'admin';
+  $('admin-password').value = 'fixture-password';
+  const login = $('admin-login').onsubmit({ preventDefault() {} });
+  assert.equal($('admin-password').value, '');
+  assert.equal(requests[0].url, 'http://127.0.0.1:8080/api/admin/auth/login');
+  assert.equal(requests[0].options.redirect, 'error');
+  respond(0, { token, username: 'admin' });
+  await tick();
+  assert.equal(requests[1].options.headers.Authorization, 'Bearer ' + token);
+  assert.equal($('token').value, '');
+  respond(1, [row(1)]);
+  await login;
+  assert.equal($('queue').children.length, 1);
+  const logout = $('admin-logout').onclick();
+  assert.equal($('queue').children.length, 0);
+  assert.match(requests[2].url, /admin\/auth\/logout$/);
+  respond(2, {}, 204);
+  await logout;
+  assert.equal($('admin-login').hidden, false);
 });

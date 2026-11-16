@@ -22,9 +22,11 @@ class BackupTests(unittest.TestCase):
         with contextlib.closing(sqlite3.connect(self.source)) as db:
             db.executescript("CREATE TABLE university_verifications(image BLOB,status TEXT,reason TEXT);"
                              "CREATE TABLE sessions(token_hash BLOB);"
+                             "CREATE TABLE admin_sessions(token_hash BLOB);"
                              "CREATE TABLE records(value TEXT);")
             db.execute("INSERT INTO university_verifications VALUES(?,'pending',NULL)", (b'private-photo-marker',))
             db.execute("INSERT INTO sessions VALUES(?)", (b'old-token-marker',))
+            db.execute("INSERT INTO admin_sessions VALUES(?)", (b'old-admin-token-marker',))
             db.execute("INSERT INTO records VALUES('keep-me')")
             db.commit()
 
@@ -38,10 +40,12 @@ class BackupTests(unittest.TestCase):
             self.assertEqual(db.execute('SELECT image,status,reason FROM university_verifications').fetchone(),
                              (None, 'cancelled', 'backup_restore_resubmission_required'))
             self.assertEqual(db.execute('SELECT count(*) FROM sessions').fetchone()[0], 0)
+            self.assertEqual(db.execute('SELECT count(*) FROM admin_sessions').fetchone()[0], 0)
             self.assertEqual(db.execute('SELECT value FROM records').fetchone()[0], 'keep-me')
             self.assertEqual(db.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
         self.assertNotIn(b'private-photo-marker', self.target.read_bytes())
         self.assertNotIn(b'old-token-marker', self.target.read_bytes())
+        self.assertNotIn(b'old-admin-token-marker', self.target.read_bytes())
         with contextlib.closing(sqlite3.connect(self.source)) as db:
             self.assertEqual(db.execute('SELECT image,status FROM university_verifications').fetchone(), (b'private-photo-marker', 'pending'))
             self.assertEqual(db.execute('SELECT count(*) FROM sessions').fetchone()[0], 1)

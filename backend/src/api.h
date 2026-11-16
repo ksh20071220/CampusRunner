@@ -15,6 +15,8 @@ typedef struct {
     cJSON *body;
     int64_t member_id;
     int retry_after_seconds;
+    char admin_username[33];
+    unsigned char admin_session_hash[32];
     unsigned char token_hash[32];
 } CrRequest;
 int cr_api_handler(struct mg_connection *conn, void *data);
@@ -34,6 +36,9 @@ cJSON *cr_member_json(sqlite3_stmt *stmt);
 int cr_query_range(CrRequest *r, int64_t *from, int64_t *to);
 int cr_query_number(CrRequest *r, const char *name, int default_value, int maximum);
 int cr_is_admin(CrRequest *r);
+int cr_begin_admin_write(CrRequest *r);
+int cr_admin_auth_route(CrRequest *r, const char *path, const char *method);
+int cr_create_admin(const char *path, const char *username);
 int cr_verification_route(CrRequest *r, const char *path, const char *method);
 int cr_verification_upload_path(const char *path);
 #endif

@@ -11,27 +11,40 @@
 <body>
 <div class="app" id="app" data-view="queue">
   <header class="topbar">
-    <a class="brand" href="verification-admin.html" aria-label="CampusRunner 소속 인증 홈">
+    <a class="brand" id="review-home" href="verification-admin.html" aria-label="CampusRunner 소속 인증 홈">
       <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M10 9h14l-3 5H9l-3 5h13l-3 5H2L10 9Z" fill="currentColor"/><path d="m24 17 5-8h-3l-5 8h3Z" fill="currentColor"/></svg></span>
       <span>campus<span class="brand-light">runner</span><span class="brand-dot">.</span></span>
     </a>
-    <span class="admin-label">운영자 모드</span>
+    <div class="admin-controls">
+      <span class="admin-label">운영자 모드</span>
+      <button class="admin-logout" id="admin-logout" type="button" hidden>로그아웃</button>
+    </div>
   </header>
   <details class="connection" id="connection">
     <summary><span class="connection-dot" id="connection-dot"></span><span id="connection-label">관리자 연결 설정</span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 17h16M9 4v6m6 4v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></summary>
     <div class="connection-body">
       <div class="section-kicker">WORKSPACE CONNECTION</div>
       <h2>검토할 준비를 해볼까요?</h2>
-      <p class="muted">서버 정보와 담당자 이름을 입력해 주세요.</p>
+      <p class="muted">관리자 계정으로 로그인해 주세요.</p>
       <label for="base">API 주소</label>
       <input id="base" value="http://127.0.0.1:8080" type="url" inputmode="url" autocomplete="off" spellcheck="false">
+      <form id="admin-login">
+        <label for="admin-username">관리자 아이디</label>
+        <input id="admin-username" value="admin" required autocomplete="username" maxlength="32" spellcheck="false">
+        <label for="admin-password">관리자 비밀번호</label>
+        <input id="admin-password" type="password" required autocomplete="current-password" maxlength="128">
+        <button class="button button-dark connection-submit" id="admin-login-button" type="submit">로그인하고 목록 불러오기</button>
+      </form>
+      <details>
+      <summary>기존 관리자 토큰으로 연결</summary>
       <label for="token">관리자 토큰</label>
       <input id="token" type="password" autocomplete="off" placeholder="관리자 토큰을 붙여넣으세요">
       <label for="reviewer">검토 담당자 이름</label>
       <input id="reviewer" autocomplete="off" placeholder="검토 기록에 남길 이름">
       <p class="connection-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4.5" y="8" width="11" height="8" rx="2" stroke="currentColor"/><path d="M7 8V5a3 3 0 0 1 6 0v3" stroke="currentColor"/></svg>토큰과 사진은 브라우저에 저장하지 않아요.<br>담당자 이름은 처리 기록에 남습니다.</p>
-      <p id="connection-feedback" class="inline-error" role="alert" hidden></p>
       <button class="button button-dark connection-submit" id="connect-load">연결하고 목록 불러오기 <span aria-hidden="true">↗</span></button>
+      </details>
+      <p id="connection-feedback" class="inline-error" role="alert" hidden></p>
     </div>
   </details>
   <div class="page-intro">

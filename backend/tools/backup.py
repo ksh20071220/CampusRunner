@@ -35,6 +35,8 @@ def backup(source, target):
                 # A restore must not resurrect tokens revoked after the backup.
                 if 'sessions' in tables:
                     dst.execute('DELETE FROM sessions')
+                if 'admin_sessions' in tables:
+                    dst.execute('DELETE FROM admin_sessions')
                 dst.commit()
                 dst.execute('VACUUM')
                 if dst.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':

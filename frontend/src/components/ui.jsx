@@ -104,7 +104,7 @@ const TABS = [
 ];
 
 export function BottomNav({ active }) {
-  const current = active === "record" ? "records" : active === "result" ? "run" : active;
+  const current = active === "record" ? "records" : active === "result" ? "run" : active === "verification" ? "home" : active;
   return (
     <nav className="bottom-nav" aria-label="주요 화면">
       {TABS.map((tab) => (

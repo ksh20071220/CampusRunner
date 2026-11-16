@@ -9,6 +9,7 @@ const ROUTES = [
   { name: "result", pattern: /^\/result$/ },
   { name: "records", pattern: /^\/records$/ },
   { name: "record", pattern: /^\/records\/(\d+)$/, params: ["id"] },
+  { name: "verification", pattern: /^\/verification$/ },
   { name: "rankings", pattern: /^\/rankings$/ },
   { name: "login", pattern: /^\/login$/ },
 ];

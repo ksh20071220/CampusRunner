@@ -72,6 +72,25 @@ export class CampusRunnerApi {
     this.token = user.token;
     return user;
   }
+  async adminLogin(username, password) {
+    const url = new URL(this.baseUrl);
+    const local = url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+    if ((!local && url.protocol !== "https:") || url.username || url.password || url.href !== url.origin + "/") {
+      const error = new Error("admin_secure_api_required");
+      error.status = 400;
+      throw error;
+    }
+    const session = await this._fetchJson("/api/admin/auth/login", {
+      method: "POST", redirect: "error", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    if (typeof session?.token !== "string" || !/^[a-f0-9]{64}$/.test(session.token) || session.username !== username) {
+      const error = new Error("invalid_admin_session");
+      error.status = 502;
+      throw error;
+    }
+    return { base: url.origin, token: session.token, username: session.username };
+  }
   async logout() {
     const token = this.token, version = this.sessionVersion;
     await this.request("/api/auth/logout", { method: "POST", body: {}, token });
@@ -121,22 +140,22 @@ export class CampusRunnerApi {
   myStatsSeries(from, to, bucket) {
     return this.request(`/api/me/stats/series?${new URLSearchParams({ from, to, bucket })}`);
   }
-  universityVerifications(limit = 20, offset = 0) {
-    return this.request(`/api/me/university-verifications?${new URLSearchParams({ limit, offset })}`);
+  universityVerifications(limit = 20, offset = 0, { token = this.token, signal } = {}) {
+    return this.request(`/api/me/university-verifications?${new URLSearchParams({ limit, offset })}`, { token, signal });
   }
-  universityVerification(id) {
-    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}`);
+  universityVerification(id, { token = this.token, signal } = {}) {
+    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}`, { token, signal });
   }
-  cancelUniversityVerification(id) {
-    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: {} });
+  cancelUniversityVerification(id, { token = this.token, signal } = {}) {
+    return this.request(`/api/me/university-verifications/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: {}, token, signal });
   }
   /** Show the consent/masking notice to the user before passing consent:true. */
-  async submitUniversityProof(file, documentType, { consent = false, signal } = {}) {
+  async submitUniversityProof(file, documentType, { consent = false, signal, token = this.token } = {}) {
     if (!consent) throw new Error('verification_consent_required');
     if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 5 * 1024 * 1024) throw new Error('jpeg_or_png_up_to_5mb_required');
     return this._fetchJson('/api/me/university-verifications', {
       method: 'POST', credentials: 'omit', body: file,
-      headers: { Authorization: `Bearer ${this.token}`, 'Content-Type': file.type,
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': file.type,
         'X-Document-Type': documentType, 'X-Verification-Consent': '1' },
     }, { signal, timeoutMs: this.uploadTimeoutMs });
   }

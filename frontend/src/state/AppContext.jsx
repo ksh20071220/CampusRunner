@@ -160,6 +160,13 @@ export function AppProvider({ children }) {
     }
   }, [api, applySession]);
 
+  // Only a response for the still-current member may refresh the displayed profile.
+  const syncProfile = useCallback((profile, token) => {
+    if (api.token !== token || profile.id !== accounts.memberId) return;
+    applySession({ ...profile, token });
+    setDataVersion(version => version + 1);
+  }, [api, accounts, applySession]);
+
   /** 화면에서 API 401을 받으면 로그인 화면으로 보내기 위해 세션을 비운다. */
   const handleAuthError = useCallback(
     (error) => {
@@ -179,10 +186,11 @@ export function AppProvider({ children }) {
       register,
       logout,
       refreshMe,
+      syncProfile,
       handleAuthError,
       dataVersion,
     }),
-    [config, api, saver, binding, session, authChecked, login, register, logout, refreshMe, handleAuthError, dataVersion],
+    [config, api, saver, binding, session, authChecked, login, register, logout, refreshMe, syncProfile, handleAuthError, dataVersion],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -31,7 +31,7 @@ cd backend
 - 기본 주소: `http://127.0.0.1:8080`
 - 상태 확인: `http://127.0.0.1:8080/health`
 - 공용 DB: `backend/data/campus.sqlite3`
-- 최초 실행 시 임의의 관리자 토큰을 `backend/data/admin-token.txt`에 생성합니다. 이 파일·DB는 Git에서 제외합니다.
+- 최초 실행 시 임의의 관리자 토큰을 `backend/data/admin-token.txt`에 생성합니다. 이 파일·DB는 Git에서 제외합니다. 아이디·비밀번호 방식은 [관리자 계정 생성](UNIVERSITY_VERIFICATION.md#운영진-검토-화면)을 참고하세요.
 - 종료: `Ctrl+C`. 같은 명령으로 재실행하면 DB·로그인 세션이 유지됩니다.
 - `build.ps1 -Test`는 기존 C 단위 테스트·CLI 테스트와 실제 HTTP 서버 통합 테스트를 실행합니다. 서버 테스트에는 localhost 통신이 허용되어야 합니다.
 - Node.js 18 이상이 있으면 관리자 화면의 페이지 이동·비동기 응답·중복 처리 방지 테스트도 실행합니다. 별도 실행: `node --test tests/test_verification_admin.cjs`. CMake/CTest도 Node를 찾으면 이 테스트를 포함하며, CI는 Node 22로 실행합니다.

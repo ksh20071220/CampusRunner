@@ -162,7 +162,11 @@ static int decision(CrRequest *r,int64_t id,int mode) {
     if (cancel) {
         step=cr_begin_member_write(r);
         if (step) return cr_error(r,step,step==401?"authentication_required":step==503?"database_busy":"database_error");
-    } else if (!cr_db_exec(r->db,"BEGIN IMMEDIATE")) return cr_error(r,503,"database_busy");
+    } else {
+        int result=cr_begin_admin_write(r);
+        if (result) return cr_error(r,result,result==403 ? "admin_required" : "database_busy");
+        if (r->admin_username[0]) reviewer=r->admin_username;
+    }
     s=cr_db_prepare(r->db,"SELECT v.member_id,v.university_id,v.status,m.university_id,v.expires_at FROM university_verifications v JOIN members m ON m.id=v.member_id WHERE v.id=?");
     if (!s) goto fail;
     sqlite3_bind_int64(s,1,id); step=sqlite3_step(s);
