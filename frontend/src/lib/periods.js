@@ -33,10 +33,16 @@ export function addMonths(monthStart, count) {
   return Date.UTC(year, month + count, 1) / 1000 - KST;
 }
 
-/** 오늘을 포함하는 최근 n개 주/월 구간 (오래된 것부터) */
+/** 오늘을 포함하는 최근 n개 일/주/월 구간 (오래된 것부터) */
 export function recentBuckets(kind, count, now = nowSeconds()) {
   const buckets = [];
-  if (kind === "week") {
+  if (kind === "day") {
+    const today = startOfDay(now);
+    for (let i = count - 1; i >= 0; i -= 1) {
+      const from = today - i * DAY;
+      buckets.push({ from, to: from + DAY });
+    }
+  } else if (kind === "week") {
     const current = startOfWeek(now);
     for (let i = count - 1; i >= 0; i -= 1) {
       const from = current - i * 7 * DAY;

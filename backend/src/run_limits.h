@@ -6,4 +6,6 @@
 #define CR_RUN_BYTES_PER_DAY (50LL * 1024 * 1024)
 #define CR_RUN_BYTES_TOTAL (256LL * 1024 * 1024)
 #define CR_RUNS_TOTAL 100000
+/* /api/me/stats/series: one year of days or about seven years of weeks per request. */
+#define CR_SERIES_MAX_BUCKETS 366
 #endif

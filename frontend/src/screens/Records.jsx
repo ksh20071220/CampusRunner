@@ -2,11 +2,24 @@ import { useMemo, useState } from "react";
 import { useApp, useAuthErrorGuard } from "../state/AppContext.jsx";
 import { useAsync } from "../lib/hooks.js";
 import { apiMessage, normalizeApiError } from "../lib/messages.js";
-import { km, monthLabel, pace, shortDate } from "../lib/format.js";
+import { km, monthLabel, pace, shortDate, weekdayLabel } from "../lib/format.js";
 import { compareLast, fetchRecordOverview } from "../services/records.js";
 import RecordHistory from "../components/RecordHistory.jsx";
 import BarChart from "../components/BarChart.jsx";
 import { Notice, Spinner, SubHeader } from "../components/ui.jsx";
+
+// 탭별 문구. day는 최근 7일과 그 전 7일을 비교한다.
+const KINDS = {
+  day: { tab: "일간", title: "일간", caption: "최근 7일", current: "최근 7일", previous: "그 전 7일" },
+  week: { tab: "주간", title: "주간", caption: "최근 8주", current: "이번 주", previous: "지난주" },
+  month: { tab: "월간", title: "월간", caption: "최근 6개월", current: "이번 달", previous: "지난달" },
+};
+
+function barLabels(kind, s, i, last) {
+  if (kind === "day") return { label: i === last ? "오늘" : weekdayLabel(s.from), fullLabel: shortDate(s.from) };
+  if (kind === "week") return { label: i === last ? "이번 주" : shortDate(s.from), fullLabel: `${shortDate(s.from)} 주` };
+  return { label: monthLabel(s.from), fullLabel: monthLabel(s.from) };
+}
 
 export default function Records() {
   const { api, dataVersion } = useApp();
@@ -15,7 +28,9 @@ export default function Records() {
   useAuthErrorGuard(error);
   const total = data?.total;
   const series = data?.series || [];
-  const comparison = useMemo(() => compareLast(series), [series]);
+  const periods = data?.periods;
+  const comparison = useMemo(() => (periods ? compareLast(periods) : null), [periods]);
+  const names = KINDS[kind];
 
   return (
     <div className="screen">
@@ -43,31 +58,29 @@ export default function Records() {
 
           <section className="card">
             <div className="card__head">
-              <h2>{kind === "week" ? "주간" : "월간"} 거리 변화</h2>
+              <h2>{names.title} 거리 변화</h2>
               <div className="segmented segmented--small" role="tablist">
-                <button type="button" role="tab" aria-selected={kind === "week"} onClick={() => setKind("week")}>
-                  주간
-                </button>
-                <button type="button" role="tab" aria-selected={kind === "month"} onClick={() => setKind("month")}>
-                  월간
-                </button>
+                {Object.entries(KINDS).map(([value, k]) => (
+                  <button key={value} type="button" role="tab" aria-selected={kind === value} onClick={() => setKind(value)}>
+                    {k.tab}
+                  </button>
+                ))}
               </div>
             </div>
-            <ChangeLine comparison={comparison} kind={kind} />
+            <ChangeLine comparison={comparison} names={names} />
             <BarChart
               key={kind}
-              caption={`${kind === "week" ? "최근 8주" : "최근 6개월"} 정상 기록 거리`}
+              caption={`${names.caption} 정상 기록 거리`}
               formatValue={(m) => `${km(m, 1)}km`}
               data={series.map((s, i) => ({
                 key: s.from,
-                label: kind === "week" ? (i === series.length - 1 ? "이번 주" : shortDate(s.from)) : monthLabel(s.from),
-                fullLabel: kind === "week" ? `${shortDate(s.from)} 주` : monthLabel(s.from),
+                ...barLabels(kind, s, i, series.length - 1),
                 value: s.distance,
               }))}
             />
             <dl className="mini-stats">
               <div>
-                <dt>{kind === "week" ? "이번 주" : "이번 달"} 러닝</dt>
+                <dt>{names.current} 러닝</dt>
                 <dd>{comparison.current.count}회</dd>
               </div>
               <div>
@@ -75,7 +88,7 @@ export default function Records() {
                 <dd>{pace(comparison.current.pace)}</dd>
               </div>
               <div>
-                <dt>{kind === "week" ? "지난주" : "지난달"} 페이스</dt>
+                <dt>{names.previous} 페이스</dt>
                 <dd>{pace(comparison.previous?.pace ?? null)}</dd>
               </div>
             </dl>
@@ -89,10 +102,10 @@ export default function Records() {
   );
 }
 
-function ChangeLine({ comparison, kind }) {
+function ChangeLine({ comparison, names }) {
   if (!comparison) return null;
-  const prevName = kind === "week" ? "지난주" : "지난달";
-  const curName = kind === "week" ? "이번 주" : "이번 달";
+  const prevName = names.previous;
+  const curName = names.current;
   if (comparison.ratio === null) {
     return (
       <p className="change">
